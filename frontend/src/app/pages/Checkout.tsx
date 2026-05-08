@@ -189,72 +189,126 @@ export function Checkout() {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">First Name *</Label>
-                    <Input id="firstName" required placeholder="John" />
+                    <Input
+                      id="firstName"
+                      value={formData.firstName}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="John"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName">Last Name *</Label>
-                    <Input id="lastName" required placeholder="Doe" />
+                    <Input
+                      id="lastName"
+                      value={formData.lastName}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="Doe"
+                    />
                   </div>
                 </div>
                 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="phone">Phone Number *</Label>
-                    <Input id="phone" type="tel" required placeholder="+91 98765 43210" />
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="+91 98765 43210"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">Email *</Label>
-                    <Input id="email" type="email" required placeholder="john.doe@example.com" />
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="john.doe@example.com"
+                    />
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="houseName">House/Flat Name or Number *</Label>
-                  <Input 
-                    id="houseName" 
-                    required 
-                    placeholder="e.g., Flat 301, Sunrise Apartments" 
+                  <Input
+                    id="houseName"
+                    value={formData.houseName}
+                    onChange={handleInputChange}
+                    required
+                    placeholder="e.g., Flat 301, Sunrise Apartments"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="building">Building/Society Name *</Label>
-                  <Input 
-                    id="building" 
-                    required 
-                    placeholder="e.g., Royal Heights, Sector 7" 
+                  <Input
+                    id="building"
+                    value={formData.building}
+                    onChange={handleInputChange}
+                    required
+                    placeholder="e.g., Royal Heights, Sector 7"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="street">Street/Road/Area *</Label>
-                  <Input 
-                    id="street" 
-                    required 
-                    placeholder="e.g., MG Road, Andheri West" 
+                  <Input
+                    id="street"
+                    value={formData.street}
+                    onChange={handleInputChange}
+                    required
+                    placeholder="e.g., MG Road, Andheri West"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="landmark">Landmark (Optional)</Label>
-                  <Input 
-                    id="landmark" 
-                    placeholder="e.g., Near City Mall, Opposite Metro Station" 
+                  <Input
+                    id="landmark"
+                    value={formData.landmark}
+                    onChange={handleInputChange}
+                    placeholder="e.g., Near City Mall, Opposite Metro Station"
                   />
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="city">City *</Label>
-                    <Input id="city" required placeholder="Mumbai" />
+                    <Input
+                      id="city"
+                      value={formData.city}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="Mumbai"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="state">State *</Label>
-                    <Input id="state" required placeholder="Maharashtra" />
+                    <Input
+                      id="state"
+                      value={formData.state}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="Maharashtra"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="zip">PIN Code *</Label>
-                    <Input id="zip" required placeholder="400001" pattern="[0-9]{6}" maxLength={6} />
+                    <Input
+                      id="zip"
+                      value={formData.zip}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="400001"
+                      pattern="[0-9]{6}"
+                      maxLength={6}
+                    />
                   </div>
                 </div>
 

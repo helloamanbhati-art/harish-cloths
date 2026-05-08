@@ -15,6 +15,10 @@ if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
 // Create Razorpay order
 exports.createRazorpayOrder = async (orderData) => {
   try {
+    if (!razorpay) {
+      throw new Error("Razorpay not configured. Please check environment variables.");
+    }
+
     const options = {
       amount: Math.round(orderData.total * 100), // Amount in paise
       currency: "INR",
@@ -30,6 +34,7 @@ exports.createRazorpayOrder = async (orderData) => {
     const order = await razorpay.orders.create(options);
     return order;
   } catch (error) {
+    console.error("Razorpay order creation error:", error);
     throw new Error(`Razorpay order creation failed: ${error.message}`);
   }
 };

@@ -20,6 +20,16 @@ interface RazorpayResponse {
   razorpay_signature: string;
 }
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const RAZORPAY_KEY =
+  import.meta.env.VITE_RAZORPAY_KEY ||
+  import.meta.env.VITE_RAZORPAY_KEY_ID ||
+  'rzp_test_1DP5MM47F8wC1j';
+
+if (!import.meta.env.VITE_RAZORPAY_KEY && !import.meta.env.VITE_RAZORPAY_KEY_ID) {
+  console.warn('Razorpay publishable key not configured. Set VITE_RAZORPAY_KEY or VITE_RAZORPAY_KEY_ID.');
+}
+
 export function Payment() {
   const { items, totalPrice, clearCart } = useCart();
   const navigate = useNavigate();
@@ -95,7 +105,7 @@ export function Payment() {
         customerNotes: parsedCheckoutData.customerNotes || '',
       };
 
-      const orderResponse = await fetch('http://localhost:3000/api/v1/orders', {
+      const orderResponse = await fetch(`${API_BASE_URL}/api/v1/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderPayload),
@@ -115,7 +125,7 @@ export function Payment() {
 
       // Step 3: Open Razorpay payment modal
       const options = {
-        key: 'rzp_test_1DP5MM47F8wC1j', // Test key - Replace with real key later
+        key: RAZORPAY_KEY,
         amount: createdOrder.razorpayOrder.amount, // Amount in paise
         currency: createdOrder.razorpayOrder.currency,
         name: 'Harish Cloths',

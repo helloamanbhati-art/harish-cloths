@@ -8,6 +8,8 @@ export interface Brand {
 
 interface BrandContextType {
   brands: Brand[];
+  loading: boolean;
+  error: string | null;
   addBrand: (brand: Brand) => Promise<boolean>;
   updateBrand: (id: string, brand: Brand) => Promise<boolean>;
   deleteBrand: (id: string) => Promise<boolean>;
@@ -20,17 +22,24 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 function getAuthHeaders() {
   const token = localStorage.getItem('adminToken');
-  return {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'Authorization': token ? `Bearer ${token}` : '',
   };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  return headers;
 }
 
 export function BrandProvider({ children }: { children: ReactNode }) {
   const [brands, setBrands] = useState<Brand[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchBrands = async () => {
+      setLoading(true);
+      setError(null);
       try {
         console.log('[fetchBrands] Starting...');
         const token = localStorage.getItem('adminToken');
@@ -52,10 +61,16 @@ export function BrandProvider({ children }: { children: ReactNode }) {
           setBrands(mapped);
         } else {
           const errorData = await response.json();
+          const message = errorData?.message || 'Failed to fetch brands';
           console.error('[fetchBrands] Error:', errorData);
+          setError(message);
         }
       } catch (error) {
+        const message = error instanceof Error ? error.message : 'An unexpected error occurred';
         console.error('[fetchBrands] Exception:', error);
+        setError(message);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -141,7 +156,7 @@ export function BrandProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <BrandContext.Provider value={{ brands, addBrand, updateBrand, deleteBrand, getBrandById }}>
+    <BrandContext.Provider value={{ brands, loading, error, addBrand, updateBrand, deleteBrand, getBrandById }}>
       {children}
     </BrandContext.Provider>
   );

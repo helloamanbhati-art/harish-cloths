@@ -34,7 +34,16 @@ export function useProducts() {
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to fetch products: ${response.statusText}`);
+          let message = response.statusText;
+          try {
+            const errorBody = await response.json();
+            if (errorBody?.message) {
+              message = errorBody.message;
+            }
+          } catch {
+            // ignore parse failure
+          }
+          throw new Error(`Failed to fetch products: ${response.status} ${message}`);
         }
 
         const data = await response.json();
@@ -98,7 +107,16 @@ export function useProductById(productId: string) {
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to fetch product: ${response.statusText}`);
+          let message = response.statusText;
+          try {
+            const errorBody = await response.json();
+            if (errorBody?.message) {
+              message = errorBody.message;
+            }
+          } catch {
+            // ignore parse failure
+          }
+          throw new Error(`Failed to fetch product: ${response.status} ${message}`);
         }
 
         const data = await response.json();

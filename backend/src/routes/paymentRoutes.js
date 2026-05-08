@@ -1,6 +1,6 @@
 const express = require("express");
 const paymentController = require("../controllers/paymentController");
-const { authenticateCustomer, authenticateAdmin } = require("../middleware/auth");
+const { authenticateCustomer, authenticateAdmin, optionalAuthenticate } = require("../middleware/auth");
 const { apiLimiter } = require("../middleware/rateLimiter");
 
 const router = express.Router();
@@ -16,7 +16,7 @@ router.post(
 // Verify payment
 router.post(
   "/verify",
-  authenticateCustomer,
+  optionalAuthenticate,
   apiLimiter,
   paymentController.verifyPayment
 );

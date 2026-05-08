@@ -1,12 +1,12 @@
 const express = require("express");
 const orderController = require("../controllers/orderController");
-const { authenticateCustomer } = require("../middleware/auth");
+const { authenticateCustomer, optionalAuthenticate } = require("../middleware/auth");
 const { apiLimiter } = require("../middleware/rateLimiter");
 
 const router = express.Router();
 
-// Create order
-router.post("/", authenticateCustomer, apiLimiter, orderController.createOrder);
+// Create order (guest checkout allowed)
+router.post("/", optionalAuthenticate, apiLimiter, orderController.createOrder);
 
 // Get customer orders
 router.get("/", authenticateCustomer, orderController.getCustomerOrders);

@@ -17,13 +17,32 @@ import { useCategories } from '../../contexts/CategoryContext';
 import { toast } from 'sonner';
 
 export function CategoriesManagement() {
-  const { categories, addCategory, updateCategory, deleteCategory } = useCategories();
+  const { categories, loading, error, addCategory, updateCategory, deleteCategory } = useCategories();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<typeof categories[0] | null>(null);
   const [categoryName, setCategoryName] = useState('');
 
   const totalProducts = categories.reduce((sum, cat) => sum + (cat.productCount || 0), 0);
   const averageProducts = categories.length > 0 ? Math.round(totalProducts / categories.length) : 0;
+
+  if (loading) {
+    return (
+      <div className="py-16 text-center text-gray-500 dark:text-gray-400">
+        Loading categories...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="py-16 text-center text-red-600 dark:text-red-400">
+          <p className="text-lg font-semibold">Unable to load categories</p>
+          <p className="mt-2">{error}</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const handleOpenDialog = (category?: typeof categories[0]) => {
     if (category) {

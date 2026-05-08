@@ -16,13 +16,32 @@ import { useBrands } from '../../contexts/BrandContext';
 import { toast } from 'sonner';
 
 export function BrandsManagement() {
-  const { brands, addBrand, updateBrand, deleteBrand } = useBrands();
+  const { brands, loading, error, addBrand, updateBrand, deleteBrand } = useBrands();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingBrand, setEditingBrand] = useState<typeof brands[0] | null>(null);
   const [brandName, setBrandName] = useState('');
 
   const totalProducts = brands.reduce((sum, brand) => sum + (brand.productCount || 0), 0);
   const averageProducts = brands.length > 0 ? Math.round(totalProducts / brands.length) : 0;
+
+  if (loading) {
+    return (
+      <div className="py-16 text-center text-gray-500 dark:text-gray-400">
+        Loading brands...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="py-16 text-center text-red-600 dark:text-red-400">
+          <p className="text-lg font-semibold">Unable to load brands</p>
+          <p className="mt-2">{error}</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const handleOpenDialog = (brand?: typeof brands[0]) => {
     if (brand) {

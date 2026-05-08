@@ -8,6 +8,8 @@ export interface Category {
 
 interface CategoryContextType {
   categories: Category[];
+  loading: boolean;
+  error: string | null;
   addCategory: (category: Category) => Promise<boolean>;
   updateCategory: (id: string, category: Category) => Promise<boolean>;
   deleteCategory: (id: string) => Promise<boolean>;
@@ -20,17 +22,24 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 function getAuthHeaders() {
   const token = localStorage.getItem('adminToken');
-  return {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'Authorization': token ? `Bearer ${token}` : '',
   };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  return headers;
 }
 
 export function CategoryProvider({ children }: { children: ReactNode }) {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchCategories = async () => {
+      setLoading(true);
+      setError(null);
       try {
         console.log('[fetchCategories] Starting...');
         const token = localStorage.getItem('adminToken');
@@ -52,10 +61,16 @@ export function CategoryProvider({ children }: { children: ReactNode }) {
           setCategories(mapped);
         } else {
           const errorData = await response.json();
+          const message = errorData?.message || 'Failed to fetch categories';
           console.error('[fetchCategories] Error:', errorData);
+          setError(message);
         }
       } catch (error) {
+        const message = error instanceof Error ? error.message : 'An unexpected error occurred';
         console.error('[fetchCategories] Exception:', error);
+        setError(message);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -141,7 +156,7 @@ export function CategoryProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <CategoryContext.Provider value={{ categories, addCategory, updateCategory, deleteCategory, getCategoryById }}>
+    <CategoryContext.Provider value={{ categories, loading, error, addCategory, updateCategory, deleteCategory, getCategoryById }}>
       {children}
     </CategoryContext.Provider>
   );
