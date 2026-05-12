@@ -13,9 +13,21 @@ export interface Product {
 export interface FilterState {
   priceRange: [number, number];
   selectedBrands: string[];
+  selectedCategories: string[];
+}
+
+export interface PriceRange {
+  label: string;
+  min: number;
+  max: number;
 }
 
 export interface BrandCount {
   brand: string;
+  count: number;
+}
+
+export interface CategoryCount {
+  category: string;
   count: number;
 }

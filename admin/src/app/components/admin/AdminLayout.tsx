@@ -43,7 +43,13 @@ export function AdminLayout() {
     navigate('/admin/login');
   };
 
-  const pendingOrders = orders.filter(o => o.status === 0 || o.status === 1).length;
+  const pendingOrders = orders.filter(o =>
+    o.status === 0 ||
+    o.status === 1 ||
+    o.status === 'pending' ||
+    o.status === 'confirmed' ||
+    o.status === 'processing'
+  ).length;
   const totalProducts = 24;
 
   const isActive = (path: string, exact?: boolean) => {

@@ -24,7 +24,7 @@ router.post(
 // Payment failure
 router.post(
   "/failure",
-  authenticateCustomer,
+  optionalAuthenticate,
   paymentController.handlePaymentFailure
 );
 

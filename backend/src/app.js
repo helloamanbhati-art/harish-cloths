@@ -73,12 +73,16 @@ async function ensureDefaultAdmin() {
     const email = (process.env.ADMIN_EMAIL || "admin@harishcloths.com").toLowerCase().trim();
     const password = process.env.ADMIN_PASSWORD || "admin123";
 
-    // Delete existing admin and recreate to ensure correct password
-    await AdminUser.deleteOne({ email });
+    // Check if admin already exists
+    const existingAdmin = await AdminUser.findOne({ email });
+    if (existingAdmin) {
+      console.log(`✓ Admin user already exists: ${email}`);
+      return;
+    }
     
-    // Create new admin user with correct password
+    // Create new admin user
     await AdminUser.create({ firstName: "Admin", email, password });
-    console.log(`✓ Admin user created/updated: ${email}`);
+    console.log(`✓ Admin user created: ${email}`);
   } catch (error) {
     console.error("Error ensuring default admin:", error.message);
     throw error;

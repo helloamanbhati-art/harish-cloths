@@ -68,6 +68,10 @@ const orderSchema = new mongoose.Schema(
     shippingAddress: {
       fullName: String,
       phone: String,
+      houseName: String,
+      building: String,
+      street: String,
+      landmark: String,
       addressLine1: String,
       addressLine2: String,
       city: String,
@@ -87,6 +91,10 @@ const orderSchema = new mongoose.Schema(
     billingAddress: {
       fullName: String,
       phone: String,
+      houseName: String,
+      building: String,
+      street: String,
+      landmark: String,
       addressLine1: String,
       addressLine2: String,
       city: String,

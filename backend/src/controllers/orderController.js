@@ -25,7 +25,11 @@ exports.createOrder = async (req, res, next) => {
         });
       }
 
-      const itemTotal = product.price * item.quantity;
+      const metersPerPiece =
+        product.soldBy === "meter"
+          ? Math.max(Number(item.meters) || 1, 1)
+          : 1;
+      const itemTotal = product.price * item.quantity * metersPerPiece;
       subtotal += itemTotal;
 
       orderItems.push({
@@ -35,7 +39,7 @@ exports.createOrder = async (req, res, next) => {
         brand: product.brand,
         price: product.price,
         quantity: item.quantity,
-        meters: item.meters,
+        meters: metersPerPiece,
         soldBy: product.soldBy,
         subtotal: itemTotal,
         discount: 0,

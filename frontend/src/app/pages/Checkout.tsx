@@ -126,7 +126,8 @@ export function Checkout() {
       landmark: formData.landmark,
       city: formData.city,
       state: formData.state,
-      zip: formData.zip,
+      zipCode: formData.zip,
+      country: 'India',
     };
 
     // Store checkout data in sessionStorage for payment page

@@ -11,8 +11,10 @@ export function Home() {
   const {
     filters,
     setFilters,
+    priceRanges,
     filteredProducts,
     brandCounts,
+    categoryCounts,
     resetFilters
   } = useProductFilters(products);
 
@@ -55,7 +57,9 @@ export function Home() {
       <FilterSidebar
         filters={filters}
         onFiltersChange={setFilters}
+        priceRanges={priceRanges}
         brandCounts={brandCounts}
+        categoryCounts={categoryCounts}
         onResetFilters={resetFilters}
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}

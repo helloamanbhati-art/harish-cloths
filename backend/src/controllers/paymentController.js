@@ -48,11 +48,22 @@ exports.verifyPayment = async (req, res, next) => {
   try {
     const { orderId, razorpayOrderId, razorpayPaymentId, razorpaySignature } = req.body;
 
+    // Load order before verification so we can validate the exact amount.
+    const order = await Order.findById(orderId).populate("customer");
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
     // Verify payment signature
     const verificationResult = await paymentService.verifyPayment({
       razorpay_order_id: razorpayOrderId,
       razorpay_payment_id: razorpayPaymentId,
       razorpay_signature: razorpaySignature,
+      expectedAmount: order.total,
     });
 
     if (!verificationResult.isValid) {
@@ -62,12 +73,9 @@ exports.verifyPayment = async (req, res, next) => {
       });
     }
 
-    // Update order payment status
-    const order = await Order.findById(orderId).populate("customer");
-
     order.paymentStatus = "paid";
-    order.paymentDetails.paymentStatus = "paid";
     order.paymentDetails.razorpayPaymentId = razorpayPaymentId;
+    order.paymentDetails.razorpaySignature = razorpaySignature;
     order.paymentDetails.transactionId = razorpayPaymentId;
     order.paymentDetails.paidAmount = order.total;
     order.paymentDetails.paidAt = new Date();
@@ -87,7 +95,7 @@ exports.verifyPayment = async (req, res, next) => {
     // Record transaction
     await paymentService.recordPaymentTransaction({
       order: orderId,
-      customer: order.customer._id,
+      customer: order.customer?._id,
       amount: order.total,
       currency: "INR",
       paymentMethod: "razorpay",
@@ -111,6 +119,10 @@ exports.verifyPayment = async (req, res, next) => {
         orderId: order._id,
         orderNumber: order.orderNumber,
         status: order.status,
+        paymentStatus: order.paymentStatus,
+        total: order.total,
+        paymentId: razorpayPaymentId,
+        paidAt: order.paymentDetails.paidAt,
       },
     });
   } catch (error) {
@@ -193,7 +205,8 @@ exports.requestRefund = async (req, res, next) => {
 // Process refund (admin only)
 exports.processRefund = async (req, res, next) => {
   try {
-    const { orderId, refundAmount } = req.body;
+    const { orderId } = req.params;
+    const { refundAmount } = req.body;
 
     const order = await Order.findById(orderId);
 

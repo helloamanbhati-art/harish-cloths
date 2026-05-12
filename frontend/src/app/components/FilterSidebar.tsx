@@ -1,5 +1,4 @@
-import { FilterState, BrandCount } from '../types/product';
-import { priceRanges } from '../data/products';
+import { FilterState, BrandCount, CategoryCount } from '../types/product';
 import { Button } from './ui/button';
 import { Checkbox } from './ui/checkbox';
 import { Separator } from './ui/separator';
@@ -10,7 +9,9 @@ import { useEffect } from 'react';
 interface FilterSidebarProps {
   filters: FilterState;
   onFiltersChange: (filters: FilterState) => void;
+  priceRanges: { label: string; min: number; max: number; }[];
   brandCounts: BrandCount[];
+  categoryCounts: CategoryCount[];
   onResetFilters: () => void;
   isOpen: boolean;
   onClose: () => void;
@@ -19,7 +20,9 @@ interface FilterSidebarProps {
 export function FilterSidebar({ 
   filters, 
   onFiltersChange, 
+  priceRanges,
   brandCounts, 
+  categoryCounts,
   onResetFilters,
   isOpen,
   onClose
@@ -51,6 +54,17 @@ export function FilterSidebar({
     onFiltersChange({
       ...filters,
       selectedBrands: updatedBrands
+    });
+  };
+
+  const handleCategoryToggle = (category: string) => {
+    const updatedCategories = filters.selectedCategories.includes(category)
+      ? filters.selectedCategories.filter(c => c !== category)
+      : [...filters.selectedCategories, category];
+
+    onFiltersChange({
+      ...filters,
+      selectedCategories: updatedCategories
     });
   };
 
@@ -121,6 +135,33 @@ export function FilterSidebar({
                   </Button>
                 ))}
               </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Category Filter */}
+          <div className="space-y-3 md:space-y-2">
+            <h3 className="text-sm font-medium">Categories</h3>
+            <div className="space-y-2.5 md:space-y-2">
+              {categoryCounts.map((categoryCount) => (
+                <div key={categoryCount.category} className="flex items-center space-x-2.5 md:space-x-2">
+                  <Checkbox
+                    id={categoryCount.category}
+                    checked={filters.selectedCategories.includes(categoryCount.category)}
+                    onCheckedChange={() => handleCategoryToggle(categoryCount.category)}
+                  />
+                  <label 
+                    htmlFor={categoryCount.category}
+                    className="flex-1 text-sm cursor-pointer flex items-center justify-between"
+                  >
+                    <span className="text-xs md:text-xs">{categoryCount.category}</span>
+                    <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0">
+                      {categoryCount.count}
+                    </Badge>
+                  </label>
+                </div>
+              ))}
             </div>
           </div>
 

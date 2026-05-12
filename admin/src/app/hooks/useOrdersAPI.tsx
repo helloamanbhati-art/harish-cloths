@@ -14,7 +14,20 @@ export interface OrderItem {
 }
 
 export interface StatusHistory {
-  status: number | 'cancelled' | 'refunded';
+  status:
+    | 0
+    | 1
+    | 2
+    | 3
+    | 4
+    | 'pending'
+    | 'confirmed'
+    | 'processing'
+    | 'shipped'
+    | 'out_for_delivery'
+    | 'delivered'
+    | 'cancelled'
+    | 'refunded';
   statusName: string;
   timestamp: string;
   updatedBy: string;
@@ -23,6 +36,8 @@ export interface StatusHistory {
 
 export interface Order {
   id: string;
+  _id?: string;
+  orderNumber?: string;
   customerName: string;
   customerEmail: string;
   customerPhone: string;
@@ -30,13 +45,57 @@ export interface Order {
   subtotal: number;
   tax: number;
   total: number;
-  status: 0 | 1 | 2 | 3 | 4 | 'cancelled' | 'refunded';
+  paymentMethod?: string;
+  paymentStatus?: 'pending' | 'paid' | 'failed' | 'refunded' | 'cancelled';
+  shippingMethod?: string;
+  carrier?: string;
+  trackingNumber?: string;
+  billingAddress?: any;
+  paymentDetails?: {
+    razorpayOrderId?: string;
+    razorpayPaymentId?: string;
+    razorpaySignature?: string;
+    transactionId?: string;
+    paidAmount?: number;
+    paidAt?: string;
+    failureReason?: string;
+  };
+  status:
+    | 0
+    | 1
+    | 2
+    | 3
+    | 4
+    | 'pending'
+    | 'confirmed'
+    | 'processing'
+    | 'shipped'
+    | 'out_for_delivery'
+    | 'delivered'
+    | 'cancelled'
+    | 'refunded';
   createdAt: string;
   shippingAddress?: string;
   statusHistory?: StatusHistory[];
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+const normalizeOrder = (order: any): Order => ({
+  ...order,
+  id: order.id || order._id || '',
+  _id: order._id || order.id,
+  orderNumber: order.orderNumber || (order._id ? String(order._id).slice(-10) : undefined),
+  status: order.status,
+  createdAt: order.createdAt || '',
+  paymentStatus: order.paymentStatus,
+  paymentMethod: order.paymentMethod,
+  paymentDetails: order.paymentDetails || {},
+  shippingMethod: order.shippingMethod,
+  carrier: order.carrier,
+  trackingNumber: order.trackingNumber,
+  billingAddress: order.billingAddress,
+});
 const STORAGE_KEY = 'harish-cloths-orders';
 
 const statusNames: Record<number | string, string> = {
@@ -45,6 +104,12 @@ const statusNames: Record<number | string, string> = {
   2: 'Shipped',
   3: 'Out for Delivery',
   4: 'Delivered',
+  pending: 'Pending',
+  confirmed: 'Confirmed',
+  processing: 'Processing',
+  shipped: 'Shipped',
+  out_for_delivery: 'Out for Delivery',
+  delivered: 'Delivered',
   cancelled: 'Cancelled',
   refunded: 'Refunded',
 };
@@ -93,7 +158,8 @@ const response = await fetch(`${API_BASE_URL}/api/v1/admin/orders`, {
 
         if (response.ok) {
           const data = await response.json();
-          setOrders(data.data);
+          const normalizedOrders = (data.data || []).map(normalizeOrder);
+          setOrders(normalizedOrders);
           setError(null);
         } else {
           throw new Error('API request failed');
@@ -120,10 +186,12 @@ const response = await fetch(`${API_BASE_URL}/api/v1/admin/orders`, {
       });
 
       if (response.ok) {
-        const savedOrder = await response.json();
-        setOrders(prev => [savedOrder, ...prev]);
+        const savedResponse = await response.json();
+        const savedOrder = savedResponse.data?.order || savedResponse.data || savedResponse;
+        const normalizedOrder = normalizeOrder(savedOrder);
+        setOrders(prev => [normalizedOrder, ...prev]);
         toast.success('Order placed successfully!');
-        return savedOrder;
+        return normalizedOrder;
       } else {
         throw new Error('API request failed');
       }
@@ -161,14 +229,16 @@ const response = await fetch(`${API_BASE_URL}/api/v1/admin/orders`, {
       );
 
       if (response.ok) {
-        const updatedOrder = await response.json();
+        const updateResponse = await response.json();
+        const updatedOrder = updateResponse.data || updateResponse;
+        const normalizedOrder = normalizeOrder(updatedOrder);
         setOrders(prev =>
           prev.map(order =>
-            order.id === orderId
+            order.id === orderId || order._id === orderId
               ? {
-                  ...updatedOrder,
+                  ...normalizedOrder,
                   statusHistory: [
-                    ...(updatedOrder.statusHistory || []),
+                    ...(normalizedOrder.statusHistory || []),
                     statusHistoryEntry,
                   ],
                 }
@@ -176,7 +246,7 @@ const response = await fetch(`${API_BASE_URL}/api/v1/admin/orders`, {
           )
         );
         toast.success('Order status updated successfully!');
-        return updatedOrder;
+        return normalizedOrder;
       } else {
         throw new Error('API request failed');
       }
@@ -201,7 +271,7 @@ const response = await fetch(`${API_BASE_URL}/api/v1/admin/orders`, {
   };
 
   const getOrderById = (orderId: string) => {
-    return orders.find(order => order.id === orderId);
+    return orders.find(order => order.id === orderId || order._id === orderId);
   };
 
   return {

@@ -30,8 +30,20 @@ const statusConfig = {
   2: { label: 'Shipped', color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300' },
   3: { label: 'Out for Delivery', color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' },
   4: { label: 'Delivered', color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' },
+  pending: { label: 'Pending', color: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' },
+  confirmed: { label: 'Confirmed', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' },
+  processing: { label: 'Processing', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' },
+  shipped: { label: 'Shipped', color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300' },
+  out_for_delivery: { label: 'Out for Delivery', color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' },
+  delivered: { label: 'Delivered', color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' },
   cancelled: { label: 'Cancelled', color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' },
   refunded: { label: 'Refunded', color: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300' },
+};
+
+const getCustomerOrderNumber = (order: any) => {
+  if (order.orderNumber) return order.orderNumber;
+  if (order.id) return `HC-2024-${String(order.id).padStart(6, '0')}`;
+  return 'N/A';
 };
 
 export function CustomersManagement() {
@@ -44,16 +56,28 @@ export function CustomersManagement() {
   const customers = useMemo(() => {
     const customerMap = new Map<string, DerivedCustomer>();
 
-    orders.forEach(order => {
-      if (!customerMap.has(order.customerPhone)) {
-        // Parse address for city/state (simple extraction)
-        const address = order.shippingAddress || '';
-        const parts = address.split(',').map(p => p.trim());
-        const city = parts[parts.length - 3] || 'Unknown';
-        const state = parts[parts.length - 2] || 'Unknown';
+    const parseAddress = (address: any) => {
+      if (!address) return { city: 'Unknown', state: 'Unknown' };
+      if (typeof address === 'string') {
+        const parts = address.split(',').map(p => p.trim()).filter(Boolean);
+        return {
+          city: parts[parts.length - 3] || 'Unknown',
+          state: parts[parts.length - 2] || 'Unknown',
+        };
+      }
+      return {
+        city: address.city || address.addressLine1 || 'Unknown',
+        state: address.state || 'Unknown',
+      };
+    };
 
-        customerMap.set(order.customerPhone, {
-          id: order.customerPhone,
+    orders.forEach(order => {
+      const customerKey = order.customerPhone || order.customerEmail || order.customerName || 'unknown';
+      if (!customerMap.has(customerKey)) {
+        const { city, state } = parseAddress(order.shippingAddress);
+
+        customerMap.set(customerKey, {
+          id: customerKey,
           name: order.customerName,
           phone: order.customerPhone,
           email: order.customerEmail,
@@ -306,10 +330,10 @@ export function CustomersManagement() {
                 <h3 className="font-medium mb-4">Order History</h3>
                 <div className="space-y-3">
                   {getCustomerOrders(selectedCustomer.phone).map((order) => (
-                    <div key={order.id} className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div key={order.id || order._id} className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                       <div className="flex-1">
                         <div className="flex items-center gap-3">
-                          <span className="font-mono font-medium">HC-2024-{order.id.padStart(6, '0')}</span>
+                          <span className="font-mono font-medium">{getCustomerOrderNumber(order)}</span>
                           <Badge className={statusConfig[order.status as keyof typeof statusConfig].color}>
                             {statusConfig[order.status as keyof typeof statusConfig].label}
                           </Badge>

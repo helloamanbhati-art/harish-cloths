@@ -20,7 +20,22 @@ interface RazorpayResponse {
   razorpay_signature: string;
 }
 
+const isEmbeddedBrowser = () => {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  const userAgent = window.navigator.userAgent || '';
+  const isIframe = window.self !== window.top;
+  const isWebViewLike =
+    /WebView|wv|Electron|Headless|Codex/i.test(userAgent) ||
+    userAgent.includes('Version/') && userAgent.includes('Chrome/');
+
+  return isIframe || isWebViewLike;
+};
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const RAZORPAY_MOCK_MODE = import.meta.env.VITE_RAZORPAY_MOCK_MODE === 'true';
 const RAZORPAY_KEY =
   import.meta.env.VITE_RAZORPAY_KEY ||
   import.meta.env.VITE_RAZORPAY_KEY_ID ||
@@ -38,6 +53,11 @@ export function Payment() {
 
   // Load Razorpay script
   useEffect(() => {
+    if (RAZORPAY_MOCK_MODE) {
+      setScriptLoaded(true);
+      return;
+    }
+
     const script = document.createElement('script');
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
     script.async = true;
@@ -64,6 +84,18 @@ export function Payment() {
 
   const finalAmount = totalPrice;
 
+  const processMockPayment = async (createdOrder: any, razorpayOrder: any) => {
+    const now = Date.now();
+    const mockResponse = {
+      razorpay_order_id: razorpayOrder.id,
+      razorpay_payment_id: `pay_mock_${now}`,
+      razorpay_signature: `sig_mock_${now}`,
+    };
+
+    toast.info('Mock payment mode is enabled. Completing payment locally.');
+    await handlePaymentSuccess(mockResponse, createdOrder._id);
+  };
+
   const handlePayment = async () => {
     if (!scriptLoaded) {
       toast.error('Payment gateway is loading. Please wait...');
@@ -72,6 +104,11 @@ export function Payment() {
 
     if (items.length === 0) {
       toast.error('Cart is empty');
+      return;
+    }
+
+    if (!RAZORPAY_MOCK_MODE && isEmbeddedBrowser()) {
+      toast.error('Razorpay checkout may fail inside this embedded browser. Open this page in Chrome or Edge to complete payment.');
       return;
     }
 
@@ -87,6 +124,9 @@ export function Payment() {
       }
 
       const parsedCheckoutData = JSON.parse(checkoutData);
+      const contactNumber = String(parsedCheckoutData.shippingAddress.phone || '')
+        .replace(/\D/g, '')
+        .slice(-10);
 
       // Step 2: Create order via backend API
       const orderPayload = {
@@ -117,37 +157,47 @@ export function Payment() {
       }
 
       const orderData = await orderResponse.json();
-      const createdOrder = orderData.data;
+      const createdOrderData = orderData.data;
+      const createdOrder = createdOrderData?.order;
+      const razorpayOrder = createdOrderData?.razorpayOrder;
 
-      if (!createdOrder.razorpayOrder) {
+      if (!createdOrder || !razorpayOrder) {
         throw new Error('Razorpay order not created');
+      }
+
+      if (RAZORPAY_MOCK_MODE) {
+        await processMockPayment(createdOrder, razorpayOrder);
+        return;
       }
 
       // Step 3: Open Razorpay payment modal
       const options = {
         key: RAZORPAY_KEY,
-        amount: createdOrder.razorpayOrder.amount, // Amount in paise
-        currency: createdOrder.razorpayOrder.currency,
+        amount: razorpayOrder.amount, // Amount in paise
+        currency: razorpayOrder.currency,
         name: 'Harish Cloths',
         description: 'Purchase of premium fabric products',
-        order_id: createdOrder.razorpayOrder.id,
+        order_id: razorpayOrder.id,
         handler: function (response: RazorpayResponse) {
           handlePaymentSuccess(response, createdOrder._id);
         },
         prefill: {
           name: parsedCheckoutData.shippingAddress.fullName || '',
           email: parsedCheckoutData.email || '',
-          contact: parsedCheckoutData.shippingAddress.phone || '',
+          contact: contactNumber,
         },
         notes: {
           order_number: createdOrder.orderNumber,
           order_id: createdOrder._id,
           customer_email: parsedCheckoutData.email,
         },
+        retry: {
+          enabled: true,
+          max_count: 1,
+        },
         theme: {
           color: '#1a1a1a',
         },
-        timeout: 300, // 5 minutes timeout
         modal: {
           ondismiss: function () {
             setIsProcessing(false);
@@ -178,11 +228,12 @@ export function Payment() {
       toast.error('Payment failed. Please try again or contact support.');
 
       // Optionally notify backend of failure
-      await fetch('http://localhost:3000/api/v1/payments/failure', {
+      await fetch(`${API_BASE_URL}/api/v1/payments/failure`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           orderId,
+          razorpayOrderId: response.error?.metadata?.order_id,
           failureReason: response.error?.description || 'Unknown error',
           errorCode: response.error?.code,
           errorSource: response.error?.source,
@@ -190,6 +241,10 @@ export function Payment() {
           errorReason: response.error?.reason,
         }),
       }).catch(err => console.error('Failed to log payment failure:', err));
+
+      if (isEmbeddedBrowser()) {
+        toast.info('This payment window is running inside an embedded browser. Please retry in Chrome or Edge.');
+      }
     } catch (error) {
       console.error('Error handling payment failure:', error);
     }
@@ -200,7 +255,7 @@ export function Payment() {
       console.log('Payment response received:', response);
 
       // Step 1: Verify payment signature with backend
-      const verifyResponse = await fetch('http://localhost:3000/api/v1/payments/verify', {
+      const verifyResponse = await fetch(`${API_BASE_URL}/api/v1/payments/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -227,6 +282,9 @@ export function Payment() {
       // Navigate to success page with order details
       navigate('/order-success', {
         state: {
+          items,
+          totalPrice: verifyData.data.total || finalAmount,
+          paymentMethod: 'razorpay',
           orderId: verifyData.data.orderId,
           orderNumber: verifyData.data.orderNumber,
           paymentId: response.razorpay_payment_id,
@@ -352,6 +410,11 @@ export function Payment() {
                 <p className="text-xs text-center text-muted-foreground">
                   By proceeding, you agree to our Terms & Conditions
                 </p>
+                {RAZORPAY_MOCK_MODE && (
+                  <p className="text-xs text-center text-amber-600">
+                    Local mock payment is enabled. No real Razorpay charge will be created.
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -417,4 +480,3 @@ export function Payment() {
     </div>
   );
 }
-

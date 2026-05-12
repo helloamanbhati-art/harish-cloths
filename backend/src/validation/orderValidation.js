@@ -1,5 +1,29 @@
 const Joi = require("joi");
 
+const addressSchema = Joi.object({
+  fullName: Joi.string().trim().required(),
+  phone: Joi.string()
+    .pattern(/^[0-9]{10}$/)
+    .required(),
+  houseName: Joi.string().trim().required(),
+  building: Joi.string().trim().required(),
+  street: Joi.string().trim().required(),
+  landmark: Joi.string().trim().allow(''),
+  addressLine1: Joi.string().trim().allow(''),
+  addressLine2: Joi.string().trim().allow(''),
+  city: Joi.string().trim().required(),
+  state: Joi.string().trim().required(),
+  zipCode: Joi.string().pattern(/^[0-9]{6}$/),
+  pincode: Joi.string().pattern(/^[0-9]{6}$/),
+  zip: Joi.string().pattern(/^[0-9]{6}$/),
+  country: Joi.string().trim().default('India'),
+}).custom((value, helpers) => {
+  if (value.zipCode || value.pincode || value.zip) {
+    return value;
+  }
+  return helpers.message('zipCode, pincode, or zip is required');
+}, 'zip code normalization');
+
 // Create Order Schema
 exports.createOrderSchema = Joi.object({
   items: Joi.array()
@@ -12,34 +36,8 @@ exports.createOrderSchema = Joi.object({
     )
     .min(1)
     .required(),
-  shippingAddress: Joi.object({
-    fullName: Joi.string().trim().required(),
-    phone: Joi.string()
-      .pattern(/^[0-9]{10}$/)
-      .required(),
-    addressLine1: Joi.string().trim().required(),
-    addressLine2: Joi.string().trim(),
-    city: Joi.string().trim().required(),
-    state: Joi.string().trim().required(),
-    zipCode: Joi.string()
-      .pattern(/^[0-9]{6}$/)
-      .required(),
-    country: Joi.string().trim().required(),
-  }).required(),
-  billingAddress: Joi.object({
-    fullName: Joi.string().trim().required(),
-    phone: Joi.string()
-      .pattern(/^[0-9]{10}$/)
-      .required(),
-    addressLine1: Joi.string().trim().required(),
-    addressLine2: Joi.string().trim(),
-    city: Joi.string().trim().required(),
-    state: Joi.string().trim().required(),
-    zipCode: Joi.string()
-      .pattern(/^[0-9]{6}$/)
-      .required(),
-    country: Joi.string().trim().required(),
-  }),
+  shippingAddress: addressSchema.required(),
+  billingAddress: addressSchema,
   sameAsShipping: Joi.boolean().default(true),
   paymentMethod: Joi.string()
     .valid("razorpay", "upi", "card", "netbanking", "wallet")

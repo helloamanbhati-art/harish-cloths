@@ -18,6 +18,10 @@ export function OrderSuccess() {
     items: any[];
     totalPrice: number;
     paymentMethod: string;
+    orderId?: string;
+    orderNumber?: string;
+    paymentId?: string;
+    status?: string;
     selectedUPI?: string;
     upiId?: string;
     selectedBank?: string;
@@ -31,8 +35,8 @@ export function OrderSuccess() {
     }
   }, [orderData, navigate]);
   
-  const [orderId] = useState(`order-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
-  const [orderNumber] = useState(`HC${Math.random().toString(36).substr(2, 9).toUpperCase()}`);
+  const [orderId] = useState(orderData?.orderId || `order-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
+  const [orderNumber] = useState(orderData?.orderNumber || `HC${Math.random().toString(36).substr(2, 9).toUpperCase()}`);
   const [trackingId] = useState(`TRK${Math.random().toString(36).substr(2, 12).toUpperCase()}`);
   const [currentStatus, setCurrentStatus] = useState(0);
   const [copied, setCopied] = useState(false);

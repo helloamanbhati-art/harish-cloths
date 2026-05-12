@@ -6,6 +6,19 @@ import { Badge } from '../components/ui/badge';
 import { ArrowLeft, Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 
+const getDisplayValue = (value: unknown) => {
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (value && typeof value === 'object' && 'name' in value) {
+    const name = (value as { name?: unknown }).name;
+    return typeof name === 'string' && name.trim() ? name : 'Unknown';
+  }
+
+  return 'Unknown';
+};
+
 export function Cart() {
   const { items, removeFromCart, updateQuantity, totalPrice, clearCart } = useCart();
   const navigate = useNavigate();
@@ -68,11 +81,11 @@ export function Cart() {
                     <div className="flex items-start justify-between">
                       <div>
                         <Badge variant="outline" className="text-xs mb-1">
-                          {item.brand}
+                          {getDisplayValue(item.brand)}
                         </Badge>
                         <h3 className="font-medium">{item.name}</h3>
                         <p className="text-sm text-muted-foreground">
-                          {item.category}
+                          {getDisplayValue(item.category)}
                         </p>
                         {/* Show meter info if applicable */}
                         {item.soldBy === 'meter' && item.selectedMeters && (
@@ -84,7 +97,7 @@ export function Cart() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => removeFromCart(item.id)}
+                        onClick={() => removeFromCart(item.id, item.selectedMeters)}
                       >
                         <Trash2 className="size-4 text-destructive" />
                       </Button>
@@ -95,7 +108,7 @@ export function Cart() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          onClick={() => updateQuantity(item.id, item.quantity - 1, item.selectedMeters)}
                         >
                           <Minus className="size-3" />
                         </Button>
@@ -110,7 +123,7 @@ export function Cart() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          onClick={() => updateQuantity(item.id, item.quantity + 1, item.selectedMeters)}
                         >
                           <Plus className="size-3" />
                         </Button>

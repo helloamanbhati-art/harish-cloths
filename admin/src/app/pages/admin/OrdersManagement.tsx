@@ -27,11 +27,60 @@ const statusConfig = {
   2: { label: 'Shipped', color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300' },
   3: { label: 'Out for Delivery', color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' },
   4: { label: 'Delivered', color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' },
+  pending: { label: 'Pending', color: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' },
+  confirmed: { label: 'Confirmed', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' },
+  processing: { label: 'Processing', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' },
+  shipped: { label: 'Shipped', color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300' },
+  out_for_delivery: { label: 'Out for Delivery', color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' },
+  delivered: { label: 'Delivered', color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' },
   cancelled: { label: 'Cancelled', color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' },
   refunded: { label: 'Refunded', color: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300' },
 };
 
 type OrderStatus = keyof typeof statusConfig;
+
+const getOrderNumber = (order: any) => {
+  if (order.orderNumber) return order.orderNumber;
+  if (order.id) return `HC-2024-${String(order.id).padStart(6, '0')}`;
+  return 'N/A';
+};
+
+const renderAddress = (address: any) => {
+  if (!address) return <p className="text-sm text-gray-500">N/A</p>;
+
+  const houseName = address.houseName || address.addressLine1 || '';
+  const building = address.building || '';
+  const street = address.street || '';
+  const landmark = address.landmark ? `Landmark: ${address.landmark}` : '';
+  const cityState = [address.city, address.state].filter(Boolean).join(', ');
+  const pinCode = address.zipCode || address.pincode || address.zip || '';
+
+  return (
+    <div className="space-y-1 text-sm text-gray-700">
+      {address.fullName && <p>{address.fullName}</p>}
+      {address.phone && <p>{address.phone}</p>}
+      {houseName && <p>{houseName}</p>}
+      {building && <p>{building}</p>}
+      {street && <p>{street}</p>}
+      {landmark && <p>{landmark}</p>}
+      {cityState && <p>{cityState}</p>}
+      {pinCode && <p>{pinCode}</p>}
+      {address.country && <p>{address.country}</p>}
+    </div>
+  );
+};
+
+const formatOrderStatus = (status: any) => {
+  if (status === 'pending') return 'Pending';
+  if (status === 'confirmed') return 'Confirmed';
+  if (status === 'processing') return 'Processing';
+  if (status === 'shipped') return 'Shipped';
+  if (status === 'out_for_delivery') return 'Out for Delivery';
+  if (status === 'delivered') return 'Delivered';
+  if (status === 'cancelled') return 'Cancelled';
+  if (status === 'refunded') return 'Refunded';
+  return String(status);
+};
 
 export function OrdersManagement() {
   const { orders, updateOrderStatus } = useOrders();
@@ -43,13 +92,13 @@ export function OrdersManagement() {
 
   // Filter orders
   const filteredOrders = orders.filter((order) => {
-    const orderNumber = `HC-2024-${order.id.padStart(6, '0')}`;
+    const orderNumber = getOrderNumber(order);
     const matchesSearch =
       orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.customerPhone.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesStatus = statusFilter === 'all' || order.status.toString() === statusFilter;
+    const matchesStatus = statusFilter === 'all' || String(order.status) === statusFilter;
 
     return matchesSearch && matchesStatus;
   });
@@ -63,7 +112,8 @@ export function OrdersManagement() {
   const handleUpdateStatus = () => {
     if (!selectedOrder || !newStatus) return;
 
-    updateOrderStatus(selectedOrder.id, newStatus as any);
+    const orderId = selectedOrder.id || selectedOrder._id;
+    updateOrderStatus(orderId, newStatus as any);
     toast.success('Order status updated successfully');
     setSelectedOrder({ ...selectedOrder, status: newStatus as any });
   };
@@ -105,12 +155,14 @@ export function OrdersManagement() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Orders</SelectItem>
-                <SelectItem value="0">Order Placed</SelectItem>
-                <SelectItem value="1">Processing</SelectItem>
-                <SelectItem value="2">Shipped</SelectItem>
-                <SelectItem value="3">Out for Delivery</SelectItem>
-                <SelectItem value="4">Delivered</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="confirmed">Confirmed</SelectItem>
+                <SelectItem value="processing">Processing</SelectItem>
+                <SelectItem value="shipped">Shipped</SelectItem>
+                <SelectItem value="out_for_delivery">Out for Delivery</SelectItem>
+                <SelectItem value="delivered">Delivered</SelectItem>
                 <SelectItem value="cancelled">Cancelled</SelectItem>
+                <SelectItem value="refunded">Refunded</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -138,6 +190,7 @@ export function OrdersManagement() {
                     <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Customer</th>
                     <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Items</th>
                     <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Total</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Payment</th>
                     <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Status</th>
                     <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Date</th>
                     <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Action</th>
@@ -145,9 +198,9 @@ export function OrdersManagement() {
                 </thead>
                 <tbody>
                   {filteredOrders.map((order) => {
-                    const orderNumber = `HC-2024-${order.id.padStart(6, '0')}`;
+                    const orderNumber = getOrderNumber(order);
                     return (
-                      <tr key={order.id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                      <tr key={order.id || order._id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
                         <td className="py-3 px-4">
                           <span className="font-mono font-medium">{orderNumber}</span>
                         </td>
@@ -169,6 +222,16 @@ export function OrdersManagement() {
                           <div>
                             <p className="font-bold">₹{(order.total || 0).toLocaleString('en-IN')}</p>
                             <p className="text-xs text-gray-500 dark:text-gray-400">with GST</p>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="space-y-1">
+                            <Badge className={order.paymentStatus === 'paid' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : order.paymentStatus === 'failed' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'}>
+                              {order.paymentStatus ? String(order.paymentStatus).toUpperCase() : 'PENDING'}
+                            </Badge>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {order.paymentDetails?.transactionId || order.paymentDetails?.razorpayPaymentId || 'Awaiting payment'}
+                            </p>
                           </div>
                         </td>
                         <td className="py-3 px-4">
@@ -207,10 +270,7 @@ export function OrdersManagement() {
               <DialogHeader>
                 <DialogTitle className="flex items-center justify-between">
                   <div>
-                    <span className="font-mono">HC-2024-{selectedOrder.id.padStart(6, '0')}</span>
-                    <span className="text-sm text-gray-500 dark:text-gray-400 ml-4">
-                      {formatDate(selectedOrder.createdAt)}
-                    </span>
+                    <span className="font-mono">{getOrderNumber(selectedOrder)}</span>
                   </div>
                   <Badge className={statusConfig[selectedOrder.status as OrderStatus].color}>
                     {statusConfig[selectedOrder.status as OrderStatus].label}
@@ -231,12 +291,14 @@ export function OrdersManagement() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="0">Order Placed</SelectItem>
-                          <SelectItem value="1">Processing</SelectItem>
-                          <SelectItem value="2">Shipped</SelectItem>
-                          <SelectItem value="3">Out for Delivery</SelectItem>
-                          <SelectItem value="4">Delivered</SelectItem>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="confirmed">Confirmed</SelectItem>
+                          <SelectItem value="processing">Processing</SelectItem>
+                          <SelectItem value="shipped">Shipped</SelectItem>
+                          <SelectItem value="out_for_delivery">Out for Delivery</SelectItem>
+                          <SelectItem value="delivered">Delivered</SelectItem>
                           <SelectItem value="cancelled">Cancelled</SelectItem>
+                          <SelectItem value="refunded">Refunded</SelectItem>
                         </SelectContent>
                       </Select>
                       <Button
@@ -275,7 +337,13 @@ export function OrdersManagement() {
                     {selectedOrder.shippingAddress && (
                       <div className="mt-4">
                         <Label className="text-gray-500 dark:text-gray-400">Shipping Address</Label>
-                        <p className="font-medium mt-1">{selectedOrder.shippingAddress}</p>
+                        <div className="font-medium mt-1">{renderAddress(selectedOrder.shippingAddress)}</div>
+                      </div>
+                    )}
+                    {selectedOrder.billingAddress && (
+                      <div className="mt-4">
+                        <Label className="text-gray-500 dark:text-gray-400">Billing Address</Label>
+                        <div className="font-medium mt-1">{renderAddress(selectedOrder.billingAddress)}</div>
                       </div>
                     )}
                   </CardContent>
@@ -365,17 +433,31 @@ export function OrdersManagement() {
                     <CardContent className="space-y-2">
                       <div>
                         <Label className="text-gray-500 dark:text-gray-400">Payment Method</Label>
-                        <p className="font-medium">UPI</p>
+                        <p className="font-medium">{selectedOrder.paymentMethod || 'N/A'}</p>
                       </div>
                       <div>
                         <Label className="text-gray-500 dark:text-gray-400">Transaction ID</Label>
-                        <p className="font-mono text-sm">TXN{Date.now().toString().slice(-10)}</p>
+                        <p className="font-mono text-sm">
+                          {selectedOrder.paymentDetails?.transactionId || selectedOrder.paymentDetails?.razorpayPaymentId || 'N/A'}
+                        </p>
                       </div>
                       <div>
                         <Label className="text-gray-500 dark:text-gray-400">Payment Status</Label>
-                        <Badge className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 mt-1">
-                          Paid
+                        <Badge className={selectedOrder.paymentStatus === 'paid' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 mt-1' : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 mt-1'}>
+                          {selectedOrder.paymentStatus ? String(selectedOrder.paymentStatus).toUpperCase() : 'Unknown'}
                         </Badge>
+                      </div>
+                      <div>
+                        <Label className="text-gray-500 dark:text-gray-400">Razorpay Order ID</Label>
+                        <p className="font-mono text-sm break-all">
+                          {selectedOrder.paymentDetails?.razorpayOrderId || 'N/A'}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-gray-500 dark:text-gray-400">Paid At</Label>
+                        <p className="font-medium">
+                          {selectedOrder.paymentDetails?.paidAt ? new Date(selectedOrder.paymentDetails.paidAt).toLocaleString('en-IN') : 'N/A'}
+                        </p>
                       </div>
                     </CardContent>
                   </Card>
@@ -390,15 +472,15 @@ export function OrdersManagement() {
                     <CardContent className="space-y-2">
                       <div>
                         <Label className="text-gray-500 dark:text-gray-400">Courier Name</Label>
-                        <p className="font-medium">Delhivery Express</p>
-                      </div>
-                      <div>
-                        <Label className="text-gray-500 dark:text-gray-400">Contact</Label>
-                        <p className="font-medium">+91 98765 43210</p>
+                        <p className="font-medium">{selectedOrder.carrier || 'N/A'}</p>
                       </div>
                       <div>
                         <Label className="text-gray-500 dark:text-gray-400">Tracking ID</Label>
-                        <p className="font-mono text-sm">DELV{Date.now().toString().slice(-12)}</p>
+                        <p className="font-mono text-sm">{selectedOrder.trackingNumber || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <Label className="text-gray-500 dark:text-gray-400">Shipping Method</Label>
+                        <p className="font-medium">{selectedOrder.shippingMethod || 'N/A'}</p>
                       </div>
                     </CardContent>
                   </Card>
