@@ -18,7 +18,9 @@ export function SMJewellerLogo({ className = "" }: { className?: string }) {
       {/* Circular emblem */}
       <g transform="translate(45, 45)">
      
- 
+      </g>
+
+      {/* Main Brand Name */}
       <text
         x="95"
         y="50"
