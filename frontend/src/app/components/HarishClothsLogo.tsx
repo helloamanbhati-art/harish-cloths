@@ -18,31 +18,7 @@ export function SMJewellerLogo({ className = "" }: { className?: string }) {
       {/* Circular emblem */}
       <g transform="translate(45, 45)">
      
-    
-        {/* M Letter */}
-        <path
-          d="M -18 18 L -18 -14 
-             L -6 2 
-             L 6 -14 
-             L 6 18"
-          stroke="currentColor"
-          strokeWidth="4.5"
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-
-        {/* Luxury underline */}
-        <path
-          d="M -26 26 Q 0 38, 26 26"
-          stroke="url(#goldGradient)"
-          strokeWidth="4"
-          fill="none"
-          strokeLinecap="round"
-        />
-      </g>
-
-      {/* Main Brand Name */}
+ 
       <text
         x="95"
         y="50"
