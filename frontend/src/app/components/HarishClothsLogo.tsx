@@ -17,20 +17,8 @@ export function SMJewellerLogo({ className = "" }: { className?: string }) {
 
       {/* Circular emblem */}
       <g transform="translate(45, 45)">
-        {/* S Letter */}
-        <path
-          d="M 8 -16 
-             Q -10 -22, -14 -10
-             Q -15 -2, 2 0
-             Q 18 2, 14 14
-             Q 10 24, -10 18"
-          stroke="url(#goldGradient)"
-          strokeWidth="4.5"
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-
+     
+    
         {/* M Letter */}
         <path
           d="M -18 18 L -18 -14 
