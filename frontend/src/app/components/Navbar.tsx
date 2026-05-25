@@ -4,7 +4,7 @@ import { Link } from 'react-router';
 import { useCart } from '../contexts/CartContext';
 import { useRef, useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { HarishClothsLogo } from './HarishClothsLogo';
+import { SMJewellerLogo } from './HarishClothsLogo';
 
 interface NavbarProps {
   theme: 'light' | 'dark';
@@ -37,7 +37,7 @@ export function Navbar({ theme, onThemeToggle, onCartIconReady }: NavbarProps) {
       <div className="flex items-center justify-between px-4 md:px-8 py-3 md:py-4">
         {/* Logo Section - Left */}
         <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
-          <HarishClothsLogo className="h-10 md:h-12 w-auto text-foreground" />
+          <SMJewellerLogo className="h-10 md:h-12 w-auto text-foreground" />
         </Link>
         
         {/* Right Section: My Orders + Theme Toggle + Cart */}

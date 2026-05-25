@@ -47,7 +47,7 @@ interface Product {
 const initialProducts: Product[] = [];
 // Note: Products are now fetched from the real API
 
-export function ProductsManagement() {
+export function ProductsManagement() {https://harish-clothss.onrender.com
   const { brands } = useBrands();
   const { categories } = useCategories();
 // NEW — paste this instead
