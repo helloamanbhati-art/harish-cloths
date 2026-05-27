@@ -73,34 +73,12 @@ export function HarishClothsLogo({ className = "" }: { className?: string }) {
       </g>
       
       {/* Main text "Harish" - Instagram script style */}
-      <text
-        x="90"
-        y="50"
-        fontFamily="'Brush Script MT', 'Lucida Handwriting', 'Apple Chancery', cursive, system-ui"
-        fontSize="44"
-        fontWeight="400"
-        fill="currentColor"
-        letterSpacing="-0.5"
-        fontStyle="italic"
-      >
-     
-      </text>
+   
       
       {/* Subtitle "Cloths" with elegant styling */}
       <g>
         {/* "Cloths" text - elegant serif */}
-        <text
-          x="90"
-          y="71"
-          fontFamily="'Georgia', 'Times New Roman', serif, system-ui"
-          fontSize="16"
-          fontWeight="400"
-          fill="currentColor"
-          letterSpacing="3.5"
-          opacity="0.75"
-        >
-        
-        </text>
+
         
         {/* Underline accent */}
         <line
