@@ -11,6 +11,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Card } from "../components/ui/card";
 import { Separator } from "../components/ui/separator";
+import { toast } from "sonner";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -107,6 +108,14 @@ export function ProductDetail() {
   }, [id]);
 
   const handleAddToCart = () => {
+    // Validate size selection if product has sizes
+    if (product && product.availableSizes && product.availableSizes.length > 0) {
+      if (!selectedSize) {
+        toast.error('Please select a size before adding to cart');
+        return;
+      }
+    }
+
     if (product && buttonRef.current && cartIconElement) {
       // Get button position
       const buttonRect = buttonRef.current.getBoundingClientRect();
@@ -445,9 +454,13 @@ export function ProductDetail() {
                 className="w-full"
                 size="lg"
                 onClick={handleAddToCart}
+                disabled={product && product.availableSizes && product.availableSizes.length > 0 && !selectedSize}
+                variant={product && product.availableSizes && product.availableSizes.length > 0 && !selectedSize ? "outline" : "default"}
               >
                 <ShoppingCart className="size-5 mr-2" />
-                {added ? "Added to Cart!" : "Add to Cart"}
+                {product && product.availableSizes && product.availableSizes.length > 0 && !selectedSize
+                  ? "Select Size First"
+                  : added ? "Added to Cart!" : "Add to Cart"}
               </Button>
             </div>
           </div>

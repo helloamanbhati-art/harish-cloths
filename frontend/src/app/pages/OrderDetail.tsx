@@ -212,6 +212,15 @@ export function OrderDetail() {
 
                     {/* Quantity & Meter Info */}
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                      {item.size && (
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-muted-foreground">Size:</span>
+                          <Badge variant="outline" className="text-xs font-semibold">
+                            {item.size}
+                          </Badge>
+                        </div>
+                      )}
+                      
                       <div className="flex items-center gap-1.5">
                         <span className="text-muted-foreground">Quantity:</span>
                         <span className="font-semibold">{item.quantity}</span>

@@ -214,7 +214,10 @@ export function OrdersManagement() {
                           <div>
                             <p className="font-medium">{order.items.length} items</p>
                             <p className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-[150px]">
-                              {order.items.map(item => item.productName).join(', ')}
+                              {order.items.map(item => {
+                                const sizeInfo = item.size ? ` (${item.size})` : '';
+                                return item.productName + sizeInfo;
+                              }).join(', ')}
                             </p>
                           </div>
                         </td>
@@ -369,10 +372,21 @@ export function OrdersManagement() {
                           <div className="flex-1">
                             <p className="font-medium">{item.productName}</p>
                             <p className="text-sm text-gray-500 dark:text-gray-400">{typeof item.brand === 'object' ? item.brand?.name : item.brand}</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                              {item.quantity} {item.soldBy === 'meter' ? 'pcs' : 'pcs'}
-                              {item.soldBy === 'meter' && item.meters && ` × ${item.meters} meters`}
-                            </p>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {item.size && (
+                                <Badge variant="outline" className="text-xs">
+                                  Size: {item.size}
+                                </Badge>
+                              )}
+                              <Badge variant="secondary" className="text-xs">
+                                {item.quantity} {item.soldBy === 'meter' ? 'pcs' : 'pcs'}
+                              </Badge>
+                              {item.soldBy === 'meter' && item.meters && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {item.meters} meters
+                                </Badge>
+                              )}
+                            </div>
                           </div>
                           <div className="text-right">
                             <p className="text-sm text-gray-500 dark:text-gray-400">₹{item.price} / {item.soldBy}</p>

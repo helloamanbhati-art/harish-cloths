@@ -134,6 +134,7 @@ export function Payment() {
           productId: item.id,
           quantity: item.quantity,
           meters: item.selectedMeters || 1,
+          selectedSize: item.selectedSize || null, // Include selected size
         })),
         shippingAddress: parsedCheckoutData.shippingAddress,
         billingAddress: parsedCheckoutData.billingAddress,

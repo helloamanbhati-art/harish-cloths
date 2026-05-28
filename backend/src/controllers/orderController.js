@@ -25,6 +25,22 @@ exports.createOrder = async (req, res, next) => {
         });
       }
 
+      // Validate size selection for products with available sizes
+      if (product.availableSizes && product.availableSizes.length > 0) {
+        if (!item.selectedSize) {
+          return res.status(400).json({
+            success: false,
+            message: `Size selection is required for ${product.name}`,
+          });
+        }
+        if (!product.availableSizes.includes(item.selectedSize)) {
+          return res.status(400).json({
+            success: false,
+            message: `Selected size '${item.selectedSize}' is not available for ${product.name}`,
+          });
+        }
+      }
+
       const metersPerPiece =
         product.soldBy === "meter"
           ? Math.max(Number(item.meters) || 1, 1)
@@ -37,6 +53,7 @@ exports.createOrder = async (req, res, next) => {
         productName: product.name,
         productImage: product.image,
         brand: product.brand,
+        size: item.selectedSize || null, // Include selected size
         price: product.price,
         quantity: item.quantity,
         meters: metersPerPiece,
