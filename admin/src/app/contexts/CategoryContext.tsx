@@ -31,6 +31,13 @@ function getAuthHeaders() {
   return headers;
 }
 
+function clearAdminSessionAndRedirect() {
+  localStorage.removeItem('adminAuth');
+  localStorage.removeItem('adminToken');
+  localStorage.removeItem('adminUser');
+  window.location.href = '/admin/login';
+}
+
 export function CategoryProvider({ children }: { children: ReactNode }) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,6 +70,10 @@ export function CategoryProvider({ children }: { children: ReactNode }) {
           const errorData = await response.json();
           const message = errorData?.message || 'Failed to fetch categories';
           console.error('[fetchCategories] Error:', errorData);
+          if (response.status === 401) {
+            clearAdminSessionAndRedirect();
+            return;
+          }
           setError(message);
         }
       } catch (error) {

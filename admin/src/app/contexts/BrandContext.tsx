@@ -31,6 +31,13 @@ function getAuthHeaders() {
   return headers;
 }
 
+function clearAdminSessionAndRedirect() {
+  localStorage.removeItem('adminAuth');
+  localStorage.removeItem('adminToken');
+  localStorage.removeItem('adminUser');
+  window.location.href = '/admin/login';
+}
+
 export function BrandProvider({ children }: { children: ReactNode }) {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,6 +70,10 @@ export function BrandProvider({ children }: { children: ReactNode }) {
           const errorData = await response.json();
           const message = errorData?.message || 'Failed to fetch brands';
           console.error('[fetchBrands] Error:', errorData);
+          if (response.status === 401) {
+            clearAdminSessionAndRedirect();
+            return;
+          }
           setError(message);
         }
       } catch (error) {

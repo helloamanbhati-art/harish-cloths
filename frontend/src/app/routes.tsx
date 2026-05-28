@@ -8,7 +8,12 @@ import { Payment } from './pages/Payment';
 import { OrderSuccess } from './pages/OrderSuccess';
 import { MyOrders } from './pages/MyOrders';
 import { OrderDetail } from './pages/OrderDetail';
+import { PrivacyPolicy } from './pages/PrivacyPolicy';
 import { NotFound } from './pages/NotFound';
+import { AdminLayout } from './admin/pages/AdminLayout';
+import { AdminProducts } from './admin/pages/AdminProducts';
+import { AdminOrders } from './admin/pages/AdminOrders';
+import { AdminSizes } from './admin/pages/AdminSizes';
 
 export const router = createBrowserRouter([
   {
@@ -48,8 +53,30 @@ export const router = createBrowserRouter([
         element: <OrderDetail /> 
       },
       { 
+        path: 'privacy-policy', 
+        element: <PrivacyPolicy /> 
+      },
+      { 
         path: '*', 
         element: <NotFound /> 
+      },
+    ],
+  },
+  {
+    path: '/admin',
+    element: <AdminLayout />,
+    children: [
+      {
+        path: 'products',
+        element: <AdminProducts />
+      },
+      {
+        path: 'orders',
+        element: <AdminOrders />
+      },
+      {
+        path: 'sizes',
+        element: <AdminSizes />
       },
     ],
   },

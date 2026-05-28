@@ -10,6 +10,8 @@ export interface Product {
   category: string;
   description: string;
   soldBy: 'meter' | 'piece';
+  availableSizes?: string[];
+  clothingType?: string;
   inStock?: boolean;
 }
 
@@ -64,6 +66,8 @@ export function useProducts() {
             : product.category,
           description: product.description || product.shortDescription || '',
           soldBy: product.soldBy || 'piece',
+          availableSizes: Array.isArray(product.availableSizes) ? product.availableSizes : [],
+          clothingType: product.clothingType || '',
           inStock: product.inStock !== false,
         } as Product));
         

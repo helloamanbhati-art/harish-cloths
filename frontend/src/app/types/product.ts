@@ -8,12 +8,16 @@ export interface Product {
   category: string;
   description: string;
   soldBy: 'meter' | 'piece'; // How the product is sold
+  availableSizes?: string[]; // Available sizes for this product
+  clothingType?: string; // Type of clothing (shirt, jeans, etc)
 }
 
 export interface FilterState {
   priceRange: [number, number];
   selectedBrands: string[];
   selectedCategories: string[];
+  selectedSizes: string[];
+  selectedClothingTypes: string[];
 }
 
 export interface PriceRange {
@@ -29,5 +33,10 @@ export interface BrandCount {
 
 export interface CategoryCount {
   category: string;
+  count: number;
+}
+
+export interface ClothingTypeCount {
+  type: string;
   count: number;
 }

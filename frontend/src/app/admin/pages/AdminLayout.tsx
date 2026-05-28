@@ -38,6 +38,7 @@ function AdminLayoutContent() {
     { icon: BarChart3, label: 'Analytics', path: '/admin/analytics' },
     { icon: Package, label: 'Products', path: '/admin/products', badge: '156' },
     { icon: ShoppingBag, label: 'Orders', path: '/admin/orders', badge: '12' },
+    { icon: Tag, label: 'Sizes', path: '/admin/sizes' },
     { icon: Tag, label: 'Brands', path: '/admin/brands' },
     { icon: Layers, label: 'Categories', path: '/admin/categories' },
     { icon: Users, label: 'Customers', path: '/admin/customers' },

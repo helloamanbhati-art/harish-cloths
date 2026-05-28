@@ -66,7 +66,7 @@ export function Cart() {
           </div>
 
           {items.map((item, index) => (
-            <Card key={`${item.id}-${item.selectedMeters || 'piece'}-${index}`}>
+            <Card key={`${item.id}-${item.selectedMeters || 'piece'}-${item.selectedSize || 'nosize'}-${index}`}>
               <CardContent className="p-4">
                 <div className="flex gap-4">
                   <div className="w-24 h-24 overflow-hidden rounded-lg flex-shrink-0">
@@ -87,6 +87,12 @@ export function Cart() {
                         <p className="text-sm text-muted-foreground">
                           {getDisplayValue(item.category)}
                         </p>
+                        {/* Show size info if applicable */}
+                        {item.selectedSize && (
+                          <Badge variant="secondary" className="mt-1 mr-2 text-xs">
+                            Size: {item.selectedSize}
+                          </Badge>
+                        )}
                         {/* Show meter info if applicable */}
                         {item.soldBy === 'meter' && item.selectedMeters && (
                           <Badge variant="secondary" className="mt-1 text-xs">
@@ -97,7 +103,7 @@ export function Cart() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => removeFromCart(item.id, item.selectedMeters)}
+                        onClick={() => removeFromCart(item.id, item.selectedMeters, item.selectedSize)}
                       >
                         <Trash2 className="size-4 text-destructive" />
                       </Button>
@@ -108,7 +114,7 @@ export function Cart() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => updateQuantity(item.id, item.quantity - 1, item.selectedMeters)}
+                          onClick={() => updateQuantity(item.id, item.quantity - 1, item.selectedMeters, item.selectedSize)}
                         >
                           <Minus className="size-3" />
                         </Button>
@@ -123,7 +129,7 @@ export function Cart() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => updateQuantity(item.id, item.quantity + 1, item.selectedMeters)}
+                          onClick={() => updateQuantity(item.id, item.quantity + 1, item.selectedMeters, item.selectedSize)}
                         >
                           <Plus className="size-3" />
                         </Button>

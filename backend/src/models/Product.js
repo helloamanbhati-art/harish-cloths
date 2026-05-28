@@ -87,6 +87,16 @@ const productSchema = new mongoose.Schema(
       },
     ],
 
+    // Sizes (for clothing items)
+    availableSizes: {
+      type: [String],
+      default: [],
+    },
+    clothingType: {
+      type: String,
+      default: null,
+    },
+
     // Variants
     hasVariants: { type: Boolean, default: false },
     variants: [
@@ -96,6 +106,7 @@ const productSchema = new mongoose.Schema(
         price: Number,
         stock: Number,
         image: String,
+        size: String,
       },
     ],
 

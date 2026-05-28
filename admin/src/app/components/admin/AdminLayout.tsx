@@ -20,6 +20,7 @@ const menuItems = [
   { icon: ShoppingBag, label: 'Orders', path: '/admin/orders', badge: 'orders' },
   { icon: Tag, label: 'Brands', path: '/admin/brands' },
   { icon: Layers, label: 'Categories', path: '/admin/categories' },
+  { icon: Layers, label: 'Product Options', path: '/admin/product-options' },
   { icon: Users, label: 'Customers', path: '/admin/customers' },
   { icon: Settings, label: 'Settings', path: '/admin/settings' },
 ];
@@ -33,13 +34,16 @@ export function AdminLayout() {
 
   useEffect(() => {
     const adminAuth = localStorage.getItem('adminAuth');
-    if (!adminAuth) {
+    const adminToken = localStorage.getItem('adminToken');
+    if (!adminAuth || !adminToken) {
       navigate('/admin/login');
     }
   }, [navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem('adminAuth');
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminUser');
     navigate('/admin/login');
   };
 

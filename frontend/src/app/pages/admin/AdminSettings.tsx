@@ -244,12 +244,12 @@ export function AdminSettings() {
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="storeName">Store Name</Label>
-              <Input id="storeName" defaultValue="H&S" />
+              <Input id="storeName" defaultValue="A&S" />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="storeEmail">Store Email</Label>
-              <Input id="storeEmail" type="email" defaultValue="contact@harishcloths.com" />
+              <Input id="storeEmail" type="email" defaultValue="support@amanandsons.com" />
             </div>
 
             <div className="space-y-2">

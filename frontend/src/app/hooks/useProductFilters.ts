@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Product, FilterState, BrandCount, CategoryCount, PriceRange } from '../types/product';
+import { Product, FilterState, BrandCount, CategoryCount, ClothingTypeCount, PriceRange } from '../types/product';
 
 const defaultFilterRange: [number, number] = [0, 25000];
 
@@ -31,7 +31,9 @@ const computePriceRanges = (products: Product[]): PriceRange[] => {
 const initialFilters: FilterState = {
   priceRange: defaultFilterRange,
   selectedBrands: [],
-  selectedCategories: []
+  selectedCategories: [],
+  selectedSizes: [],
+  selectedClothingTypes: [],
 };
 
 export function useProductFilters(products: Product[]) {
@@ -85,6 +87,23 @@ export function useProductFilters(products: Product[]) {
         return false;
       }
 
+      // Size filter
+      if (filters.selectedSizes.length > 0) {
+        const productSizes = product.availableSizes || [];
+        const hasSelectedSize = filters.selectedSizes.some(size => productSizes.includes(size));
+        if (!hasSelectedSize) {
+          return false;
+        }
+      }
+
+      // Clothing type filter
+      if (filters.selectedClothingTypes.length > 0) {
+        const type = product.clothingType || '';
+        if (!type || !filters.selectedClothingTypes.includes(type)) {
+          return false;
+        }
+      }
+
       return true;
     });
   }, [products, filters]);
@@ -115,6 +134,64 @@ export function useProductFilters(products: Product[]) {
     });
   }, [products, filters.priceRange, filters.selectedBrands, categories]);
 
+  const sizeCounts = useMemo(() => {
+    const allSizes = new Set<string>();
+    products.forEach(product => {
+      if (product.availableSizes) {
+        product.availableSizes.forEach(size => allSizes.add(size));
+      }
+    });
+
+    return Array.from(allSizes).sort().map(size => {
+      const count = products.filter(product => {
+        const matchesPrice = product.price >= filters.priceRange[0] && 
+                            product.price <= filters.priceRange[1];
+        const matchesBrand = filters.selectedBrands.length === 0 || filters.selectedBrands.includes(product.brand);
+        const matchesCategory = filters.selectedCategories.length === 0 || filters.selectedCategories.includes(product.category);
+        const hasSize = product.availableSizes?.includes(size);
+        return matchesPrice && matchesBrand && matchesCategory && hasSize;
+      }).length;
+
+      return { size, count };
+    });
+  }, [products, filters.priceRange, filters.selectedBrands, filters.selectedCategories]);
+
+  const clothingTypeCounts = useMemo((): ClothingTypeCount[] => {
+    const allTypes = Array.from(
+      new Set(products.map((product) => product.clothingType).filter(Boolean))
+    ) as string[];
+
+    return allTypes.sort().map((type) => {
+      const count = products.filter((product) => {
+        const matchesPrice =
+          product.price >= filters.priceRange[0] && product.price <= filters.priceRange[1];
+        const matchesBrand =
+          filters.selectedBrands.length === 0 || filters.selectedBrands.includes(product.brand);
+        const matchesCategory =
+          filters.selectedCategories.length === 0 ||
+          filters.selectedCategories.includes(product.category);
+        const matchesSize =
+          filters.selectedSizes.length === 0 ||
+          filters.selectedSizes.some((size) => product.availableSizes?.includes(size));
+        return (
+          matchesPrice &&
+          matchesBrand &&
+          matchesCategory &&
+          matchesSize &&
+          product.clothingType === type
+        );
+      }).length;
+
+      return { type, count };
+    });
+  }, [
+    products,
+    filters.priceRange,
+    filters.selectedBrands,
+    filters.selectedCategories,
+    filters.selectedSizes,
+  ]);
+
   const resetFilters = () => {
     setFilters(initialFilters);
   };
@@ -126,6 +203,8 @@ export function useProductFilters(products: Product[]) {
     filteredProducts,
     brandCounts,
     categoryCounts,
+    sizeCounts,
+    clothingTypeCounts,
     resetFilters
   };
 }

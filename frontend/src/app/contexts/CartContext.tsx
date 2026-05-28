@@ -4,13 +4,14 @@ import { Product } from '../types/product';
 export interface CartItem extends Product {
   quantity: number;
   selectedMeters?: number; // For products sold by meter
+  selectedSize?: string; // For sized products
 }
 
 interface CartContextType {
   items: CartItem[];
-  addToCart: (product: Product, selectedMeters?: number) => void;
-  removeFromCart: (productId: string, selectedMeters?: number) => void;
-  updateQuantity: (productId: string, quantity: number, selectedMeters?: number) => void;
+  addToCart: (product: Product, selectedMeters?: number, selectedSize?: string) => void;
+  removeFromCart: (productId: string, selectedMeters?: number, selectedSize?: string) => void;
+  updateQuantity: (productId: string, quantity: number, selectedMeters?: number, selectedSize?: string) => void;
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
@@ -59,8 +60,8 @@ const normalizeCartItems = (rawItems: unknown): CartItem[] => {
     });
 };
 
-const matchesCartItem = (item: CartItem, productId: string, selectedMeters?: number) =>
-  item.id === productId && item.selectedMeters === selectedMeters;
+const matchesCartItem = (item: CartItem, productId: string, selectedMeters?: number, selectedSize?: string) =>
+  item.id === productId && item.selectedMeters === selectedMeters && item.selectedSize === selectedSize;
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>(() => {
@@ -82,39 +83,39 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('cart', JSON.stringify(items));
   }, [items]);
 
-  const addToCart = (product: Product, selectedMeters?: number) => {
+  const addToCart = (product: Product, selectedMeters?: number, selectedSize?: string) => {
     const normalizedProduct = normalizeProduct(product);
 
     setItems(current => {
       const existing = current.find(
-        item => item.id === normalizedProduct.id && item.selectedMeters === selectedMeters
+        item => item.id === normalizedProduct.id && item.selectedMeters === selectedMeters && item.selectedSize === selectedSize
       );
 
       if (existing) {
         return current.map(item =>
-          item.id === normalizedProduct.id && item.selectedMeters === selectedMeters
+          item.id === normalizedProduct.id && item.selectedMeters === selectedMeters && item.selectedSize === selectedSize
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
 
-      return [...current, { ...normalizedProduct, quantity: 1, selectedMeters }];
+      return [...current, { ...normalizedProduct, quantity: 1, selectedMeters, selectedSize }];
     });
   };
 
-  const removeFromCart = (productId: string, selectedMeters?: number) => {
-    setItems(current => current.filter(item => !matchesCartItem(item, productId, selectedMeters)));
+  const removeFromCart = (productId: string, selectedMeters?: number, selectedSize?: string) => {
+    setItems(current => current.filter(item => !matchesCartItem(item, productId, selectedMeters, selectedSize)));
   };
 
-  const updateQuantity = (productId: string, quantity: number, selectedMeters?: number) => {
+  const updateQuantity = (productId: string, quantity: number, selectedMeters?: number, selectedSize?: string) => {
     if (quantity <= 0) {
-      removeFromCart(productId, selectedMeters);
+      removeFromCart(productId, selectedMeters, selectedSize);
       return;
     }
 
     setItems(current =>
       current.map(item =>
-        matchesCartItem(item, productId, selectedMeters) ? { ...item, quantity } : item
+        matchesCartItem(item, productId, selectedMeters, selectedSize) ? { ...item, quantity } : item
       )
     );
   };

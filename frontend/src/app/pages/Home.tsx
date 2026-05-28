@@ -15,6 +15,8 @@ export function Home() {
     filteredProducts,
     brandCounts,
     categoryCounts,
+    sizeCounts,
+    clothingTypeCounts,
     resetFilters
   } = useProductFilters(products);
 
@@ -60,6 +62,8 @@ export function Home() {
         priceRanges={priceRanges}
         brandCounts={brandCounts}
         categoryCounts={categoryCounts}
+        sizeCounts={sizeCounts}
+        clothingTypeCounts={clothingTypeCounts}
         onResetFilters={resetFilters}
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}

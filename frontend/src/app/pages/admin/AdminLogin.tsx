@@ -23,9 +23,9 @@ export function AdminLogin() {
 
     // Simulate API call
     setTimeout(() => {
-      // Demo credentials: admin@harishcloths.com / admin123
+      // Demo credentials: admin@amanandsons.com / admin123
       if (
-        formData.email === 'admin@harishcloths.com' &&
+        formData.email === 'admin@amanandsons.com' &&
         formData.password === 'admin123'
       ) {
         // Store auth token (in production, use JWT)
@@ -33,7 +33,7 @@ export function AdminLogin() {
         toast.success('Login successful!');
         navigate('/admin');
       } else {
-        toast.error('Invalid credentials. Use admin@harishcloths.com / admin123');
+        toast.error('Invalid credentials. Use admin@amanandsons.com / admin123');
       }
       setLoading(false);
     }, 1000);
@@ -48,7 +48,7 @@ export function AdminLogin() {
           </div>
           <CardTitle className="text-2xl font-bold">Admin Login</CardTitle>
           <CardDescription>
-            Sign in to access H&S admin panel
+            Sign in to access A&S admin panel
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -60,7 +60,7 @@ export function AdminLogin() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@harishcloths.com"
+                  placeholder="admin@amanandsons.com"
                   className="pl-10"
                   value={formData.email}
                   onChange={(e) =>
@@ -109,7 +109,7 @@ export function AdminLogin() {
                 Demo Credentials:
               </p>
               <p className="text-xs text-blue-700 font-mono">
-                Email: admin@harishcloths.com
+                Email: admin@amanandsons.com
               </p>
               <p className="text-xs text-blue-700 font-mono">Password: admin123</p>
             </div>

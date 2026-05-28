@@ -25,6 +25,8 @@ interface Product {
   brand: string;
   category: string;
   soldBy: 'meter' | 'piece';
+  availableSizes?: string[];
+  clothingType?: string;
   stock?: { available: number };
   inStock?: boolean;
 }
@@ -37,6 +39,7 @@ export function ProductDetail() {
   const { addToCart } = useCart();
   const [added, setAdded] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [meterPieces, setMeterPieces] = useState<Array<{ meters: number; pieces: number }>>([
     { meters: 4, pieces: 1 }
   ]);
@@ -85,6 +88,8 @@ export function ProductDetail() {
             ? productData.category?.name || 'Unknown' 
             : productData.category,
           soldBy: productData.soldBy || 'piece',
+          availableSizes: Array.isArray(productData.availableSizes) ? productData.availableSizes : [],
+          clothingType: productData.clothingType || '',
           inStock: productData.inStock !== false,
         };
 
@@ -128,11 +133,11 @@ export function ProductDetail() {
         meterPieces.forEach(item => {
           // Add as many pieces as specified, each with the selected meter length
           for (let i = 0; i < item.pieces; i++) {
-            addToCart(product, item.meters);
+            addToCart(product, item.meters, selectedSize);
           }
         });
       } else {
-        addToCart(product);
+        addToCart(product, undefined, selectedSize);
       }
       
       setAdded(true);
@@ -220,7 +225,7 @@ export function ProductDetail() {
           <ImageCarousel
             images={product.images && product.images.length > 0 ? product.images : (product.image ? [product.image] : [])}
             alt={product.name}
-            className="w-full h-full object-cover"
+            className="w-full h-full"
           />
         </div>
 
@@ -252,6 +257,33 @@ export function ProductDetail() {
           </div>
 
           <div className="space-y-4 pt-4">
+            {/* Size Selection */}
+            {product.availableSizes && product.availableSizes.length > 0 && (
+              <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
+                <Label className="text-sm md:text-base font-semibold">
+                  Select Size
+                </Label>
+                <div className="flex flex-wrap gap-2">
+                  {product.availableSizes.map((size) => (
+                    <Button
+                      key={size}
+                      variant={selectedSize === size ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setSelectedSize(size)}
+                      className="px-3 h-8 text-xs"
+                    >
+                      {size}
+                    </Button>
+                  ))}
+                </div>
+                {selectedSize && (
+                  <p className="text-xs md:text-sm text-muted-foreground">
+                    Selected: <span className="font-semibold text-foreground">{selectedSize}</span>
+                  </p>
+                )}
+              </div>
+            )}
+
             {product.soldBy === 'meter' && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">

@@ -366,7 +366,7 @@ export function OrderSuccess() {
               <div className="flex-1 text-center md:text-left">
                 <h1 className="text-2xl md:text-3xl font-bold mb-2 text-gray-900">Order Confirmed Successfully! 🎉</h1>
                 <p className="text-gray-700 text-sm md:text-base">
-                  Thank you for shopping with H&S. Your order is being processed.
+                  Thank you for shopping with A&S. Your order is being processed.
                 </p>
               </div>
 

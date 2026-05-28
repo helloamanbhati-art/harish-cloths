@@ -37,49 +37,57 @@ export function ImageCarousel({ images, alt, className = '' }: ImageCarouselProp
   if (images.length === 0) return null;
 
   return (
-    <div className={`relative group ${className}`}>
-      <ImageWithFallback
-        src={images[currentIndex]}
-        alt={`${alt} - Image ${currentIndex + 1}`}
-        className="w-full h-full object-cover"
-      />
-      
-      {images.length > 1 && (
-        <>
-          {/* Navigation Arrows */}
-          <Button
-            variant="secondary"
-            size="icon"
-            className="absolute left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity size-8"
-            onClick={goToPrevious}
-          >
-            <ChevronLeft className="size-4" />
-          </Button>
-          <Button
-            variant="secondary"
-            size="icon"
-            className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity size-8"
-            onClick={goToNext}
-          >
-            <ChevronRight className="size-4" />
-          </Button>
+    <div className={`space-y-3 ${className}`}>
+      <div className="relative group w-full h-full">
+        <ImageWithFallback
+          src={images[currentIndex]}
+          alt={`${alt} - Image ${currentIndex + 1}`}
+          className="w-full h-full object-cover rounded-lg"
+        />
 
-          {/* Dots Indicator */}
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
-            {images.map((_, index) => (
-              <button
-                key={index}
-                onClick={(e) => goToSlide(index, e)}
-                className={`size-2 rounded-full transition-all ${
-                  index === currentIndex
-                    ? 'bg-white w-4'
-                    : 'bg-white/60 hover:bg-white/80'
-                }`}
-                aria-label={`Go to image ${index + 1}`}
+        {images.length > 1 && (
+          <>
+            <Button
+              variant="secondary"
+              size="icon"
+              className="absolute left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity size-8"
+              onClick={goToPrevious}
+            >
+              <ChevronLeft className="size-4" />
+            </Button>
+            <Button
+              variant="secondary"
+              size="icon"
+              className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity size-8"
+              onClick={goToNext}
+            >
+              <ChevronRight className="size-4" />
+            </Button>
+          </>
+        )}
+      </div>
+
+      {images.length > 1 && (
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {images.map((image, index) => (
+            <button
+              key={`${image}-${index}`}
+              onClick={(e) => goToSlide(index, e)}
+              className={`shrink-0 size-16 md:size-20 rounded-md overflow-hidden border-2 transition-all ${
+                index === currentIndex
+                  ? 'border-primary'
+                  : 'border-transparent hover:border-muted-foreground/40'
+              }`}
+              aria-label={`Go to image ${index + 1}`}
+            >
+              <ImageWithFallback
+                src={image}
+                alt={`${alt} thumbnail ${index + 1}`}
+                className="w-full h-full object-cover"
               />
-            ))}
-          </div>
-        </>
+            </button>
+          ))}
+        </div>
       )}
     </div>
   );

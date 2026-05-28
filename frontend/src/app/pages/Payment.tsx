@@ -175,7 +175,7 @@ export function Payment() {
         key: RAZORPAY_KEY,
         amount: razorpayOrder.amount, // Amount in paise
         currency: razorpayOrder.currency,
-        name: 'Harish Cloths',
+        name: 'Aman & Sons',
         description: 'Purchase of premium fabric products',
         order_id: razorpayOrder.id,
         handler: function (response: RazorpayResponse) {

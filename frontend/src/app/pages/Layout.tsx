@@ -23,19 +23,27 @@ function LayoutContent() {
             <Outlet />
           </div>
           
-          {/* Footer with Admin Link */}
+          {/* Footer with Admin Link and Privacy Policy */}
           <footer className="border-t bg-muted/30 py-6 px-4 text-center">
             <div className="max-w-7xl mx-auto">
-              <p className="text-sm text-muted-foreground mb-2">
-                © {new Date().getFullYear()} H&S. All rights reserved.
+              <p className="text-sm text-muted-foreground mb-4">
+                © {new Date().getFullYear()} A&S. All rights reserved.
               </p>
-              <Link
-                to="/admin/login"
-                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
-              >
-                <Shield className="size-3" />
-                Admin Access
-              </Link>
+              <div className="flex flex-col sm:flex-row justify-center items-center gap-6">
+                <Link
+                  to="/privacy-policy"
+                  className="text-xs text-muted-foreground hover:text-primary transition-colors underline"
+                >
+                  Privacy Policy
+                </Link>
+                <Link
+                  to="/admin/login"
+                  className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+                >
+                  <Shield className="size-3" />
+                  Admin Access
+                </Link>
+              </div>
             </div>
           </footer>
         </CartProvider>

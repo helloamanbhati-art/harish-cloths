@@ -2,6 +2,7 @@ const Product = require("../models/Product");
 const Brand = require("../models/Brand");
 const Category = require("../models/Category");
 const Inventory = require("../models/Inventory");
+const ProductOptions = require("../models/ProductOptions");
 const { v2: cloudinary } = require("cloudinary");
 
 // Get all products
@@ -247,6 +248,25 @@ exports.getCategories = async (req, res, next) => {
     res.json({
       success: true,
       data: categories,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getProductOptions = async (req, res, next) => {
+  try {
+    let options = await ProductOptions.findOne({ key: "default" });
+    if (!options) {
+      options = await ProductOptions.create({ key: "default" });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        sizes: options.sizes || [],
+        clothingTypes: options.clothingTypes || [],
+      },
     });
   } catch (error) {
     next(error);

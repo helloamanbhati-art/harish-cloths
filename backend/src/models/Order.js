@@ -10,6 +10,10 @@ const orderItemSchema = new mongoose.Schema(
     productName: String,
     productImage: String,
     brand: String,
+    size: {
+      type: String,
+      default: null,
+    },
     price: { type: Number, required: true, min: 0 },
     quantity: { type: Number, required: true, min: 1 },
     meters: Number,

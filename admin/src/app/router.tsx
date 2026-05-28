@@ -9,6 +9,7 @@ import { BrandsManagement } from './pages/admin/BrandsManagement';
 import { CategoriesManagement } from './pages/admin/CategoriesManagement';
 import { CustomersManagement } from './pages/admin/CustomersManagement';
 import { AdminSettings } from './pages/admin/AdminSettings';
+import { ProductOptionsManagement } from './pages/admin/ProductOptionsManagement';
 
 // Customer-facing components (placeholders for now)
 import Layout from './components/customer/Layout';
@@ -103,6 +104,10 @@ const router = createBrowserRouter([
       {
         path: 'settings',
         element: <AdminSettings />,
+      },
+      {
+        path: 'product-options',
+        element: <ProductOptionsManagement />,
       },
     ],
   },

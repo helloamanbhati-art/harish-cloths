@@ -8,6 +8,7 @@ const AdminUser = require("../models/AdminUser");
 const Category = require("../models/Category");
 const Brand = require("../models/Brand");
 const Product = require("../models/Product");
+const ProductOptions = require("../models/ProductOptions");
 const Inventory = require("../models/Inventory");
 const adminController = require("../controllers/adminController");
 const { authenticateAdmin, requireRole } = require("../middleware/auth");
@@ -22,6 +23,17 @@ cloudinary.config({
 const upload = multer({ storage: multer.memoryStorage() });
 
 const router = express.Router();
+
+async function uploadBufferToCloudinary(fileBuffer) {
+  return new Promise((resolve, reject) => {
+    cloudinary.uploader
+      .upload_stream({ folder: "harish-cloths/products" }, (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      })
+      .end(fileBuffer);
+  });
+}
 
 // PUBLIC ROUTE - Login (no auth required)
 router.post("/auth/login", async (req, res) => {
@@ -67,24 +79,31 @@ router.post('/products/upload-image', upload.single('image'), async (req, res) =
     }
     console.log('[UPLOAD] File received:', req.file.originalname, 'Size:', req.file.size);
 
-    const result = await new Promise((resolve, reject) => {
-      cloudinary.uploader.upload_stream(
-        { folder: 'harish-cloths/products' },
-        (error, result) => {
-          if (error) {
-            console.error('[UPLOAD] Cloudinary error:', error);
-            reject(error);
-          } else {
-            console.log('[UPLOAD] Cloudinary success:', result.secure_url);
-            resolve(result);
-          }
-        }
-      ).end(req.file.buffer);
-    });
+    const result = await uploadBufferToCloudinary(req.file.buffer);
 
     res.json({ success: true, url: result.secure_url });
   } catch (error) {
     console.error('[UPLOAD] Error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+router.post("/products/upload-images", upload.array("images", 10), async (req, res) => {
+  try {
+    const files = req.files || [];
+    if (!Array.isArray(files) || files.length === 0) {
+      return res.status(400).json({ success: false, message: "No images uploaded" });
+    }
+
+    const uploaded = [];
+    for (const file of files) {
+      const result = await uploadBufferToCloudinary(file.buffer);
+      uploaded.push(result.secure_url);
+    }
+
+    res.json({ success: true, urls: uploaded });
+  } catch (error) {
+    console.error("[UPLOAD-MULTI] Error:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -145,6 +164,8 @@ router.post('/products', async (req, res) => {
       description: data.description,
       price: data.price,
       soldBy: data.soldBy,
+      clothingType: data.clothingType || null,
+      availableSizes: Array.isArray(data.availableSizes) ? data.availableSizes : [],
       brand: brandId,
       category: categoryId,
       image: data.image || '',
@@ -213,6 +234,55 @@ router.put('/products/:productId', async (req, res) => {
 });
 router.delete("/products/:productId", adminController.deleteProduct);
 router.post("/products/bulk-update", adminController.bulkUpdateProducts);
+
+// Product options (sizes, clothing types)
+router.get("/product-options", async (req, res) => {
+  try {
+    let options = await ProductOptions.findOne({ key: "default" });
+    if (!options) {
+      options = await ProductOptions.create({ key: "default" });
+    }
+    res.json({
+      success: true,
+      data: {
+        sizes: options.sizes || [],
+        clothingTypes: options.clothingTypes || [],
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+router.put("/product-options", async (req, res) => {
+  try {
+    const sizes = Array.isArray(req.body?.sizes)
+      ? req.body.sizes.map((s) => String(s).trim()).filter(Boolean)
+      : [];
+    const clothingTypes = Array.isArray(req.body?.clothingTypes)
+      ? req.body.clothingTypes.map((t) => String(t).trim()).filter(Boolean)
+      : [];
+
+    const uniqueSizes = [...new Set(sizes)];
+    const uniqueClothingTypes = [...new Set(clothingTypes)];
+
+    const options = await ProductOptions.findOneAndUpdate(
+      { key: "default" },
+      { sizes: uniqueSizes, clothingTypes: uniqueClothingTypes },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+
+    res.json({
+      success: true,
+      data: {
+        sizes: options.sizes || [],
+        clothingTypes: options.clothingTypes || [],
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
 
 // Order management
 router.get("/orders", adminController.getAllOrders);

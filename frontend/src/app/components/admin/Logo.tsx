@@ -55,7 +55,7 @@ export function Logo({ className = '' }: { className?: string }) {
       </div>
       <div className="flex flex-col">
         <span className="font-bold text-lg leading-tight dark:text-white">
-          H&S
+          A&S
         </span>
         <span className="text-xs text-muted-foreground leading-tight">
           Admin Panel

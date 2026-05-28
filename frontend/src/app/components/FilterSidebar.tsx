@@ -1,4 +1,4 @@
-import { FilterState, BrandCount, CategoryCount } from '../types/product';
+import { FilterState, BrandCount, CategoryCount, ClothingTypeCount } from '../types/product';
 import { Button } from './ui/button';
 import { Checkbox } from './ui/checkbox';
 import { Separator } from './ui/separator';
@@ -6,12 +6,19 @@ import { Badge } from './ui/badge';
 import { X } from 'lucide-react';
 import { useEffect } from 'react';
 
+interface SizeCount {
+  size: string;
+  count: number;
+}
+
 interface FilterSidebarProps {
   filters: FilterState;
   onFiltersChange: (filters: FilterState) => void;
   priceRanges: { label: string; min: number; max: number; }[];
   brandCounts: BrandCount[];
   categoryCounts: CategoryCount[];
+  sizeCounts?: SizeCount[];
+  clothingTypeCounts?: ClothingTypeCount[];
   onResetFilters: () => void;
   isOpen: boolean;
   onClose: () => void;
@@ -23,6 +30,8 @@ export function FilterSidebar({
   priceRanges,
   brandCounts, 
   categoryCounts,
+  sizeCounts = [],
+  clothingTypeCounts = [],
   onResetFilters,
   isOpen,
   onClose
@@ -65,6 +74,28 @@ export function FilterSidebar({
     onFiltersChange({
       ...filters,
       selectedCategories: updatedCategories
+    });
+  };
+
+  const handleSizeToggle = (size: string) => {
+    const updatedSizes = filters.selectedSizes.includes(size)
+      ? filters.selectedSizes.filter(s => s !== size)
+      : [...filters.selectedSizes, size];
+
+    onFiltersChange({
+      ...filters,
+      selectedSizes: updatedSizes
+    });
+  };
+
+  const handleClothingTypeToggle = (type: string) => {
+    const updatedTypes = filters.selectedClothingTypes.includes(type)
+      ? filters.selectedClothingTypes.filter((t) => t !== type)
+      : [...filters.selectedClothingTypes, type];
+
+    onFiltersChange({
+      ...filters,
+      selectedClothingTypes: updatedTypes,
     });
   };
 
@@ -180,17 +211,76 @@ export function FilterSidebar({
                   />
                   <label 
                     htmlFor={brandCount.brand}
-                    className="flex-1 text-sm cursor-pointer flex items-center justify-between"
+                    className="text-sm cursor-pointer"
                   >
-                    <span className="text-xs md:text-xs">{brandCount.brand}</span>
-                    <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0">
-                      {brandCount.count}
-                    </Badge>
+                    {brandCount.brand}
                   </label>
                 </div>
               ))}
             </div>
           </div>
+
+          <Separator />
+
+          {/* Size Filter */}
+          {sizeCounts && sizeCounts.length > 0 && (
+            <>
+              <div className="space-y-3 md:space-y-2">
+                <h3 className="text-sm font-medium">Sizes</h3>
+                <div className="flex flex-wrap gap-2">
+                  {sizeCounts.map((sizeCount) => (
+                    <Button
+                      key={sizeCount.size}
+                      variant={filters.selectedSizes.includes(sizeCount.size) ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => handleSizeToggle(sizeCount.size)}
+                      className="text-xs h-8 px-2.5"
+                      disabled={sizeCount.count === 0}
+                    >
+                      {sizeCount.size}
+                      {sizeCount.count > 0 && (
+                        <Badge variant="secondary" className="ml-1 text-[10px] px-1">
+                          {sizeCount.count}
+                        </Badge>
+                      )}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <Separator />
+            </>
+          )}
+
+          {clothingTypeCounts && clothingTypeCounts.length > 0 && (
+            <>
+              <div className="space-y-3 md:space-y-2">
+                <h3 className="text-sm font-medium">Clothing Type</h3>
+                <div className="space-y-2.5 md:space-y-2">
+                  {clothingTypeCounts.map((typeCount) => (
+                    <div key={typeCount.type} className="flex items-center space-x-2.5 md:space-x-2">
+                      <Checkbox
+                        id={`type-${typeCount.type}`}
+                        checked={filters.selectedClothingTypes.includes(typeCount.type)}
+                        onCheckedChange={() => handleClothingTypeToggle(typeCount.type)}
+                      />
+                      <label
+                        htmlFor={`type-${typeCount.type}`}
+                        className="flex-1 text-sm cursor-pointer flex items-center justify-between"
+                      >
+                        <span className="text-xs md:text-xs capitalize">{typeCount.type}</span>
+                        <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0">
+                          {typeCount.count}
+                        </Badge>
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <Separator />
+            </>
+          )}
         </div>
       </div>
     </>

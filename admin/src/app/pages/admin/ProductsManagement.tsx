@@ -1,6 +1,3 @@
-
-
-// Replace with
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -9,6 +6,7 @@ import { Label } from '../../components/ui/label';
 import { Textarea } from '../../components/ui/textarea';
 import { Badge } from '../../components/ui/badge';
 import { Switch } from '../../components/ui/switch';
+import { Checkbox } from '../../components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -28,7 +26,7 @@ import { Plus, Search, Pencil, Trash2, Package, Filter } from 'lucide-react';
 import { toast } from 'sonner';
 import { useBrands } from '../../contexts/BrandContext';
 import { useCategories } from '../../contexts/CategoryContext';
-import { ImageUpload } from '../../components/admin/ImageUpload';
+import { MultiImageUpload } from '../../components/admin/MultiImageUpload';
 
 interface Product {
   id: string;
@@ -40,19 +38,22 @@ interface Product {
   category: string;
   description: string;
   soldBy: 'meter' | 'piece';
+  clothingType?: string;
+  availableSizes?: string[];
   inStock?: boolean;
-  imageFile?: File;
+  imageFiles?: File[];
 }
 
 const initialProducts: Product[] = [];
 // Note: Products are now fetched from the real API
 
-export function ProductsManagement() {https://harish-clothss.onrender.com
+export function ProductsManagement() {
   const { brands } = useBrands();
   const { categories } = useCategories();
-// NEW — paste this instead
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-const [products, setProducts] = useState<Product[]>([]);
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+  const [products, setProducts] = useState<Product[]>([]);
+  const [sizeOptions, setSizeOptions] = useState<string[]>([]);
+  const [clothingTypeOptions, setClothingTypeOptions] = useState<string[]>([]);
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('adminToken');
@@ -97,6 +98,8 @@ useEffect(() => {
           images: p.images || [],
           description: p.description,
           soldBy: p.soldBy,
+          clothingType: p.clothingType || '',
+          availableSizes: p.availableSizes || [],
           inStock: p.inStock ?? true,
         };
       });
@@ -109,12 +112,31 @@ useEffect(() => {
   };
   fetchProducts();
 }, []);
+
+useEffect(() => {
+  const fetchProductOptions = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/admin/product-options`, {
+        headers: getAuthHeaders(),
+      });
+      if (!res.ok) throw new Error('Failed to load product options');
+      const data = await res.json();
+      setSizeOptions(data?.data?.sizes || []);
+      setClothingTypeOptions(data?.data?.clothingTypes || []);
+    } catch (err) {
+      console.error('[fetchProductOptions] Exception:', err);
+      toast.error('Failed to load size and clothing type options');
+    }
+  };
+  fetchProductOptions();
+}, []);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [brandFilter, setBrandFilter] = useState('all');
   const [stockFilter, setStockFilter] = useState('all');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -124,7 +146,9 @@ useEffect(() => {
     category: '',
     price: '',
     soldBy: 'meter' as 'meter' | 'piece',
-    imageFile: null as File | null,
+    clothingType: '',
+    availableSizes: [] as string[],
+    imageFiles: [] as File[],
     inStock: true,
   });
 
@@ -155,9 +179,18 @@ useEffect(() => {
         category: product.category,
         price: product.price.toString(),
         soldBy: product.soldBy,
-        imageFile: null,
+        clothingType: product.clothingType || '',
+        availableSizes: product.availableSizes || [],
+        imageFiles: [],
         inStock: product.inStock ?? true,
       });
+      setExistingImageUrls(
+        product.images && product.images.length > 0
+          ? product.images
+          : product.image
+            ? [product.image]
+            : []
+      );
     } else {
       setEditingProduct(null);
       setFormData({
@@ -167,9 +200,12 @@ useEffect(() => {
         category: '',
         price: '',
         soldBy: 'meter',
-        imageFile: null,
+        clothingType: '',
+        availableSizes: [],
+        imageFiles: [],
         inStock: true,
       });
+      setExistingImageUrls([]);
     }
     setDialogOpen(true);
   };
@@ -180,32 +216,41 @@ useEffect(() => {
       return;
     }
 
-    if (!editingProduct && !formData.imageFile) {
-      toast.error('Please upload a product image');
+    if (!editingProduct && formData.imageFiles.length === 0) {
+      toast.error('Please upload at least one product image');
       return;
     }
 
     // In production, this will upload to server and get URL back
     // For now, create a local URL for preview
- // NEW — paste this instead
-try {
-  // Step 1: Upload image to Cloudinary via backend if a new image was selected
-  let imageUrl = editingProduct?.image || '';
-  if (formData.imageFile) {
-    const imageForm = new FormData();
-    imageForm.append('image', formData.imageFile);
-    const uploadRes = await fetch(`${API_BASE_URL}/api/v1/admin/products/upload-image`, {
+    try {
+  // Step 1: Upload any new images to Cloudinary
+  let uploadedUrls: string[] = [];
+  if (formData.imageFiles.length > 0) {
+    const imagesForm = new FormData();
+    formData.imageFiles.forEach((file) => {
+      imagesForm.append('images', file);
+    });
+
+    const uploadRes = await fetch(`${API_BASE_URL}/api/v1/admin/products/upload-images`, {
       method: 'POST',
       headers: getAuthHeaders(),
-      body: imageForm,
+      body: imagesForm,
     });
-    if (uploadRes.ok) {
-      const uploadData = await uploadRes.json();
-      imageUrl = uploadData.url;
-    } else {
+
+    if (!uploadRes.ok) {
       toast.error('Image upload failed');
       return;
     }
+
+    const uploadData = await uploadRes.json();
+    uploadedUrls = uploadData?.urls || [];
+  }
+
+  const finalImages = [...existingImageUrls, ...uploadedUrls];
+  if (finalImages.length === 0) {
+    toast.error('Please keep at least one product image');
+    return;
   }
 
   // Step 2: Save product to database
@@ -216,8 +261,10 @@ try {
     category: formData.category,
     price: parseFloat(formData.price),
     soldBy: formData.soldBy,
-    image: imageUrl,
-    images: imageUrl ? [imageUrl] : [],
+    clothingType: formData.clothingType || null,
+    availableSizes: formData.availableSizes,
+    image: finalImages[0] || '',
+    images: finalImages,
     inStock: formData.inStock,
     isActive: true,
   };
@@ -240,6 +287,8 @@ try {
       images: data.data.images || [],
       description: data.data.description,
       soldBy: data.data.soldBy,
+      clothingType: data.data.clothingType || '',
+      availableSizes: data.data.availableSizes || [],
       inStock: data.data.inStock,
     };
     setProducts(prev => prev.map(p => p.id === editingProduct.id ? updatedProduct : p));
@@ -262,6 +311,8 @@ try {
       images: data.data.images || [],
       description: data.data.description,
       soldBy: data.data.soldBy,
+      clothingType: data.data.clothingType || '',
+      availableSizes: data.data.availableSizes || [],
       inStock: data.data.inStock,
     };
     setProducts(prev => [newProduct, ...prev]);
@@ -269,27 +320,39 @@ try {
   }
 
   setDialogOpen(false);
-} catch (err) {
-  console.error('Error saving product:', err);
-  toast.error(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
-}
+  setExistingImageUrls([]);
+  setFormData({
+    name: '',
+    description: '',
+    brand: '',
+    category: '',
+    price: '',
+    soldBy: 'meter',
+    clothingType: '',
+    availableSizes: [],
+    imageFiles: [],
+    inStock: true,
+  });
+    } catch (err) {
+      console.error('Error saving product:', err);
+      toast.error(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+    }
   };
 
-// NEW
-const handleDeleteProduct = async (product: Product) => {
-  if (!window.confirm(`Are you sure you want to delete "${product.name}"?`)) return;
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/v1/admin/products/${product.id}`, {
-      method: 'DELETE',
-      headers: getAuthHeaders(),
-    });
-    if (!res.ok) throw new Error('Failed to delete');
-    setProducts(prev => prev.filter(p => p.id !== product.id));
-    toast.success('Product deleted successfully');
-  } catch (err) {
-    toast.error('Failed to delete product');
-  }
-};
+  const handleDeleteProduct = async (product: Product) => {
+    if (!window.confirm(`Are you sure you want to delete "${product.name}"?`)) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/admin/products/${product.id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      });
+      if (!res.ok) throw new Error('Failed to delete');
+      setProducts(prev => prev.filter(p => p.id !== product.id));
+      toast.success('Product deleted successfully');
+    } catch (err) {
+      toast.error('Failed to delete product');
+    }
+  };
 
   const handleToggleStock = (product: Product) => {
     setProducts(products.map(p =>
@@ -417,7 +480,21 @@ const handleDeleteProduct = async (product: Product) => {
                           <Badge className={product.soldBy === 'meter' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs' : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs'}>
                             {product.soldBy === 'meter' ? 'Per Meter' : 'Per Piece'}
                           </Badge>
+                          {product.clothingType ? (
+                            <Badge variant="secondary" className="text-xs">
+                              {product.clothingType}
+                            </Badge>
+                          ) : null}
                         </div>
+                        {product.availableSizes && product.availableSizes.length > 0 ? (
+                          <div className="flex flex-wrap gap-1.5 mt-2">
+                            {product.availableSizes.slice(0, 8).map((size) => (
+                              <Badge key={`${product.id}-${size}`} variant="outline" className="text-[10px]">
+                                {size}
+                              </Badge>
+                            ))}
+                          </div>
+                        ) : null}
                       </div>
 
                       {/* Price & Stock */}
@@ -560,15 +637,60 @@ const handleDeleteProduct = async (product: Product) => {
               </div>
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="clothingType">Clothing Type</Label>
+                <Select
+                  value={formData.clothingType || 'none'}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, clothingType: value === 'none' ? '' : value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select clothing type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {clothingTypeOptions.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Available Sizes</Label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                {sizeOptions.map((size) => (
+                  <label key={size} className="flex items-center gap-2 text-sm">
+                    <Checkbox
+                      checked={formData.availableSizes.includes(size)}
+                      onCheckedChange={(checked) => {
+                        const next = checked
+                          ? [...formData.availableSizes, size]
+                          : formData.availableSizes.filter((s) => s !== size);
+                        setFormData({ ...formData, availableSizes: next });
+                      }}
+                    />
+                    <span>{size}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="image">Product Image *</Label>
-              <ImageUpload
-                value={formData.imageFile || undefined}
-                onChange={(file) => setFormData({ ...formData, imageFile: file })}
-                preview={editingProduct?.image}
+              <MultiImageUpload
+                files={formData.imageFiles}
+                existingUrls={existingImageUrls}
+                onFilesChange={(files) => setFormData({ ...formData, imageFiles: files })}
+                onExistingUrlsChange={setExistingImageUrls}
               />
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Upload a high-quality image (PNG, JPG, max 5MB). This will be saved to the server.
+                Upload multiple images (PNG, JPG, max 5MB each). Customers can scroll through them on product pages.
               </p>
             </div>
 
