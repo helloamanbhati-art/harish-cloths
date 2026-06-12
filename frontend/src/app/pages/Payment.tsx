@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router';
 import { useCart } from '../contexts/CartContext';
+import { usePageTitle } from '../hooks/usePageTitle';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Separator } from '../components/ui/separator';
@@ -46,6 +47,7 @@ if (!import.meta.env.VITE_RAZORPAY_KEY && !import.meta.env.VITE_RAZORPAY_KEY_ID)
 }
 
 export function Payment() {
+  usePageTitle('Payment');
   const { items, totalPrice, clearCart } = useCart();
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);

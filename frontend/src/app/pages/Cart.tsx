@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router';
 import { useCart } from '../contexts/CartContext';
+import { usePageTitle } from '../hooks/usePageTitle';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
@@ -20,6 +21,7 @@ const getDisplayValue = (value: unknown) => {
 };
 
 export function Cart() {
+  usePageTitle('Shopping Cart');
   const { items, removeFromCart, updateQuantity, totalPrice, clearCart } = useCart();
   const navigate = useNavigate();
 

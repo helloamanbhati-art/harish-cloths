@@ -25,8 +25,12 @@ export function AdminLogin() {
 
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      const loginUrl = `${API_BASE_URL}/api/v1/admin/auth/login`;
       
-      const response = await fetch(`${API_BASE_URL}/api/v1/admin/auth/login`, {
+      console.log('[Login] Attempting login to:', loginUrl);
+      console.log('[Login] Request payload:', { email, password: '***' });
+      
+      const response = await fetch(loginUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -34,7 +38,11 @@ export function AdminLogin() {
         body: JSON.stringify({ email, password }),
       });
 
+      console.log('[Login] Response status:', response.status);
+      console.log('[Login] Response statusText:', response.statusText);
+
       const data = await response.json();
+      console.log('[Login] Response data:', data);
 
       if (!response.ok) {
         toast.error(data.message || 'Login failed');
@@ -49,8 +57,9 @@ export function AdminLogin() {
       toast.success('Login successful!');
       navigate('/admin');
     } catch (error) {
-      console.error('Login error:', error);
-      toast.error('Network error. Please check your connection.');
+      console.error('[Login] Exception:', error);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      toast.error('Network error. ' + errorMsg);
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router';
 import { useCart } from '../contexts/CartContext';
+import { usePageTitle } from '../hooks/usePageTitle';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -26,6 +27,7 @@ interface CheckoutFormData {
 }
 
 export function Checkout() {
+  usePageTitle('Checkout');
   const { items, totalPrice } = useCart();
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);

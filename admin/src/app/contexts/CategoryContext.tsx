@@ -45,11 +45,18 @@ export function CategoryProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const fetchCategories = async () => {
+      // Skip fetching if no token (user not authenticated)
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        setCategories([]);
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       setError(null);
       try {
         console.log('[fetchCategories] Starting...');
-        const token = localStorage.getItem('adminToken');
         console.log('[fetchCategories] Token:', token ? 'Present' : 'Missing');
 
         const response = await fetch(`${API_BASE_URL}/api/v1/admin/categories`, {

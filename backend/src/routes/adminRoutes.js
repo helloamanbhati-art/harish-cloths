@@ -69,6 +69,7 @@ router.post("/auth/login", async (req, res) => {
 router.use(authenticateAdmin);
 router.use(apiLimiter);
 
+
 // Image Upload
 router.post('/products/upload-image', upload.single('image'), async (req, res) => {
   try {

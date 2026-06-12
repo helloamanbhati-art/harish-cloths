@@ -5,8 +5,10 @@ import { Button } from '../components/ui/button';
 import { Package, ChevronRight, ShoppingBag, IndianRupee, Truck, CheckCircle, Clock } from 'lucide-react';
 import { useOrders } from '../contexts/OrderContext';
 import { motion } from 'motion/react';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export function MyOrders() {
+  usePageTitle('My Orders');
   const { orders } = useOrders();
 
   const getStatusInfo = (status: number) => {

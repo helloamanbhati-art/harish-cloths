@@ -4,6 +4,7 @@ import { Badge } from "../components/ui/badge";
 import { ArrowLeft, ShoppingCart, Minus, Plus, Trash2, Loader } from "lucide-react";
 import { ImageCarousel } from "../components/ImageCarousel";
 import { useCart } from "../contexts/CartContext";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { useState, useRef, useEffect } from "react";
 import { AddToCartAnimation } from "../components/AddToCartAnimation";
 import { useCartIcon } from "../contexts/CartIconContext";
@@ -34,6 +35,7 @@ interface Product {
 
 export function ProductDetail() {
   const { id } = useParams();
+  usePageTitle('Product Details');
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -7,8 +7,10 @@ import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import confetti from 'canvas-confetti';
 import { useOrders } from '../contexts/OrderContext';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export function OrderSuccess() {
+  usePageTitle('Order Success');
   const navigate = useNavigate();
   const location = useLocation();
   const { addOrder } = useOrders();

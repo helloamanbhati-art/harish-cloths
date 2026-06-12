@@ -2,11 +2,13 @@ import { FilterSidebar } from '../components/FilterSidebar';
 import { ProductGrid } from '../components/ProductGrid';
 import { useProductFilters } from '../hooks/useProductFilters';
 import { useProductContext } from '../contexts/ProductContext';
+import { usePageTitle } from '../hooks/usePageTitle';
 import { useState } from 'react';
 import { Button } from '../components/ui/button';
 import { SlidersHorizontal, Loader2 } from 'lucide-react';
 
 export function Home() {
+  usePageTitle();
   const { products, loading, error } = useProductContext();
   const {
     filters,

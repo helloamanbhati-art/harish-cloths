@@ -45,11 +45,18 @@ export function BrandProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const fetchBrands = async () => {
+      // Skip fetching if no token (user not authenticated)
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        setBrands([]);
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       setError(null);
       try {
         console.log('[fetchBrands] Starting...');
-        const token = localStorage.getItem('adminToken');
         console.log('[fetchBrands] Token:', token ? 'Present' : 'Missing');
 
         const response = await fetch(`${API_BASE_URL}/api/v1/admin/brands`, {

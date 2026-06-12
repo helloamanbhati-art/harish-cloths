@@ -1,8 +1,10 @@
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router';
 import { Button } from '../components/ui/button';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export function PrivacyPolicy() {
+  usePageTitle('Privacy Policy');
   return (
     <div className="min-h-screen bg-background py-8 px-4">
       <div className="max-w-4xl mx-auto">

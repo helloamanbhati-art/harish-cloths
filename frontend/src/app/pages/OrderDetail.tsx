@@ -6,9 +6,11 @@ import { CheckCircle, Home, Package, Truck, MapPin, Clock, Phone, Mail, Copy, Ch
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { useOrders } from '../contexts/OrderContext';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export function OrderDetail() {
   const { id } = useParams();
+  usePageTitle('Order Details');
   const navigate = useNavigate();
   const { getOrderById, updateOrderStatus } = useOrders();
   const order = id ? getOrderById(id) : undefined;

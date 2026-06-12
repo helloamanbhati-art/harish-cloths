@@ -150,6 +150,14 @@ export function useOrdersAPI() {
   // Fetch orders on mount
   useEffect(() => {
     const fetchOrders = async () => {
+      // Skip fetching if no token (user not authenticated)
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        setOrders([]);
+        setLoading(false);
+        return;
+      }
+
       try {
       // NEW — admin orders are at /api/v1/admin/orders
 const response = await fetch(`${API_BASE_URL}/api/v1/admin/orders`, {
