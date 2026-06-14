@@ -4,8 +4,8 @@ import { usePageTitle } from '../hooks/usePageTitle';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Separator } from '../components/ui/separator';
-import { ArrowLeft, Shield, CheckCircle2, Loader2 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { ArrowLeft, Shield, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 
 // Razorpay types
@@ -35,12 +35,21 @@ const isEmbeddedBrowser = () => {
   return isIframe || isWebViewLike;
 };
 
+const isMobileDevice = () => {
+  if (typeof window === 'undefined') return false;
+  const userAgent = window.navigator.userAgent || '';
+  return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
+};
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 const RAZORPAY_MOCK_MODE = import.meta.env.VITE_RAZORPAY_MOCK_MODE === 'true';
 const RAZORPAY_KEY =
   import.meta.env.VITE_RAZORPAY_KEY ||
   import.meta.env.VITE_RAZORPAY_KEY_ID ||
   'rzp_test_1DP5MM47F8wC1j';
+
+const POLLING_INTERVAL = 3000; // 3 seconds
+const MAX_POLLING_ATTEMPTS = 20; // 60 seconds total
 
 if (!import.meta.env.VITE_RAZORPAY_KEY && !import.meta.env.VITE_RAZORPAY_KEY_ID) {
   console.warn('Razorpay publishable key not configured. Set VITE_RAZORPAY_KEY or VITE_RAZORPAY_KEY_ID.');
@@ -52,6 +61,9 @@ export function Payment() {
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [scriptLoaded, setScriptLoaded] = useState(false);
+  const [isPolling, setIsPolling] = useState(false);
+  const pollingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const paymentCheckTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load Razorpay script
   useEffect(() => {
@@ -74,6 +86,8 @@ export function Payment() {
       if (document.body.contains(script)) {
         document.body.removeChild(script);
       }
+      if (pollingTimeoutRef.current) clearTimeout(pollingTimeoutRef.current);
+      if (paymentCheckTimeoutRef.current) clearTimeout(paymentCheckTimeoutRef.current);
     };
   }, []);
 
@@ -85,6 +99,72 @@ export function Payment() {
   }, [items.length, navigate]);
 
   const finalAmount = totalPrice;
+
+  // Poll for payment status
+  const pollPaymentStatus = async (
+    orderId: string,
+    razorpayOrderId: string,
+    maxAttempts: number = MAX_POLLING_ATTEMPTS
+  ) => {
+    let attempts = 0;
+
+    const checkStatus = async (): Promise<void> => {
+      if (attempts >= maxAttempts) {
+        setIsPolling(false);
+        toast.info(
+          'Payment verification took longer than expected. Your order status will be checked automatically. Please check your account.'
+        );
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/v1/payments/order-status/${orderId}`,
+          {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          const paymentStatus = data.data?.paymentStatus;
+
+          if (paymentStatus === 'paid') {
+            // Payment confirmed
+            setIsPolling(false);
+            toast.success('Payment confirmed! Finalizing your order...');
+            
+            // Navigate to success page
+            navigate('/order-success', {
+              state: {
+                items,
+                totalPrice: data.data?.total || finalAmount,
+                paymentMethod: 'razorpay',
+                orderId: orderId,
+                orderNumber: data.data?.orderNumber,
+                paymentId: data.data?.razorpayPaymentId,
+                status: data.data?.status,
+              },
+            });
+
+            setTimeout(() => clearCart(), 100);
+            return;
+          }
+        }
+
+        // Not yet confirmed, retry
+        attempts++;
+        pollingTimeoutRef.current = setTimeout(checkStatus, POLLING_INTERVAL);
+      } catch (error) {
+        console.error('Polling error:', error);
+        attempts++;
+        pollingTimeoutRef.current = setTimeout(checkStatus, POLLING_INTERVAL);
+      }
+    };
+
+    checkStatus();
+  };
 
   const processMockPayment = async (createdOrder: any, razorpayOrder: any) => {
     const now = Date.now();
@@ -99,7 +179,7 @@ export function Payment() {
   };
 
   const handlePayment = async () => {
-    if (!scriptLoaded) {
+    if (!scriptLoaded && !RAZORPAY_MOCK_MODE) {
       toast.error('Payment gateway is loading. Please wait...');
       return;
     }
@@ -136,7 +216,7 @@ export function Payment() {
           productId: item.id,
           quantity: item.quantity,
           meters: item.selectedMeters || 1,
-          selectedSize: item.selectedSize || null, // Include selected size
+          selectedSize: item.selectedSize || null,
         })),
         shippingAddress: parsedCheckoutData.shippingAddress,
         billingAddress: parsedCheckoutData.billingAddress,
@@ -173,15 +253,16 @@ export function Payment() {
         return;
       }
 
-      // Step 3: Open Razorpay payment modal
+      // Step 3: Open Razorpay payment modal with mobile app support
       const options = {
         key: RAZORPAY_KEY,
-        amount: razorpayOrder.amount, // Amount in paise
+        amount: razorpayOrder.amount,
         currency: razorpayOrder.currency,
-        name: 'Aman & Sons',
-        description: 'Purchase of premium fabric products',
         order_id: razorpayOrder.id,
-        handler: function (response: RazorpayResponse) {
+        name: 'Harish Cloths - Premium Fabrics',
+        description: 'Purchase of premium fabric products',
+        image: '/logo.png', // Add your logo
+        handler: (response: RazorpayResponse) => {
           handlePaymentSuccess(response, createdOrder._id);
         },
         prefill: {
@@ -196,24 +277,53 @@ export function Payment() {
         },
         retry: {
           enabled: true,
-          max_count: 1,
+          max_count: 3,
         },
         theme: {
           color: '#1a1a1a',
+          backdrop_color: 'rgba(0, 0, 0, 0.7)',
         },
         modal: {
-          ondismiss: function () {
+          ondismiss: () => {
             setIsProcessing(false);
             toast.info('Payment cancelled. Your order has been saved.');
+            // Start polling to check if payment was made via app
+            setIsPolling(true);
+            pollPaymentStatus(createdOrder._id, razorpayOrder.id, 10);
+          },
+          onfocus: () => {
+            console.log('Payment window focused');
+          },
+          onblur: () => {
+            console.log('Payment window blurred - user may have left for payment app');
           },
         },
+        // Mobile app support
+        method: {
+          upi: isMobileDevice() ? 'all' : 'off', // Enable all UPI on mobile
+          netbanking: true,
+          card: true,
+          wallet: true,
+        },
+        // Async behavior for mobile
+        async: true,
+        // For automatic app opening on mobile
+        recurring: false,
+        display_rmpost: false,
       };
 
       const razorpay = new window.Razorpay(options);
 
-      razorpay.on('payment.failed', function (response: any) {
+      razorpay.on('payment.failed', (response: any) => {
         setIsProcessing(false);
         handlePaymentFailure(response, createdOrder._id);
+      });
+
+      razorpay.on('payment.authorized', () => {
+        console.log('Payment authorized, polling for confirmation...');
+        // Start polling for payment confirmation
+        setIsPolling(true);
+        pollPaymentStatus(createdOrder._id, razorpayOrder.id);
       });
 
       razorpay.open();
@@ -228,9 +338,11 @@ export function Payment() {
   const handlePaymentFailure = async (response: any, orderId: string) => {
     try {
       console.error('Payment failed:', response);
-      toast.error('Payment failed. Please try again or contact support.');
+      const failureMessage = response.error?.description || 'Payment failed. Please try again.';
+      
+      toast.error(failureMessage);
 
-      // Optionally notify backend of failure
+      // Notify backend of failure
       await fetch(`${API_BASE_URL}/api/v1/payments/failure`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -256,6 +368,7 @@ export function Payment() {
   const handlePaymentSuccess = async (response: RazorpayResponse, orderId: string) => {
     try {
       console.log('Payment response received:', response);
+      setIsPolling(true);
 
       // Step 1: Verify payment signature with backend
       const verifyResponse = await fetch(`${API_BASE_URL}/api/v1/payments/verify`, {
@@ -280,6 +393,7 @@ export function Payment() {
       // Clear checkout data from session
       sessionStorage.removeItem('checkoutData');
 
+      setIsPolling(false);
       toast.success('Payment successful! Your order has been confirmed.');
 
       // Navigate to success page with order details
@@ -299,15 +413,18 @@ export function Payment() {
       setTimeout(() => clearCart(), 100);
     } catch (error) {
       setIsProcessing(false);
+      setIsPolling(false);
       const errorMessage = error instanceof Error ? error.message : 'Payment verification failed';
       console.error('Payment verification error:', error);
-      
-      // Show error but navigate anyway (payment may have succeeded)
+
       toast.error(errorMessage);
       
-      // Wait a moment before suggesting next steps
+      // Start polling as fallback
+      setIsPolling(true);
+      pollPaymentStatus(orderId, '', 15);
+      
       setTimeout(() => {
-        toast.info('Please contact support with payment ID if amount was deducted.');
+        toast.info('Checking payment status... Please wait.');
       }, 2000);
     }
   };
@@ -328,6 +445,19 @@ export function Payment() {
           <Card className="border-2">
             <CardContent className="p-4 md:p-6">
               <div className="space-y-6">
+                {/* Polling Status */}
+                {isPolling && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
+                    <Loader2 className="size-5 text-blue-600 mt-0.5 animate-spin flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-blue-900 text-sm">Verifying Payment</p>
+                      <p className="text-xs text-blue-700 mt-1">
+                        Payment app may have opened on your device. Please complete the payment to continue.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Payment Info */}
                 <div className="text-center py-8 space-y-4">
                   <div className="size-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
@@ -364,6 +494,24 @@ export function Payment() {
 
                 <Separator />
 
+                {/* Mobile Payment Info */}
+                {isMobileDevice() && (
+                  <>
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                      <div className="flex items-start gap-2">
+                        <CheckCircle2 className="size-5 text-green-600 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="font-medium text-green-900 text-sm">Mobile Payment Ready</p>
+                          <p className="text-xs text-green-700 mt-1">
+                            Your device supports UPI and payment apps. Click "Pay Securely" to open the payment app.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <Separator />
+                  </>
+                )}
+
                 {/* Security Features */}
                 <div className="space-y-3">
                   <p className="text-sm font-semibold">Security Features:</p>
@@ -390,17 +538,19 @@ export function Payment() {
                   onClick={handlePayment}
                   className="w-full"
                   size="lg"
-                  disabled={isProcessing || !scriptLoaded}
+                  disabled={isProcessing || !scriptLoaded || isPolling}
                 >
-                  {!scriptLoaded ? (
+                  {!scriptLoaded && !RAZORPAY_MOCK_MODE ? (
                     <>
                       <Loader2 className="size-4 md:size-5 mr-2 animate-spin" />
                       <span className="text-sm md:text-base">Loading Payment Gateway...</span>
                     </>
-                  ) : isProcessing ? (
+                  ) : isProcessing || isPolling ? (
                     <>
                       <Loader2 className="size-4 md:size-5 mr-2 animate-spin" />
-                      <span className="text-sm md:text-base">Processing...</span>
+                      <span className="text-sm md:text-base">
+                        {isPolling ? 'Verifying Payment...' : 'Processing...'}
+                      </span>
                     </>
                   ) : (
                     <>
@@ -414,9 +564,14 @@ export function Payment() {
                   By proceeding, you agree to our Terms & Conditions
                 </p>
                 {RAZORPAY_MOCK_MODE && (
-                  <p className="text-xs text-center text-amber-600">
-                    Local mock payment is enabled. No real Razorpay charge will be created.
-                  </p>
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="size-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                      <p className="text-xs text-yellow-700">
+                        Local mock payment is enabled. No real Razorpay charge will be created.
+                      </p>
+                    </div>
+                  </div>
                 )}
               </div>
             </CardContent>
