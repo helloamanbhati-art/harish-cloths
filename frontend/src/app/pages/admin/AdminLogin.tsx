@@ -44,11 +44,11 @@ export function AdminLogin() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
-            <Logo className="size-16 bg-primary rounded-2xl flex items-center justify-center" />
+            <Logo showSubtitle={false} />
           </div>
           <CardTitle className="text-2xl font-bold">Admin Login</CardTitle>
           <CardDescription>
-            Sign in to access A&S admin panel
+            Sign in to access Harish Clothing admin panel
           </CardDescription>
         </CardHeader>
         <CardContent>

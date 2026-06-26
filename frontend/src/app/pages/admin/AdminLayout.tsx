@@ -70,9 +70,11 @@ function AdminLayoutContent() {
             
             {/* Mobile Logo */}
             <div className="md:hidden flex items-center gap-2">
-              <div className="size-8 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-sm">HC</span>
-              </div>
+              <img
+                src="/harish-clothing-logo.png"
+                alt="Harish Clothing"
+                className="h-8 w-auto object-contain"
+              />
             </div>
           </div>
 

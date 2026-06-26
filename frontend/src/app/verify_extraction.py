@@ -22,7 +22,7 @@ def check_file_exists(path, description):
     return exists
 
 def check_file_not_exists(path, description):
-    """Check if a file or directory DOES NOT exist (should be removed)"""
+    """Check if a file or directory DOES NOT exist (should  be removed)"""
     exists = os.path.exists(path)
     status = f"{GREEN}✓{RESET}" if not exists else f"{RED}✗{RESET}"
     state = "removed" if not exists else "still exists (should be removed!)"
@@ -61,7 +61,7 @@ def main():
     }
     
     # ========================================================================
-    # CHECK 1: Admin Panel Directory Structure
+    # CHECK 1: Admin Panel Directory Struc
     # ========================================================================
     print(f"{BLUE}📁 Admin Panel Structure{RESET}")
     print("-" * 70)

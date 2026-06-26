@@ -1,101 +1,17 @@
-export function HarishClothsLogo({ className = "" }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 320 90"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-    >
-      <defs>
-        {/* Orange gradient for the smile arrow - Amazon inspired */}
-        <linearGradient id="smileGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" style={{ stopColor: '#FF9900', stopOpacity: 1 }} />
-          <stop offset="100%" style={{ stopColor: '#FFB84D', stopOpacity: 1 }} />
-        </linearGradient>
-      </defs>
-      
-      {/* Circular emblem on the left */}
-      <g transform="translate(45, 45)">
-        {/* Simple uppercase A monogram - clean strokes */}
-        
-        {/* Left diagonal of A */}
-        <line
-          x1="-12"
-          y1="10"
-          x2="0"
-          y2="-18"
-          stroke="currentColor"
-          strokeWidth="4.5"
-          strokeLinecap="round"
-        />
-        
-        {/* Right diagonal of A */}
-        <line
-          x1="0"
-          y1="-18"
-          x2="12"
-          y2="10"
-          stroke="currentColor"
-          strokeWidth="4.5"
-          strokeLinecap="round"
-        />
-        
-        {/* Middle bar of A */}
-        <line
-          x1="-6"
-          y1="-2"
-          x2="6"
-          y2="-2"
-          stroke="currentColor"
-          strokeWidth="4.5"
-          strokeLinecap="round"
-        />
-        
-        {/* C as SMILE ARROW - Amazon style with orange color! */}
-        <path
-          d="M -26 20 Q 0 38, 26 20"
-          stroke="url(#smileGradient)"
-          strokeWidth="4.5"
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        
-        {/* Arrow point at the right end - orange */}
-        <path
-          d="M 26 20 L 21 16 M 26 20 L 22 24"
-          stroke="url(#smileGradient)"
-          strokeWidth="4"
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </g>
-      
-      {/* Main text "Harish" - Instagram script style */}
-   
-      
-      {/* Subtitle "Cloths" with elegant styling */}
-      <g>
-        {/* "Cloths" text - elegant serif */}
+interface HarishClothsLogoProps {
+  className?: string;
+  alt?: string;
+}
 
-        
-        {/* Underline accent */}
-        <line
-          x1="90"
-          y1="74"
-          x2="168"
-          y2="74"
-          stroke="currentColor"
-          strokeWidth="1"
-          opacity="0.4"
-        />
-      </g>
-      
-      {/* Decorative dots - refined detail */}
-      <circle cx="172" cy="71" r="1.2" fill="currentColor" opacity="0.4" />
-      <circle cx="178" cy="71" r="1.2" fill="currentColor" opacity="0.4" />
-      <circle cx="184" cy="71" r="1.2" fill="currentColor" opacity="0.4" />
-    </svg>
+export function HarishClothsLogo({
+  className = "h-10 md:h-12 w-auto",
+  alt = "Harish Clothing",
+}: HarishClothsLogoProps) {
+  return (
+    <img
+      src="/harish-clothing-logo.png"
+      alt={alt}
+      className={`object-contain ${className}`}
+    />
   );
 }
