@@ -72,7 +72,7 @@ function AdminLayoutContent() {
             {/* Mobile Logo */}
             <div className="md:hidden flex items-center gap-2">
               <img
-                src="/harish-clothing-logo.png"
+                src="/harish-clothing-logo.svg"
                 alt="Harish Clothing"
                 className="h-8 w-auto object-contain"
               />
