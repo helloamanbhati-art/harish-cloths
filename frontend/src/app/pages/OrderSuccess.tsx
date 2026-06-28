@@ -251,6 +251,8 @@ export function OrderSuccess() {
           },
           quantity: cartItem.quantity,
           selectedMeters: cartItem.selectedMeters,
+          size: cartItem.selectedSize,
+          color: cartItem.selectedColor,
         })),
 
         // Pricing breakdown
@@ -426,6 +428,20 @@ export function OrderSuccess() {
 
                     {/* Quantity & Meter Info */}
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                      {item.selectedSize && (
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-muted-foreground">Size:</span>
+                          <span className="font-semibold">{item.selectedSize}</span>
+                        </div>
+                      )}
+                      
+                      {item.selectedColor && (
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-muted-foreground">Color:</span>
+                          <span className="font-semibold">{item.selectedColor}</span>
+                        </div>
+                      )}
+
                       <div className="flex items-center gap-1.5">
                         <span className="text-muted-foreground">Quantity:</span>
                         <span className="font-semibold">{item.quantity}</span>

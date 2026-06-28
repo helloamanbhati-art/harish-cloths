@@ -89,7 +89,7 @@ router.post('/products/upload-image', upload.single('image'), async (req, res) =
   }
 });
 
-router.post("/products/upload-images", upload.array("images", 10), async (req, res) => {
+router.post("/products/upload-images", upload.array("images", 20), async (req, res) => {
   try {
     const files = req.files || [];
     if (!Array.isArray(files) || files.length === 0) {
@@ -160,6 +160,39 @@ router.post('/products', async (req, res) => {
     const Product = require('../models/Product');
     const Inventory = require('../models/Inventory');
 
+    const variants = Array.isArray(data.variants)
+      ? data.variants.map((v, index) => {
+          const variantImages = Array.isArray(v.images)
+            ? v.images.map((img, imgIdx) => {
+                if (typeof img === 'string') {
+                  return {
+                    imageUrl: img,
+                    isPrimary: imgIdx === 0,
+                    sortOrder: imgIdx,
+                  };
+                }
+                return {
+                  imageUrl: img.imageUrl || '',
+                  isPrimary: img.isPrimary ?? (imgIdx === 0),
+                  sortOrder: img.sortOrder ?? imgIdx,
+                };
+              })
+            : [];
+          return {
+            variantId: v.variantId || v.clientId || `v-${index + 1}-${Date.now()}`,
+            variantName: String(v.variantName || v.name || 'Default').trim(),
+            images: variantImages,
+          };
+        })
+      : [];
+
+    // Derive legacy image / images from variants
+    const variantWithImages = variants.find(v => v.images && v.images.length > 0);
+    const firstVariantImages = variantWithImages ? variantWithImages.images.map(img => img.imageUrl) : [];
+    const legacyImages = firstVariantImages.length > 0 ? firstVariantImages
+      : Array.isArray(data.images) ? data.images : [];
+    const legacyImage = data.image || legacyImages[0] || '';
+
     const productData = {
       name: data.name,
       description: data.description,
@@ -169,8 +202,10 @@ router.post('/products', async (req, res) => {
       availableSizes: Array.isArray(data.availableSizes) ? data.availableSizes : [],
       brand: brandId,
       category: categoryId,
-      image: data.image || '',
-      images: data.images || [],
+      image: legacyImage,
+      images: legacyImages,
+      colors: data.colors || [],
+      variants,
       inStock: data.inStock ?? true,
       isActive: data.isActive ?? true,
       createdBy: req.admin?._id,
@@ -221,9 +256,52 @@ router.put('/products/:productId', async (req, res) => {
       categoryId = category._id;
     }
 
+    const variants = Array.isArray(data.variants)
+      ? data.variants.map((v, index) => {
+          const variantImages = Array.isArray(v.images)
+            ? v.images.map((img, imgIdx) => {
+                if (typeof img === 'string') {
+                  return {
+                    imageUrl: img,
+                    isPrimary: imgIdx === 0,
+                    sortOrder: imgIdx,
+                  };
+                }
+                return {
+                  imageUrl: img.imageUrl || '',
+                  isPrimary: img.isPrimary ?? (imgIdx === 0),
+                  sortOrder: img.sortOrder ?? imgIdx,
+                };
+              })
+            : [];
+          return {
+            variantId: v.variantId || v.clientId || `v-${index + 1}-${Date.now()}`,
+            variantName: String(v.variantName || v.name || 'Default').trim(),
+            images: variantImages,
+          };
+        })
+      : undefined; // undefined = don't overwrite if not sent
+
+    // Derive legacy image / images from variants
+    const variantWithImages = variants && variants.find(v => v.images && v.images.length > 0);
+    const firstVariantImages = variantWithImages ? variantWithImages.images.map(img => img.imageUrl) : null;
+    const legacyImages = firstVariantImages ? firstVariantImages
+      : Array.isArray(data.images) ? data.images : undefined;
+    const legacyImage = data.image || (legacyImages && legacyImages[0]) || undefined;
+
+    const updatePayload = {
+      ...data,
+      brand: brandId,
+      category: categoryId,
+      updatedBy: req.admin._id,
+      ...(variants !== undefined && { variants }),
+      ...(legacyImages !== undefined && { images: legacyImages }),
+      ...(legacyImage !== undefined && { image: legacyImage }),
+    };
+
     const product = await Product.findByIdAndUpdate(
       req.params.productId,
-      { ...data, brand: brandId, category: categoryId, updatedBy: req.admin._id },
+      updatePayload,
       { new: true, runValidators: true }
     ).populate('brand category');
 

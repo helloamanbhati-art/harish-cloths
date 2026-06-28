@@ -332,12 +332,33 @@ export function Checkout() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-3">
-                  {items.map(item => (
-                    <div key={item.id} className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        {item.name} x {item.quantity} {item.soldBy === 'meter' ? 'meters' : 'pcs'}
+                  {items.map((item, idx) => (
+                    <div key={`${item.id}-${idx}`} className="flex justify-between text-sm gap-2">
+                      <div className="flex flex-col">
+                        <span className="text-muted-foreground font-medium">
+                          {item.name} x {item.quantity} {item.soldBy === 'meter' ? 'pcs' : 'pcs'}{item.soldBy === 'meter' && item.selectedMeters && ` (${item.selectedMeters}m)`}
+                        </span>
+                        {(item.selectedColor || item.selectedSize) && (
+                          <span className="text-xs text-muted-foreground/75">
+                            {item.selectedColor && `Design: ${item.selectedColor}`}
+                            {item.selectedColor && item.selectedSize && ' · '}
+                            {item.selectedSize && `Size: ${item.selectedSize}`}
+                          </span>
+                        )}
+                        {item.additionalChargeAmount && item.additionalChargeAmount > 0 && (
+                          <span className="text-xs text-emerald-500">
+                            + ₹{(item.additionalChargeAmount * item.quantity).toLocaleString('en-IN')} ({item.additionalChargeName || 'Additional'})
+                          </span>
+                        )}
+                      </div>
+                      <span className="shrink-0">
+                        ₹{(
+                          (item.soldBy === 'meter' && item.selectedMeters
+                            ? item.price * item.selectedMeters * item.quantity
+                            : item.price * item.quantity
+                          ) + (item.additionalChargeAmount || 0) * item.quantity
+                        ).toLocaleString('en-IN')}
                       </span>
-                      <span>₹{(item.price * item.quantity).toLocaleString('en-IN')}</span>
                     </div>
                   ))}
                 </div>

@@ -1,5 +1,17 @@
 const mongoose = require("mongoose");
 
+const variantImageSchema = new mongoose.Schema({
+  imageUrl: { type: String, required: true },
+  isPrimary: { type: Boolean, default: false },
+  sortOrder: { type: Number, default: 0 },
+});
+
+const variantSchema = new mongoose.Schema({
+  variantId: { type: String, required: true },
+  variantName: { type: String, required: true, trim: true },
+  images: { type: [variantImageSchema], default: [] },
+});
+
 const productSchema = new mongoose.Schema(
   {
     // Basic Info
@@ -28,9 +40,16 @@ const productSchema = new mongoose.Schema(
     compareAtPrice: Number,
     cost: Number,
 
-    // Images
+    // Images (legacy — kept for backward compat)
     image: String, // Main image
     images: [String], // All images
+    colors: {
+      type: [String],
+      default: [],
+    },
+
+    // Product Variants (new — each variant has a name + its own image gallery)
+    variants: [variantSchema],
 
     // Categories and Tags
     brand: {
@@ -97,18 +116,20 @@ const productSchema = new mongoose.Schema(
       default: null,
     },
 
+    // Additional charge (admin-named, e.g. "Ordna", "Stitching Charge")
+    additionalChargeName: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    additionalChargeAmount: {
+      type: Number,
+      default: 0,
+      min: [0, 'Additional charge cannot be negative'],
+    },
+
     // Variants
     hasVariants: { type: Boolean, default: false },
-    variants: [
-      {
-        name: String,
-        sku: String,
-        price: Number,
-        stock: Number,
-        image: String,
-        size: String,
-      },
-    ],
 
     // Ratings and Reviews
     averageRating: { type: Number, default: 0, min: 0, max: 5 },
@@ -151,6 +172,19 @@ productSchema.pre("save", function (next) {
     const totalStock =
       (this.stock.available || 0) + (this.stock.reserved || 0);
     this.inStock = totalStock > 0;
+  }
+  next();
+});
+
+// Sync legacy image and images fields from new variants array for backward compatibility
+productSchema.pre("save", function (next) {
+  if (this.variants && this.variants.length > 0) {
+    const firstVariant = this.variants[0];
+    if (firstVariant.images && firstVariant.images.length > 0) {
+      const primaryImg = firstVariant.images.find(img => img.isPrimary) || firstVariant.images[0];
+      this.image = primaryImg.imageUrl || '';
+      this.images = firstVariant.images.map(img => img.imageUrl).filter(Boolean);
+    }
   }
   next();
 });

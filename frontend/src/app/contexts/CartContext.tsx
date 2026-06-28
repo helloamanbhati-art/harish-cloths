@@ -5,13 +5,14 @@ export interface CartItem extends Product {
   quantity: number;
   selectedMeters?: number; // For products sold by meter
   selectedSize?: string; // For sized products
+  selectedColor?: string; // For color variants
 }
 
 interface CartContextType {
   items: CartItem[];
-  addToCart: (product: Product, selectedMeters?: number, selectedSize?: string) => void;
-  removeFromCart: (productId: string, selectedMeters?: number, selectedSize?: string) => void;
-  updateQuantity: (productId: string, quantity: number, selectedMeters?: number, selectedSize?: string) => void;
+  addToCart: (product: Product, selectedMeters?: number, selectedSize?: string, selectedColor?: string) => void;
+  removeFromCart: (productId: string, selectedMeters?: number, selectedSize?: string, selectedColor?: string) => void;
+  updateQuantity: (productId: string, quantity: number, selectedMeters?: number, selectedSize?: string, selectedColor?: string) => void;
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
@@ -56,12 +57,16 @@ const normalizeCartItems = (rawItems: unknown): CartItem[] => {
           typeof item.selectedMeters === 'number' && item.selectedMeters > 0
             ? item.selectedMeters
             : undefined,
+        selectedColor: typeof item.selectedColor === 'string' ? item.selectedColor : undefined,
       };
     });
 };
 
-const matchesCartItem = (item: CartItem, productId: string, selectedMeters?: number, selectedSize?: string) =>
-  item.id === productId && item.selectedMeters === selectedMeters && item.selectedSize === selectedSize;
+const matchesCartItem = (item: CartItem, productId: string, selectedMeters?: number, selectedSize?: string, selectedColor?: string) =>
+  item.id === productId &&
+  item.selectedMeters === selectedMeters &&
+  item.selectedSize === selectedSize &&
+  item.selectedColor === selectedColor;
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>(() => {
@@ -83,39 +88,39 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('cart', JSON.stringify(items));
   }, [items]);
 
-  const addToCart = (product: Product, selectedMeters?: number, selectedSize?: string) => {
+  const addToCart = (product: Product, selectedMeters?: number, selectedSize?: string, selectedColor?: string) => {
     const normalizedProduct = normalizeProduct(product);
 
     setItems(current => {
       const existing = current.find(
-        item => item.id === normalizedProduct.id && item.selectedMeters === selectedMeters && item.selectedSize === selectedSize
+        item => matchesCartItem(item, normalizedProduct.id, selectedMeters, selectedSize, selectedColor)
       );
 
       if (existing) {
         return current.map(item =>
-          item.id === normalizedProduct.id && item.selectedMeters === selectedMeters && item.selectedSize === selectedSize
+          matchesCartItem(item, normalizedProduct.id, selectedMeters, selectedSize, selectedColor)
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
 
-      return [...current, { ...normalizedProduct, quantity: 1, selectedMeters, selectedSize }];
+      return [...current, { ...normalizedProduct, quantity: 1, selectedMeters, selectedSize, selectedColor }];
     });
   };
 
-  const removeFromCart = (productId: string, selectedMeters?: number, selectedSize?: string) => {
-    setItems(current => current.filter(item => !matchesCartItem(item, productId, selectedMeters, selectedSize)));
+  const removeFromCart = (productId: string, selectedMeters?: number, selectedSize?: string, selectedColor?: string) => {
+    setItems(current => current.filter(item => !matchesCartItem(item, productId, selectedMeters, selectedSize, selectedColor)));
   };
 
-  const updateQuantity = (productId: string, quantity: number, selectedMeters?: number, selectedSize?: string) => {
+  const updateQuantity = (productId: string, quantity: number, selectedMeters?: number, selectedSize?: string, selectedColor?: string) => {
     if (quantity <= 0) {
-      removeFromCart(productId, selectedMeters, selectedSize);
+      removeFromCart(productId, selectedMeters, selectedSize, selectedColor);
       return;
     }
 
     setItems(current =>
       current.map(item =>
-        matchesCartItem(item, productId, selectedMeters, selectedSize) ? { ...item, quantity } : item
+        matchesCartItem(item, productId, selectedMeters, selectedSize, selectedColor) ? { ...item, quantity } : item
       )
     );
   };
@@ -126,8 +131,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = items.reduce((sum, item) => {
-    const meterMultiplier = item.selectedMeters || 1;
-    return sum + (item.price * item.quantity * meterMultiplier);
+    const itemPrice = item.soldBy === 'meter' && item.selectedMeters
+      ? item.price * item.selectedMeters
+      : item.price;
+    const additionalCharge = (item.additionalChargeAmount || 0) * item.quantity;
+    return sum + (itemPrice * item.quantity) + additionalCharge;
   }, 0);
 
   return (

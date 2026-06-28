@@ -95,17 +95,29 @@ export function Cart() {
                             Size: {item.selectedSize}
                           </Badge>
                         )}
+                        {/* Show design info if applicable */}
+                        {item.selectedColor && (
+                          <Badge variant="secondary" className="mt-1 mr-2 text-xs bg-primary/10 text-primary border border-primary/20">
+                            Design: {item.selectedColor}
+                          </Badge>
+                        )}
                         {/* Show meter info if applicable */}
                         {item.soldBy === 'meter' && item.selectedMeters && (
                           <Badge variant="secondary" className="mt-1 text-xs">
                             {item.selectedMeters} meters per piece
                           </Badge>
                         )}
+                        {/* Show additional charge if applicable */}
+                        {item.additionalChargeAmount && item.additionalChargeAmount > 0 && (
+                          <Badge variant="secondary" className="mt-1 text-xs bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                            + ₹{item.additionalChargeAmount.toLocaleString('en-IN')} ({item.additionalChargeName || 'Additional'})
+                          </Badge>
+                        )}
                       </div>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => removeFromCart(item.id, item.selectedMeters, item.selectedSize)}
+                        onClick={() => removeFromCart(item.id, item.selectedMeters, item.selectedSize, item.selectedColor)}
                       >
                         <Trash2 className="size-4 text-destructive" />
                       </Button>
@@ -116,35 +128,30 @@ export function Cart() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => updateQuantity(item.id, item.quantity - 1, item.selectedMeters, item.selectedSize)}
+                          onClick={() => updateQuantity(item.id, item.quantity - 1, item.selectedMeters, item.selectedSize, item.selectedColor)}
                         >
                           <Minus className="size-3" />
                         </Button>
                         <span className="w-20 text-center text-sm">
                           {item.quantity} {item.soldBy === 'meter' ? 'piece' + (item.quantity > 1 ? 's' : '') : 'pc' + (item.quantity > 1 ? 's' : '')}
-                          {item.soldBy === 'meter' && item.selectedMeters && (
-                            <span className="block text-xs text-muted-foreground">
-                              × {item.selectedMeters}m
-                            </span>
-                          )}
                         </span>
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => updateQuantity(item.id, item.quantity + 1, item.selectedMeters, item.selectedSize)}
+                          onClick={() => updateQuantity(item.id, item.quantity + 1, item.selectedMeters, item.selectedSize, item.selectedColor)}
                         >
                           <Plus className="size-3" />
                         </Button>
                       </div>
                       <div className="text-right">
-                        <div className="font-semibold">
-                          ₹{(item.price * item.quantity * (item.selectedMeters || 1)).toLocaleString('en-IN')}
+                        <div className="font-semibold text-base">
+                          ₹{(
+                            (item.soldBy === 'meter' && item.selectedMeters
+                              ? item.price * item.selectedMeters * item.quantity
+                              : item.price * item.quantity
+                            ) + (item.additionalChargeAmount || 0) * item.quantity
+                          ).toLocaleString('en-IN')}
                         </div>
-                        {item.soldBy === 'meter' && item.selectedMeters && (
-                          <div className="text-xs text-muted-foreground">
-                            ₹{item.price}/m × {item.quantity} × {item.selectedMeters}m
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -158,7 +165,7 @@ export function Cart() {
           <Card className="sticky top-24">
             <CardContent className="p-6 space-y-4">
               <h2 className="text-xl">Order Summary</h2>
-              
+
               <div className="space-y-2 pt-4 border-t">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Subtotal</span>

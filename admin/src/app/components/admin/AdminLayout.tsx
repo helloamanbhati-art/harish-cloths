@@ -80,12 +80,14 @@ export function AdminLayout() {
             </Button>
 
             <Link to="/admin" className="flex items-center gap-3">
-              <div className="size-10 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-lg">
-                HC
-              </div>
+              <img
+                src="/harish-clothing-logo.png"
+                alt="Harish Clothing"
+                className="h-10 w-auto object-contain"
+              />
               <div className="hidden sm:block">
-                <h1 className="font-bold text-lg bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                  Harish Cloths
+                <h1 className="font-bold text-lg text-foreground">
+                  Harish Clothing
                 </h1>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Admin Panel</p>
               </div>

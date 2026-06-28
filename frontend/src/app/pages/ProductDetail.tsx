@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
-import { ArrowLeft, ShoppingCart, Minus, Plus, Trash2, Loader } from "lucide-react";
+import { ArrowLeft, ShoppingCart, Minus, Plus, Trash2, Loader, LayoutGrid, Check } from "lucide-react";
 import { ImageCarousel } from "../components/ImageCarousel";
 import { useCart } from "../contexts/CartContext";
 import { usePageTitle } from "../hooks/usePageTitle";
@@ -13,6 +13,7 @@ import { Label } from "../components/ui/label";
 import { Card } from "../components/ui/card";
 import { Separator } from "../components/ui/separator";
 import { toast } from "sonner";
+import { ProductVariant } from "../types/product";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -24,6 +25,7 @@ interface Product {
   price: number;
   image: string;
   images: string[];
+  variants?: ProductVariant[];
   brand: string;
   category: string;
   soldBy: 'meter' | 'piece';
@@ -31,6 +33,8 @@ interface Product {
   clothingType?: string;
   stock?: { available: number };
   inStock?: boolean;
+  additionalChargeName?: string;
+  additionalChargeAmount?: number;
 }
 
 export function ProductDetail() {
@@ -43,6 +47,11 @@ export function ProductDetail() {
   const [added, setAdded] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  
+  // New variants state
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
+
   const [meterPieces, setMeterPieces] = useState<Array<{ meters: number; pieces: number }>>([
     { meters: 4, pieces: 1 }
   ]);
@@ -61,16 +70,18 @@ export function ProductDetail() {
       try {
         setLoading(true);
         setError(null);
-        
+        setSelectedSize(null);
+        setActiveImageIndex(0);
+
         const response = await fetch(`${API_BASE_URL}/api/v1/products/${id}`);
-        
+
         if (!response.ok) {
           throw new Error('Product not found');
         }
 
         const result = await response.json();
         const productData = result.data || result.product;
-        
+
         if (!productData) {
           throw new Error('Product data not found');
         }
@@ -78,25 +89,62 @@ export function ProductDetail() {
         // Transform API response to match Product type
         const transformedProduct: Product = {
           _id: productData._id || productData.id,
-          id: productData._id || productData.id, // Use _id as id for compatibility
+          id: productData._id || productData.id,
           name: productData.name,
           description: productData.description,
           price: productData.price,
           image: productData.image || (productData.images && productData.images[0]) || '',
           images: productData.images || (productData.image ? [productData.image] : []),
-          brand: typeof productData.brand === 'object' 
-            ? productData.brand?.name || 'Unknown' 
+          variants: (productData.variants || []).map((v: any) => ({
+            variantId: v.variantId || v._id || '',
+            variantName: v.variantName || v.name || 'Default',
+            images: Array.isArray(v.images) && v.images.length > 0
+              ? v.images.map((img: any) => ({
+                  imageUrl: typeof img === 'string' ? img : img.imageUrl,
+                  isPrimary: img.isPrimary ?? false,
+                  sortOrder: img.sortOrder ?? 0,
+                }))
+              : (productData.images && productData.images.length > 0
+                  ? productData.images.map((imgUrl: string, idx: number) => ({
+                      imageUrl: imgUrl,
+                      isPrimary: idx === 0,
+                      sortOrder: idx,
+                    }))
+                  : (productData.image ? [{ imageUrl: productData.image, isPrimary: true, sortOrder: 0 }] : [])
+                ),
+          })),
+          brand: typeof productData.brand === 'object'
+            ? productData.brand?.name || 'Unknown'
             : productData.brand,
-          category: typeof productData.category === 'object' 
-            ? productData.category?.name || 'Unknown' 
+          category: typeof productData.category === 'object'
+            ? productData.category?.name || 'Unknown'
             : productData.category,
           soldBy: productData.soldBy || 'piece',
           availableSizes: Array.isArray(productData.availableSizes) ? productData.availableSizes : [],
           clothingType: productData.clothingType || '',
           inStock: productData.inStock !== false,
+          additionalChargeName: productData.additionalChargeName || '',
+          additionalChargeAmount: productData.additionalChargeAmount || 0,
         };
 
+        // Synthesize default variant if needed
+        if (!transformedProduct.variants || transformedProduct.variants.length === 0) {
+           transformedProduct.variants = [{
+             variantId: 'default',
+             variantName: 'Default',
+             images: transformedProduct.images.map((img, i) => ({
+               imageUrl: img,
+               isPrimary: i === 0,
+               sortOrder: i,
+             })),
+           }];
+        }
+
         setProduct(transformedProduct);
+        if (transformedProduct.variants && transformedProduct.variants.length > 0) {
+          setSelectedVariant(transformedProduct.variants[0]);
+        }
+
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Failed to load product';
         setError(message);
@@ -110,7 +158,6 @@ export function ProductDetail() {
   }, [id]);
 
   const handleAddToCart = () => {
-    // Validate size selection if product has sizes
     if (product && product.availableSizes && product.availableSizes.length > 0) {
       if (!selectedSize) {
         toast.error('Please select a size before adding to cart');
@@ -119,11 +166,9 @@ export function ProductDetail() {
     }
 
     if (product && buttonRef.current && cartIconElement) {
-      // Get button position
       const buttonRect = buttonRef.current.getBoundingClientRect();
       const cartRect = cartIconElement.getBoundingClientRect();
 
-      // Calculate positions
       setAnimationPositions({
         start: {
           x: buttonRect.left + buttonRect.width / 2 - 30,
@@ -135,22 +180,20 @@ export function ProductDetail() {
         }
       });
 
-      // Show animation
       setShowAnimation(true);
-      
-      // Add to cart based on product type
+
+      const cartVariantName = selectedVariant ? selectedVariant.variantName : undefined;
+
       if (product.soldBy === 'meter') {
-        // Add each meter-piece combination to cart
         meterPieces.forEach(item => {
-          // Add as many pieces as specified, each with the selected meter length
           for (let i = 0; i < item.pieces; i++) {
-            addToCart(product, item.meters, selectedSize);
+            addToCart(product, item.meters, selectedSize, cartVariantName);
           }
         });
       } else {
-        addToCart(product, undefined, selectedSize);
+        addToCart(product, undefined, selectedSize, cartVariantName);
       }
-      
+
       setAdded(true);
       setTimeout(() => setAdded(false), 2000);
     }
@@ -165,10 +208,8 @@ export function ProductDetail() {
     setMeterPieces(prev => {
       const updated = [...prev];
       if (field === 'meters') {
-        // Constrain meters between 4 and 5
         updated[index][field] = Math.max(4, Math.min(5, value));
       } else {
-        // Pieces can be 1 or more
         updated[index][field] = Math.max(1, value);
       }
       return updated;
@@ -189,9 +230,15 @@ export function ProductDetail() {
     return meterPieces.reduce((total, item) => total + (item.meters * item.pieces), 0);
   };
 
+  const calculateTotalPieces = () => {
+    return meterPieces.reduce((total, item) => total + item.pieces, 0);
+  };
+
   const calculateTotalPrice = () => {
     if (!product) return 0;
-    return calculateTotalMeters() * product.price;
+    const fabricCost = calculateTotalMeters() * product.price;
+    const additionalCharge = (product.additionalChargeAmount || 0) * calculateTotalPieces();
+    return fabricCost + additionalCharge;
   };
 
   if (loading) {
@@ -222,6 +269,16 @@ export function ProductDetail() {
     );
   }
 
+  const galleryImages = (selectedVariant && selectedVariant.images && selectedVariant.images.length > 0 
+    ? selectedVariant.images 
+    : (product.variants && product.variants.find(v => v.images && v.images.length > 0)?.images) || product.images) || [];
+  
+  // Map VariantImage items to string URLs for ImageCarousel
+  const carouselImages = galleryImages.map((img: any) => typeof img === 'string' ? img : img.imageUrl);
+  
+  const primaryImageForAnimation = carouselImages && carouselImages.length > 0 ? carouselImages[0] : product.image;
+  const variants = product.variants || [];
+
   return (
     <div className="flex-1 p-4 md:p-8 max-w-7xl mx-auto">
       <Link to="/">
@@ -232,14 +289,18 @@ export function ProductDetail() {
       </Link>
 
       <div className="grid md:grid-cols-2 gap-6 md:gap-8">
+        {/* Main Image Gallery */}
         <div className="aspect-square overflow-hidden rounded-lg bg-muted">
           <ImageCarousel
-            images={product.images && product.images.length > 0 ? product.images : (product.image ? [product.image] : [])}
+            images={carouselImages}
             alt={product.name}
             className="w-full h-full"
+            currentIndex={activeImageIndex}
+            onIndexChange={setActiveImageIndex}
           />
         </div>
 
+        {/* Product Info & Settings */}
         <div className="space-y-4 md:space-y-6">
           <div className="space-y-2">
             <Badge variant="outline" className="text-sm">
@@ -256,6 +317,11 @@ export function ProductDetail() {
           <p className="text-lg md:text-xl">
             ₹{product.price.toLocaleString('en-IN')}
             {product.soldBy === 'meter' && <span className="text-sm text-muted-foreground ml-1">/meter</span>}
+            {product.additionalChargeAmount && product.additionalChargeAmount > 0 && (
+              <span className="text-sm font-medium text-emerald-500 ml-2">
+                + ₹{product.additionalChargeAmount.toLocaleString('en-IN')} ({product.additionalChargeName || 'Additional'})
+              </span>
+            )}
           </p>
 
           <div className="space-y-2">
@@ -268,6 +334,75 @@ export function ProductDetail() {
           </div>
 
           <div className="space-y-4 pt-4">
+            
+            {/* Variants Selection */}
+            {variants.length > 1 && (
+              <div className="space-y-4 p-4 border border-border/60 bg-card rounded-2xl shadow-sm">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm md:text-base font-semibold flex items-center gap-2 text-foreground">
+                    <LayoutGrid className="size-4 text-primary" /> Select Design & Pattern
+                  </Label>
+                  {selectedVariant && (
+                    <span className="text-xs text-muted-foreground">
+                      Selected: <span className="font-bold text-primary">{selectedVariant.variantName}</span>
+                    </span>
+                  )}
+                </div>
+                <div className="flex gap-4 overflow-x-auto pb-2 pt-1 scrollbar-thin scrollbar-thumb-muted-foreground/20 hover:scrollbar-thumb-muted-foreground/30 snap-x snap-mandatory scroll-smooth">
+                  {variants.map((variant, idx) => {
+                    const isSelected = selectedVariant?.variantName === variant.variantName;
+                    const variantImageUrl = variant.images && variant.images[0]
+                      ? (typeof variant.images[0] === 'string' ? variant.images[0] : variant.images[0].imageUrl)
+                      : '';
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          setSelectedVariant(variant);
+                          setActiveImageIndex(0);
+                        }}
+                        className="flex flex-col items-center gap-2 shrink-0 snap-start focus-visible:outline-none group relative py-1"
+                        aria-label={`Select ${variant.variantName || 'Default'} variant`}
+                      >
+                        {/* Circular Swatch Container */}
+                        <div className={`relative size-16 md:size-20 rounded-full overflow-hidden transition-all duration-300 bg-muted border-2 ${
+                          isSelected 
+                            ? 'border-primary ring-4 ring-primary/20 scale-105 shadow-md' 
+                            : 'border-border/60 hover:border-primary/60 hover:scale-102 hover:shadow-sm'
+                        }`}>
+                          {variantImageUrl ? (
+                            <img 
+                              src={variantImageUrl} 
+                              alt={variant.variantName} 
+                              className="w-full h-full object-cover select-none transition-transform duration-500 group-hover:scale-110" 
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-muted-foreground text-[10px] bg-muted">No img</div>
+                          )}
+                          
+                          {/* Inner selected ring/indicator */}
+                          {isSelected && (
+                            <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
+                              <div className="bg-primary text-primary-foreground rounded-full p-1 shadow-sm scale-90">
+                                <Check className="size-3 stroke-[3]" />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Swatch Label */}
+                        <span className={`text-[10px] md:text-xs font-medium text-center max-w-[80px] md:max-w-[96px] truncate transition-colors duration-200 ${
+                          isSelected ? 'text-primary font-bold' : 'text-muted-foreground group-hover:text-foreground'
+                        }`} title={variant.variantName || 'Default'}>
+                          {variant.variantName || 'Default'}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Size Selection */}
             {product.availableSizes && product.availableSizes.length > 0 && (
               <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
@@ -295,6 +430,7 @@ export function ProductDetail() {
               </div>
             )}
 
+            {/* Meter Selection */}
             {product.soldBy === 'meter' && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -339,43 +475,25 @@ export function ProductDetail() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           {/* Meters Selection */}
                           <div className="space-y-2">
-                            <Label htmlFor={`meters-${index}`} className="text-xs md:text-sm">
-                              Meters (4-5m only)
+                            <Label className="text-xs md:text-sm">
+                              Meters (Select size)
                             </Label>
-                            <div className="flex items-center gap-2">
+                            <div className="flex gap-2">
                               <Button
                                 type="button"
-                                variant="outline"
-                                size="icon"
-                                onClick={() => updateMeterPiece(index, 'meters', item.meters - 1)}
-                                disabled={item.meters <= 4}
-                                className="h-9 w-9 shrink-0"
+                                variant={item.meters === 4 ? 'default' : 'outline'}
+                                onClick={() => updateMeterPiece(index, 'meters', 4)}
+                                className="flex-1 h-9 text-xs"
                               >
-                                <Minus className="h-3 w-3" />
+                                4 Meters
                               </Button>
-                              <Input
-                                id={`meters-${index}`}
-                                type="number"
-                                min="4"
-                                max="5"
-                                value={item.meters}
-                                onChange={(e) => {
-                                  const val = parseInt(e.target.value);
-                                  if (!isNaN(val)) {
-                                    updateMeterPiece(index, 'meters', val);
-                                  }
-                                }}
-                                className="w-full text-center h-9"
-                              />
                               <Button
                                 type="button"
-                                variant="outline"
-                                size="icon"
-                                onClick={() => updateMeterPiece(index, 'meters', item.meters + 1)}
-                                disabled={item.meters >= 5}
-                                className="h-9 w-9 shrink-0"
+                                variant={item.meters === 5 ? 'default' : 'outline'}
+                                onClick={() => updateMeterPiece(index, 'meters', 5)}
+                                className="flex-1 h-9 text-xs"
                               >
-                                <Plus className="h-3 w-3" />
+                                5 Meters
                               </Button>
                             </div>
                           </div>
@@ -423,12 +541,24 @@ export function ProductDetail() {
                         </div>
 
                         {/* Subtotal for this option */}
-                        <div className="flex justify-between items-center text-xs md:text-sm bg-muted/50 p-2 rounded">
-                          <span className="text-muted-foreground">
-                            {item.meters}m × {item.pieces} piece{item.pieces > 1 ? 's' : ''} = {item.meters * item.pieces}m total
-                          </span>
-                          <span className="font-semibold">
-                            ₹{(product.price * item.meters * item.pieces).toLocaleString('en-IN')}
+                        <div className="flex justify-between items-center bg-muted/50 p-3 rounded-lg border border-muted/50">
+                          <div className="flex flex-col">
+                            <span className="text-sm md:text-base font-semibold text-foreground">
+                              {item.meters}m × {item.pieces} piece{item.pieces > 1 ? 's' : ''} = {item.meters * item.pieces}m total
+                            </span>
+                            {product.additionalChargeAmount && product.additionalChargeAmount > 0 && (
+                              <span className="text-xs text-emerald-500">
+                                + ₹{(product.additionalChargeAmount * item.pieces).toLocaleString('en-IN')} ({product.additionalChargeName || 'Additional'})
+                              </span>
+                            )}
+                          </div>
+                          <span className="font-bold text-base md:text-lg text-primary">
+                            ₹{(
+                              (product.soldBy === 'meter'
+                                ? product.price * item.meters * item.pieces
+                                : product.price * item.pieces
+                              ) + (product.additionalChargeAmount || 0) * item.pieces
+                            ).toLocaleString('en-IN')}
                           </span>
                         </div>
                       </div>
@@ -437,20 +567,21 @@ export function ProductDetail() {
                 </Card>
 
                 {/* Grand Total */}
-                <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 space-y-1">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Total Meters:</span>
-                    <span className="font-semibold">{calculateTotalMeters()}m</span>
+                <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-2">
+                  <div className="flex justify-between items-center text-sm md:text-base text-foreground/80">
+                    <span>Total Meters:</span>
+                    <span className="font-semibold text-foreground">{calculateTotalMeters()}m</span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold text-sm md:text-base">Grand Total:</span>
-                    <span className="font-bold text-lg md:text-xl text-primary">
+                  <div className="flex justify-between items-center border-t border-primary/10 pt-2">
+                    <span className="font-bold text-base md:text-lg text-foreground">Grand Total:</span>
+                    <span className="font-extrabold text-xl md:text-2xl text-primary">
                       ₹{calculateTotalPrice().toLocaleString('en-IN')}
                     </span>
                   </div>
                 </div>
               </div>
             )}
+            
             <div ref={buttonRef}>
               <Button
                 className="w-full"
@@ -510,7 +641,7 @@ export function ProductDetail() {
           show={showAnimation}
           startPosition={animationPositions.start}
           endPosition={animationPositions.end}
-          productImage={product.image}
+          productImage={primaryImageForAnimation}
           onComplete={handleAnimationComplete}
         />
       )}

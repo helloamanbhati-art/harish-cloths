@@ -222,6 +222,15 @@ export function OrderDetail() {
                           </Badge>
                         </div>
                       )}
+
+                      {item.color && (
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-muted-foreground">Design:</span>
+                          <Badge variant="outline" className="text-xs font-semibold">
+                            {item.color}
+                          </Badge>
+                        </div>
+                      )}
                       
                       <div className="flex items-center gap-1.5">
                         <span className="text-muted-foreground">Quantity:</span>

@@ -216,7 +216,8 @@ export function OrdersManagement() {
                             <p className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-[150px]">
                               {order.items.map(item => {
                                 const sizeInfo = item.size ? ` (${item.size})` : '';
-                                return item.productName + sizeInfo;
+                                const colorInfo = item.color ? ` [${item.color}]` : '';
+                                return item.productName + sizeInfo + colorInfo;
                               }).join(', ')}
                             </p>
                           </div>
@@ -376,6 +377,11 @@ export function OrdersManagement() {
                               {item.size && (
                                 <Badge variant="outline" className="text-xs">
                                   Size: {item.size}
+                                </Badge>
+                              )}
+                              {item.color && (
+                                <Badge variant="outline" className="text-xs">
+                                  Design: {item.color}
                                 </Badge>
                               )}
                               <Badge variant="secondary" className="text-xs">

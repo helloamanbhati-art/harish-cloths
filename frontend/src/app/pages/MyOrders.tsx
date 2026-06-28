@@ -204,6 +204,8 @@ export function MyOrders() {
                                 <Badge variant="secondary" className="text-xs">
                                   ×{item.quantity}
                                   {item.selectedMeters ? ` (${item.selectedMeters}m)` : ''}
+                                  {item.size ? ` - ${item.size}` : ''}
+                                  {item.color ? ` - ${item.color}` : ''}
                                 </Badge>
                               </div>
                             ))}

@@ -1,4 +1,17 @@
 const Joi = require("joi");
+
+const variantImageJoiSchema = Joi.object({
+  imageUrl: Joi.string().required(),
+  isPrimary: Joi.boolean().default(false),
+  sortOrder: Joi.number().default(0),
+});
+
+const variantJoiSchema = Joi.object({
+  variantId: Joi.string().required(),
+  variantName: Joi.string().trim().required(),
+  images: Joi.array().items(variantImageJoiSchema).default([]),
+});
+
 // Create Product Schema
 exports.createProductSchema = Joi.object({
   name: Joi.string().trim().required(),
@@ -25,6 +38,7 @@ exports.createProductSchema = Joi.object({
       value: Joi.string().required(),
     })
   ),
+  variants: Joi.array().items(variantJoiSchema),
   taxable: Joi.boolean(),
   taxClass: Joi.string().valid("standard", "reduced", "zero"),
   seoTitle: Joi.string(),
@@ -32,6 +46,8 @@ exports.createProductSchema = Joi.object({
   seoKeywords: Joi.array().items(Joi.string()),
   isActive: Joi.boolean(),
   isFeatured: Joi.boolean(),
+  additionalChargeName: Joi.string().trim().allow('').default(''),
+  additionalChargeAmount: Joi.number().min(0).default(0),
 }).required();
 
 // Update Product Schema
@@ -60,6 +76,7 @@ exports.updateProductSchema = Joi.object({
       value: Joi.string().required(),
     })
   ),
+  variants: Joi.array().items(variantJoiSchema),
   taxable: Joi.boolean(),
   taxClass: Joi.string().valid("standard", "reduced", "zero"),
   seoTitle: Joi.string(),
@@ -67,6 +84,8 @@ exports.updateProductSchema = Joi.object({
   seoKeywords: Joi.array().items(Joi.string()),
   isActive: Joi.boolean(),
   isFeatured: Joi.boolean(),
+  additionalChargeName: Joi.string().trim().allow(''),
+  additionalChargeAmount: Joi.number().min(0),
 }).min(1);
 
 // Bulk Update Products

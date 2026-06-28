@@ -69,12 +69,14 @@ export function AdminLogin() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center space-y-4">
-          <div className="mx-auto size-20 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-3xl">
-            HC
-          </div>
+          <img
+            src="/harish-clothing-logo.png"
+            alt="Harish Clothing"
+            className="mx-auto h-16 w-auto object-contain"
+          />
           <div>
             <CardTitle className="text-2xl">Admin Login</CardTitle>
-            <CardDescription className="mt-2">Sign in to access Harish Cloths admin panel</CardDescription>
+            <CardDescription className="mt-2">Sign in to access Harish Clothing admin panel</CardDescription>
           </div>
         </CardHeader>
         <CardContent>

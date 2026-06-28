@@ -45,7 +45,8 @@ exports.createOrder = async (req, res, next) => {
         product.soldBy === "meter"
           ? Math.max(Number(item.meters) || 1, 1)
           : 1;
-      const itemTotal = product.price * item.quantity * metersPerPiece;
+      const additionalCharge = (product.additionalChargeAmount || 0) * item.quantity;
+      const itemTotal = product.price * item.quantity * metersPerPiece + additionalCharge;
       subtotal += itemTotal;
 
       orderItems.push({
@@ -54,11 +55,14 @@ exports.createOrder = async (req, res, next) => {
         productImage: product.image,
         brand: product.brand,
         size: item.selectedSize || null, // Include selected size
+        color: item.selectedColor || null, // Include selected color
         price: product.price,
         quantity: item.quantity,
         meters: metersPerPiece,
         soldBy: product.soldBy,
         subtotal: itemTotal,
+        additionalChargeName: product.additionalChargeName || '',
+        additionalChargeAmount: product.additionalChargeAmount || 0,
         discount: 0,
         tax: 0,
         total: itemTotal,

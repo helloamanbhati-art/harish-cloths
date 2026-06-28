@@ -22,11 +22,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../components/ui/select';
-import { Plus, Search, Pencil, Trash2, Package, Filter } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Package, Loader2, Images } from 'lucide-react';
 import { toast } from 'sonner';
 import { useBrands } from '../../contexts/BrandContext';
 import { useCategories } from '../../contexts/CategoryContext';
-import { MultiImageUpload } from '../../components/admin/MultiImageUpload';
+import {
+  VariantManager,
+  VariantDraft,
+  newVariantDraft,
+} from '../../components/admin/VariantManager';
+
+interface VariantImage {
+  imageUrl: string;
+  isPrimary: boolean;
+  sortOrder: number;
+}
+
+interface ProductVariant {
+  variantId: string;
+  variantName: string;
+  images: VariantImage[];
+}
 
 interface Product {
   id: string;
@@ -35,13 +51,16 @@ interface Product {
   price: number;
   image: string;
   images: string[];
+  colors?: string[];
+  variants?: ProductVariant[];
   category: string;
   description: string;
   soldBy: 'meter' | 'piece';
   clothingType?: string;
   availableSizes?: string[];
   inStock?: boolean;
-  imageFiles?: File[];
+  additionalChargeName?: string;
+  additionalChargeAmount?: number;
 }
 
 const initialProducts: Product[] = [];
@@ -88,6 +107,10 @@ useEffect(() => {
           categoryName = p.category.name || String(p.category._id || '') || '';
         }
 
+        const images = p.images || [];
+        const image = p.image || '';
+        const fallbackImages = images.length > 0 ? images : (image ? [image] : []);
+        
         return {
           id: p._id || p.id,
           name: p.name,
@@ -96,11 +119,25 @@ useEffect(() => {
           price: p.price,
           image: p.image,
           images: p.images || [],
+          colors: p.colors || [],
+          variants: (p.variants || []).map((v: any) => ({
+            variantId: v.variantId || v._id || '',
+            variantName: v.variantName || v.name || 'Default',
+            images: Array.isArray(v.images)
+              ? v.images.map((img: any) => ({
+                  imageUrl: typeof img === 'string' ? img : img.imageUrl,
+                  isPrimary: img.isPrimary ?? false,
+                  sortOrder: img.sortOrder ?? 0,
+                }))
+              : [],
+          })),
           description: p.description,
           soldBy: p.soldBy,
           clothingType: p.clothingType || '',
           availableSizes: p.availableSizes || [],
           inStock: p.inStock ?? true,
+          additionalChargeName: p.additionalChargeName || '',
+          additionalChargeAmount: p.additionalChargeAmount || 0,
         };
       });
       console.log('[fetchProducts] Mapped products:', mapped.length);
@@ -136,7 +173,10 @@ useEffect(() => {
   const [stockFilter, setStockFilter] = useState('all');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // Variants state for the form
+  const [variantsDraft, setVariantsDraft] = useState<VariantDraft[]>([]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -148,8 +188,9 @@ useEffect(() => {
     soldBy: 'meter' as 'meter' | 'piece',
     clothingType: '',
     availableSizes: [] as string[],
-    imageFiles: [] as File[],
     inStock: true,
+    additionalChargeName: '',
+    additionalChargeAmount: '',
   });
 
   // Filter products
@@ -181,16 +222,39 @@ useEffect(() => {
         soldBy: product.soldBy,
         clothingType: product.clothingType || '',
         availableSizes: product.availableSizes || [],
-        imageFiles: [],
         inStock: product.inStock ?? true,
+        additionalChargeName: product.additionalChargeName || '',
+        additionalChargeAmount: product.additionalChargeAmount ? product.additionalChargeAmount.toString() : '',
       });
-      setExistingImageUrls(
-        product.images && product.images.length > 0
-          ? product.images
-          : product.image
-            ? [product.image]
-            : []
-      );
+
+      if (product.variants && product.variants.length > 0) {
+        setVariantsDraft(
+          product.variants.map((v, i) => {
+            const vImages = Array.isArray(v.images) ? v.images : [];
+            return {
+              clientId: v.variantId || `v-exist-${i}`,
+              name: v.variantName || 'Default',
+              images: vImages.map((img: any, imgIdx: number) => ({
+                id: `ex-${imgIdx}-${Date.now()}-${Math.random()}`,
+                url: typeof img === 'string' ? img : img.imageUrl,
+              })),
+            };
+          })
+        );
+      } else {
+        // Fallback for legacy products
+        const legacyImages = product.images?.length > 0 ? product.images : (product.image ? [product.image] : []);
+        setVariantsDraft([
+          {
+            clientId: `v-legacy-${Date.now()}`,
+            name: 'Default',
+            images: legacyImages.map((url, imgIdx) => ({
+              id: `ex-legacy-${imgIdx}-${Date.now()}-${Math.random()}`,
+              url,
+            })),
+          }
+        ]);
+      }
     } else {
       setEditingProduct(null);
       setFormData({
@@ -202,10 +266,11 @@ useEffect(() => {
         soldBy: 'meter',
         clothingType: '',
         availableSizes: [],
-        imageFiles: [],
         inStock: true,
+        additionalChargeName: '',
+        additionalChargeAmount: '',
       });
-      setExistingImageUrls([]);
+      setVariantsDraft([newVariantDraft('Default')]);
     }
     setDialogOpen(true);
   };
@@ -216,58 +281,75 @@ useEffect(() => {
       return;
     }
 
-    if (!editingProduct && formData.imageFiles.length === 0) {
-      toast.error('Please upload at least one product image');
+    const totalImages = variantsDraft.reduce((acc, v) => acc + v.images.length, 0);
+    if (totalImages === 0) {
+      toast.error('Please upload at least one product image in your variants');
       return;
     }
 
-    // In production, this will upload to server and get URL back
-    // For now, create a local URL for preview
     try {
-  // Step 1: Upload any new images to Cloudinary
-  let uploadedUrls: string[] = [];
-  if (formData.imageFiles.length > 0) {
-    const imagesForm = new FormData();
-    formData.imageFiles.forEach((file) => {
-      imagesForm.append('images', file);
-    });
+      setIsSaving(true);
+      
+      // Upload new files for each variant
+      const finalizedVariants: ProductVariant[] = [];
+      
+      for (const variant of variantsDraft) {
+        const filesToUpload = variant.images.filter((img) => img.file);
+        let uploadedUrls: string[] = [];
+        if (filesToUpload.length > 0) {
+          const imagesForm = new FormData();
+          filesToUpload.forEach((img) => imagesForm.append('images', img.file!));
+          
+          const uploadRes = await fetch(`${API_BASE_URL}/api/v1/admin/products/upload-images`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: imagesForm,
+          });
+          
+          if (!uploadRes.ok) {
+            toast.error(`Image upload failed for variant ${variant.name}`);
+            setIsSaving(false);
+            return;
+          }
+          const uploadData = await uploadRes.json();
+          uploadedUrls = uploadData?.urls || [];
+        }
+        
+        let uploadIdx = 0;
+        const allUrls = variant.images.map((img) => {
+          if (img.url) return img.url;
+          return uploadedUrls[uploadIdx++];
+        }).filter(Boolean);
+        
+        const imagesPayload = allUrls.map((url, idx) => ({
+          imageUrl: url,
+          isPrimary: idx === 0,
+          sortOrder: idx,
+        }));
+        
+        finalizedVariants.push({
+          variantId: variant.clientId.startsWith('v-exist-') ? variant.clientId.replace('v-exist-', '') : (variant.clientId.startsWith('v-') ? variant.clientId : `v-${Math.random()}`),
+          variantName: variant.name || 'Default',
+          images: imagesPayload,
+        });
+      }
 
-    const uploadRes = await fetch(`${API_BASE_URL}/api/v1/admin/products/upload-images`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: imagesForm,
-    });
-
-    if (!uploadRes.ok) {
-      toast.error('Image upload failed');
-      return;
-    }
-
-    const uploadData = await uploadRes.json();
-    uploadedUrls = uploadData?.urls || [];
-  }
-
-  const finalImages = [...existingImageUrls, ...uploadedUrls];
-  if (finalImages.length === 0) {
-    toast.error('Please keep at least one product image');
-    return;
-  }
-
-  // Step 2: Save product to database
-  const payload = {
-    name: formData.name,
-    description: formData.description,
-    brand: formData.brand,
-    category: formData.category,
-    price: parseFloat(formData.price),
-    soldBy: formData.soldBy,
-    clothingType: formData.clothingType || null,
-    availableSizes: formData.availableSizes,
-    image: finalImages[0] || '',
-    images: finalImages,
-    inStock: formData.inStock,
-    isActive: true,
-  };
+      // Step 2: Save product to database
+      const payload = {
+        name: formData.name,
+        description: formData.description,
+        brand: formData.brand,
+        category: formData.category,
+        price: parseFloat(formData.price),
+        soldBy: formData.soldBy,
+        clothingType: formData.clothingType || null,
+        availableSizes: formData.availableSizes,
+        variants: finalizedVariants,
+        inStock: formData.inStock,
+        isActive: true,
+        additionalChargeName: formData.additionalChargeName || '',
+        additionalChargeAmount: formData.additionalChargeAmount ? parseFloat(formData.additionalChargeAmount) : 0,
+      };
 
   if (editingProduct) {
     const res = await fetch(`${API_BASE_URL}/api/v1/admin/products/${editingProduct.id}`, {
@@ -285,11 +367,15 @@ useEffect(() => {
       price: data.data.price,
       image: data.data.image,
       images: data.data.images || [],
+      colors: data.data.colors || [],
+      variants: data.data.variants || [],
       description: data.data.description,
       soldBy: data.data.soldBy,
       clothingType: data.data.clothingType || '',
       availableSizes: data.data.availableSizes || [],
       inStock: data.data.inStock,
+      additionalChargeName: data.data.additionalChargeName || '',
+      additionalChargeAmount: data.data.additionalChargeAmount || 0,
     };
     setProducts(prev => prev.map(p => p.id === editingProduct.id ? updatedProduct : p));
     toast.success('Product updated successfully');
@@ -309,18 +395,21 @@ useEffect(() => {
       price: data.data.price,
       image: data.data.image,
       images: data.data.images || [],
+      colors: data.data.colors || [],
+      variants: data.data.variants || [],
       description: data.data.description,
       soldBy: data.data.soldBy,
       clothingType: data.data.clothingType || '',
       availableSizes: data.data.availableSizes || [],
       inStock: data.data.inStock,
+      additionalChargeName: data.data.additionalChargeName || '',
+      additionalChargeAmount: data.data.additionalChargeAmount || 0,
     };
     setProducts(prev => [newProduct, ...prev]);
     toast.success('Product added successfully');
   }
 
   setDialogOpen(false);
-  setExistingImageUrls([]);
   setFormData({
     name: '',
     description: '',
@@ -330,12 +419,15 @@ useEffect(() => {
     soldBy: 'meter',
     clothingType: '',
     availableSizes: [],
-    imageFiles: [],
     inStock: true,
+    additionalChargeName: '',
+    additionalChargeAmount: '',
   });
     } catch (err) {
       console.error('Error saving product:', err);
       toast.error(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -453,13 +545,31 @@ useEffect(() => {
             <Card key={product.id} className="hover:shadow-md transition-shadow">
               <CardContent className="p-4">
                 <div className="flex items-start gap-4">
-                  {/* Product Image */}
+                  {/* Product Images Strip */}
                   <div className="flex-shrink-0">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="size-24 rounded-lg object-cover border border-gray-200 dark:border-gray-700"
-                    />
+                    <div className="flex flex-col gap-1">
+                      {/* Primary image */}
+                      <img
+                        src={product.variants?.[0]?.images?.[0]?.imageUrl || product.image || (product.images && product.images[0])}
+                        alt={product.name}
+                        className="size-20 rounded-lg object-cover border border-gray-200 dark:border-gray-700"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODgiIGhlaWdodD0iODgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjOTk5IiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWxsPSJub25lIiBzdHJva2Utd2lkdGg9IjMiPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSI3MiIgaGVpZ2h0PSI3MiIgcng9IjYiLz48cGF0aCBkPSJtOCA1NiAxNi0yMCAzMiAzMiIvPjxjaXJjbGUgY3g9IjUyIiBjeT0iMzIiIHI9IjgiLz48L3N2Zz4=';
+                        }}
+                      />
+                      {/* Extra variants/images count badge */}
+                      {(product.variants && product.variants.length > 1) ? (
+                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                          <Images className="size-3" />
+                          {product.variants.length} variants
+                        </div>
+                      ) : (product.images && product.images.length > 1) ? (
+                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                          <Images className="size-3" />
+                          {product.images.length} photos
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
 
                   {/* Product Details */}
@@ -505,6 +615,11 @@ useEffect(() => {
                         <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                           per {product.soldBy}
                         </div>
+                        {product.additionalChargeAmount && product.additionalChargeAmount > 0 && (
+                          <div className="text-xs text-emerald-500 mt-1 font-medium">
+                            + ₹{product.additionalChargeAmount} ({product.additionalChargeName || 'Additional'})
+                          </div>
+                        )}
                         <div className="mt-3">
                           <div className="flex items-center gap-2">
                             <Switch
@@ -639,6 +754,30 @@ useEffect(() => {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
+                <Label htmlFor="additionalChargeName">Additional Charge Name</Label>
+                <Input
+                  id="additionalChargeName"
+                  value={formData.additionalChargeName}
+                  onChange={(e) => setFormData({ ...formData, additionalChargeName: e.target.value })}
+                  placeholder="e.g., Ordna, Stitching Charge"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="additionalChargeAmount">Additional Charge (₹)</Label>
+                <Input
+                  id="additionalChargeAmount"
+                  type="number"
+                  value={formData.additionalChargeAmount}
+                  onChange={(e) => setFormData({ ...formData, additionalChargeAmount: e.target.value })}
+                  placeholder="0"
+                  min="0"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
                 <Label htmlFor="clothingType">Clothing Type</Label>
                 <Select
                   value={formData.clothingType || 'none'}
@@ -682,16 +821,11 @@ useEffect(() => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="image">Product Image *</Label>
-              <MultiImageUpload
-                files={formData.imageFiles}
-                existingUrls={existingImageUrls}
-                onFilesChange={(files) => setFormData({ ...formData, imageFiles: files })}
-                onExistingUrlsChange={setExistingImageUrls}
+              <Label>Product Variants & Images *</Label>
+              <VariantManager
+                variants={variantsDraft}
+                onChange={setVariantsDraft}
               />
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Upload multiple images (PNG, JPG, max 5MB each). Customers can scroll through them on product pages.
-              </p>
             </div>
 
             <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700">
@@ -715,9 +849,17 @@ useEffect(() => {
             </Button>
             <Button
               onClick={handleSaveProduct}
+              disabled={isSaving}
               className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
             >
-              Save Product
+              {isSaving ? (
+                <>
+                  <Loader2 className="size-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Product'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

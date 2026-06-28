@@ -60,7 +60,13 @@ export function ProductCard({ product }: ProductCardProps) {
         <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer h-full group">
           <div className="aspect-square overflow-hidden relative">
             <ImageCarousel
-              images={product.images}
+              images={(() => {
+                const variantWithImages = product.variants?.find(v => v.images && v.images.length > 0);
+                if (variantWithImages) {
+                  return variantWithImages.images.map((img: any) => typeof img === 'string' ? img : img.imageUrl);
+                }
+                return product.images || [];
+              })()}
               alt={product.name}
               className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
             />

@@ -217,6 +217,7 @@ export function Payment() {
           quantity: item.quantity,
           meters: item.selectedMeters || 1,
           selectedSize: item.selectedSize || null,
+          selectedColor: item.selectedColor || null,
         })),
         shippingAddress: parsedCheckoutData.shippingAddress,
         billingAddress: parsedCheckoutData.billingAddress,
@@ -593,7 +594,11 @@ export function Payment() {
                       {item.soldBy === 'meter' ? 'meters' : 'pcs'}
                     </span>
                     <span className="flex-shrink-0">
-                      ₹{(item.price * item.quantity).toLocaleString('en-IN')}
+                      ₹{(
+                        item.soldBy === 'meter' && item.selectedMeters
+                          ? item.price * item.selectedMeters * item.quantity
+                          : item.price * item.quantity
+                      ).toLocaleString('en-IN')}
                     </span>
                   </div>
                 ))}

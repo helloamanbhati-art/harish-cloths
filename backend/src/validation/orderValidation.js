@@ -32,6 +32,8 @@ exports.createOrderSchema = Joi.object({
         productId: Joi.string().required(),
         quantity: Joi.number().positive().required(),
         meters: Joi.number().positive(),
+        selectedSize: Joi.string().allow('', null),
+        selectedColor: Joi.string().allow('', null),
       })
     )
     .min(1)
