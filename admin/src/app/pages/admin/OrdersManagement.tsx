@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../components/ui/select';
-import { Search, Eye, ShoppingBag, Truck, CreditCard, MapPin } from 'lucide-react';
+import { Search, Eye, ShoppingBag, Truck, CreditCard, MapPin, Copy } from 'lucide-react';
 import { useOrders } from '../../contexts/OrderContext';
 import { toast } from 'sonner';
 
@@ -56,18 +56,46 @@ const renderAddress = (address: any) => {
   const pinCode = address.zipCode || address.pincode || address.zip || '';
 
   return (
-    <div className="space-y-1 text-sm text-gray-700">
-      {address.fullName && <p>{address.fullName}</p>}
-      {address.phone && <p>{address.phone}</p>}
-      {houseName && <p>{houseName}</p>}
-      {building && <p>{building}</p>}
-      {street && <p>{street}</p>}
-      {landmark && <p>{landmark}</p>}
-      {cityState && <p>{cityState}</p>}
-      {pinCode && <p>{pinCode}</p>}
-      {address.country && <p>{address.country}</p>}
+    <div className="space-y-1 text-sm leading-relaxed text-gray-800 dark:text-gray-200">
+      {address.fullName && <p className="font-semibold text-gray-900 dark:text-white text-base mb-1">{address.fullName}</p>}
+      {address.phone && <p className="text-gray-600 dark:text-gray-400">📞 {address.phone}</p>}
+      {(houseName || building) && (
+        <p className="text-gray-800 dark:text-gray-200">
+          {[houseName, building].filter(Boolean).join(', ')}
+        </p>
+      )}
+      {street && <p className="text-gray-800 dark:text-gray-200">{street}</p>}
+      {landmark && <p className="text-gray-500 dark:text-gray-400 italic">{landmark}</p>}
+      {(cityState || pinCode) && (
+        <p className="text-gray-900 dark:text-gray-100 font-semibold mt-1">
+          {[cityState, pinCode].filter(Boolean).join(' - ')}
+        </p>
+      )}
+      {address.country && <p className="text-xs text-gray-400 uppercase tracking-wider mt-1">{address.country}</p>}
     </div>
   );
+};
+
+const getAddressString = (address: any) => {
+  if (!address) return '';
+  const houseName = address.houseName || address.addressLine1 || '';
+  const building = address.building || '';
+  const street = address.street || '';
+  const landmark = address.landmark ? `Landmark: ${address.landmark}` : '';
+  const cityState = [address.city, address.state].filter(Boolean).join(', ');
+  const pinCode = address.zipCode || address.pincode || address.zip || '';
+
+  const parts = [
+    address.fullName,
+    address.phone ? `Phone: ${address.phone}` : null,
+    [houseName, building].filter(Boolean).join(', '),
+    street,
+    landmark,
+    [cityState, pinCode].filter(Boolean).join(' - '),
+    address.country || 'India'
+  ].filter(Boolean);
+
+  return parts.join('\n');
 };
 
 const formatOrderStatus = (status: any) => {
@@ -89,6 +117,35 @@ export function OrdersManagement() {
   const [selectedOrder, setSelectedOrder] = useState<typeof orders[0] | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newStatus, setNewStatus] = useState<OrderStatus | ''>('');
+  const [activeLightbox, setActiveLightbox] = useState<{ images: string[]; activeIndex: number } | null>(null);
+
+  const getVariantImages = (item: any) => {
+    // Read only from order.items.selectedVariant snapshot
+    if (item.selectedVariant) {
+      if (item.selectedVariant.galleryImages && item.selectedVariant.galleryImages.length > 0) {
+        return item.selectedVariant.galleryImages;
+      }
+      if (item.selectedVariant.images && item.selectedVariant.images.length > 0) {
+        return item.selectedVariant.images.map((img: any) => typeof img === 'string' ? img : img.imageUrl);
+      }
+    }
+    // Fallback solely to item's stored productImage (no product catalog query)
+    return [item.productImage].filter(Boolean);
+  };
+
+  const getItemImage = (item: any) => {
+    // Read only from order.items.selectedVariant snapshot
+    if (item.selectedVariant) {
+      if (item.selectedVariant.primaryImage) return item.selectedVariant.primaryImage;
+      if (item.selectedVariant.thumbnail) return item.selectedVariant.thumbnail;
+      if (item.selectedVariant.images && item.selectedVariant.images.length > 0) {
+        const primaryImg = item.selectedVariant.images.find((img: any) => img.isPrimary) || item.selectedVariant.images[0];
+        return typeof primaryImg === 'string' ? primaryImg : primaryImg.imageUrl;
+      }
+    }
+    // Fallback solely to item's stored productImage (no product catalog query)
+    return item.productImage || '';
+  };
 
   // Filter orders
   const filteredOrders = orders.filter((order) => {
@@ -339,15 +396,28 @@ export function OrdersManagement() {
                       </div>
                     </div>
                     {selectedOrder.shippingAddress && (
-                      <div className="mt-4">
-                        <Label className="text-gray-500 dark:text-gray-400">Shipping Address</Label>
-                        <div className="font-medium mt-1">{renderAddress(selectedOrder.shippingAddress)}</div>
-                      </div>
-                    )}
-                    {selectedOrder.billingAddress && (
-                      <div className="mt-4">
-                        <Label className="text-gray-500 dark:text-gray-400">Billing Address</Label>
-                        <div className="font-medium mt-1">{renderAddress(selectedOrder.billingAddress)}</div>
+                      <div className="mt-4 space-y-2 border-t pt-4">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-gray-500 dark:text-gray-400 font-semibold text-sm">
+                            Shipping Address
+                          </Label>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 gap-1.5 text-xs px-2.5"
+                            onClick={() => {
+                              const text = getAddressString(selectedOrder.shippingAddress);
+                              navigator.clipboard.writeText(text);
+                              toast.success('Shipping address copied to clipboard!');
+                            }}
+                          >
+                            <Copy className="size-3.5" />
+                            Copy Address
+                          </Button>
+                        </div>
+                        <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm">
+                          {renderAddress(selectedOrder.shippingAddress)}
+                        </div>
                       </div>
                     )}
                   </CardContent>
@@ -364,41 +434,81 @@ export function OrdersManagement() {
                   <CardContent>
                     <div className="space-y-3">
                       {selectedOrder.items.map((item) => (
-                        <div key={item.id} className="flex items-center gap-4 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
-                          <img
-                            src={item.productImage}
-                            alt={item.productName}
-                            className="size-16 rounded-lg object-cover"
-                          />
-                          <div className="flex-1">
-                            <p className="font-medium">{item.productName}</p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{typeof item.brand === 'object' ? item.brand?.name : item.brand}</p>
-                            <div className="flex flex-wrap gap-2 mt-2">
-                              {item.size && (
-                                <Badge variant="outline" className="text-xs">
-                                  Size: {item.size}
-                                </Badge>
-                              )}
-                              {item.color && (
-                                <Badge variant="outline" className="text-xs">
-                                  Design: {item.color}
-                                </Badge>
-                              )}
-                              <Badge variant="secondary" className="text-xs">
-                                {item.quantity} {item.soldBy === 'meter' ? 'pcs' : 'pcs'}
-                              </Badge>
-                              {item.soldBy === 'meter' && item.meters && (
+                        <div key={item.id} className="flex flex-col sm:flex-row gap-4 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 shadow-sm transition-all hover:shadow-md">
+                          {/* Image and details container */}
+                          <div className="flex items-start gap-4 flex-1 min-w-0">
+                            <img
+                              src={getItemImage(item)}
+                              alt={item.productName}
+                              className="size-20 rounded-lg object-cover cursor-pointer hover:opacity-80 transition-opacity border border-gray-100 dark:border-gray-850 flex-shrink-0"
+                              title="Click to view all design images"
+                              onClick={() => {
+                                const imgs = getVariantImages(item);
+                                setActiveLightbox({ images: imgs, activeIndex: 0 });
+                              }}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-gray-900 dark:text-white text-base leading-snug">{item.productName}</p>
+                              <p className="text-[11px] text-gray-400 font-mono mt-0.5">{item.productId}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{typeof item.brand === 'object' ? item.brand?.name : item.brand}</p>
+                              
+                              <div className="flex flex-wrap gap-1.5 mt-2.5">
+                                {item.selectedVariant?.variantName && (
+                                  <Badge variant="outline" className="text-xs bg-indigo-50 dark:bg-indigo-950/20 text-indigo-700 dark:text-indigo-300">
+                                    Variant: {item.selectedVariant.variantName}
+                                  </Badge>
+                                )}
+                                {item.selectedVariant?.color && (
+                                  <Badge variant="outline" className="text-xs">
+                                    Color: {item.selectedVariant.color}
+                                  </Badge>
+                                )}
+                                {item.selectedVariant?.pattern && (
+                                  <Badge variant="outline" className="text-xs max-w-[200px] truncate">
+                                    Pattern: {item.selectedVariant.pattern}
+                                  </Badge>
+                                )}
+                                {item.selectedVariant?.sku && (
+                                  <Badge variant="outline" className="text-xs font-mono">
+                                    SKU: {item.selectedVariant.sku}
+                                  </Badge>
+                                )}
+                                {item.size && (
+                                  <Badge variant="outline" className="text-xs">
+                                    Size: {item.size}
+                                  </Badge>
+                                )}
+                                {item.color && !item.selectedVariant?.color && (
+                                  <Badge variant="outline" className="text-xs">
+                                    Design: {item.color}
+                                  </Badge>
+                                )}
                                 <Badge variant="secondary" className="text-xs">
-                                  {item.meters} meters
+                                  Qty: {item.quantity}
                                 </Badge>
-                              )}
+                                {item.soldBy === 'meter' && item.meters && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    {item.meters} meters
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <p className="text-sm text-gray-500 dark:text-gray-400">₹{item.price} / {item.soldBy}</p>
-                            <p className="font-bold">
-                              ₹{(item.soldBy === 'meter' ? item.price * item.quantity * (item.meters || 1) : item.price * item.quantity).toLocaleString('en-IN')}
-                            </p>
+
+                          {/* Pricing details aligned right on desktop, stacked with horizontal layout on mobile */}
+                          <div className="flex sm:flex-col items-end justify-between sm:justify-center border-t sm:border-t-0 pt-3 sm:pt-0 border-gray-100 dark:border-gray-800 text-right shrink-0">
+                            <div className="text-left sm:text-right">
+                              <span className="sm:hidden text-[10px] text-gray-400 block mb-0.5">Unit Price</span>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                                ₹{item.selectedVariant?.priceAtPurchase || item.price} / {item.soldBy}
+                              </p>
+                            </div>
+                            <div className="text-right mt-0 sm:mt-2">
+                              <span className="sm:hidden text-[10px] text-gray-400 block mb-0.5 font-bold">Subtotal</span>
+                              <p className="font-extrabold text-lg text-primary">
+                                ₹{(item.soldBy === 'meter' ? (item.selectedVariant?.priceAtPurchase || item.price) * item.quantity * (item.meters || 1) : (item.selectedVariant?.priceAtPurchase || item.price) * item.quantity).toLocaleString('en-IN')}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -507,6 +617,44 @@ export function OrdersManagement() {
                 </div>
               </div>
             </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Image Gallery Lightbox Dialog */}
+      <Dialog open={!!activeLightbox} onOpenChange={(open) => !open && setActiveLightbox(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Order Design Image Gallery</DialogTitle>
+          </DialogHeader>
+          {activeLightbox && activeLightbox.images.length > 0 && (
+            <div className="space-y-4 py-4">
+              {/* Active Image (Big Size) */}
+              <div className="aspect-square max-h-[50vh] overflow-hidden rounded-lg bg-muted flex items-center justify-center relative">
+                <img
+                  src={activeLightbox.images[activeLightbox.activeIndex]}
+                  alt="Design preview large"
+                  className="max-h-full max-w-full object-contain"
+                />
+              </div>
+
+              {/* Thumbnails Gallery */}
+              {activeLightbox.images.length > 1 && (
+                <div className="flex gap-2 overflow-x-auto pb-2">
+                  {activeLightbox.images.map((imgUrl, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setActiveLightbox({ ...activeLightbox, activeIndex: idx })}
+                      className={`relative size-16 rounded-md overflow-hidden border-2 shrink-0 ${
+                        activeLightbox.activeIndex === idx ? 'border-primary ring-2 ring-primary/20' : 'border-border hover:border-primary/60'
+                      }`}
+                    >
+                      <img src={imgUrl} className="w-full h-full object-cover" alt={`Thumb ${idx + 1}`} />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         </DialogContent>
       </Dialog>

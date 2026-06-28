@@ -13,7 +13,7 @@ import { Label } from "../components/ui/label";
 import { Card } from "../components/ui/card";
 import { Separator } from "../components/ui/separator";
 import { toast } from "sonner";
-import { ProductVariant } from "../types/product";
+import { ProductVariant, SelectedVariantSnapshot } from "../types/product";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -184,14 +184,51 @@ export function ProductDetail() {
 
       const cartVariantName = selectedVariant ? selectedVariant.variantName : undefined;
 
+      // Copy product and override image with selected variant image
+      let productToCart = { ...product };
+      if (selectedVariant && selectedVariant.images && selectedVariant.images.length > 0) {
+        const primaryImg = selectedVariant.images.find(img => img.isPrimary) || selectedVariant.images[0];
+        if (primaryImg && primaryImg.imageUrl) {
+          productToCart.image = primaryImg.imageUrl;
+        }
+      }
+
+      // Construct a complete SelectedVariantSnapshot
+      let variantSnapshot: SelectedVariantSnapshot;
+      if (selectedVariant) {
+        variantSnapshot = {
+          variantId: selectedVariant.variantId,
+          variantName: selectedVariant.variantName,
+          color: selectedVariant.variantName || product.colors?.[0] || null,
+          pattern: product.name,
+          sku: product.sku || null,
+          thumbnail: selectedVariant.images?.[0]?.imageUrl || product.image || null,
+          primaryImage: (selectedVariant.images?.find(img => img.isPrimary) || selectedVariant.images?.[0])?.imageUrl || product.image || null,
+          galleryImages: selectedVariant.images?.map(img => img.imageUrl) || [],
+          priceAtPurchase: product.price
+        };
+      } else {
+        variantSnapshot = {
+          variantId: 'default',
+          variantName: cartVariantName || 'Default',
+          color: cartVariantName || 'Default',
+          pattern: product.name,
+          sku: product.sku || null,
+          thumbnail: product.image || null,
+          primaryImage: product.image || null,
+          galleryImages: product.images || [],
+          priceAtPurchase: product.price
+        };
+      }
+
       if (product.soldBy === 'meter') {
         meterPieces.forEach(item => {
           for (let i = 0; i < item.pieces; i++) {
-            addToCart(product, item.meters, selectedSize, cartVariantName);
+            addToCart(productToCart, item.meters, selectedSize, cartVariantName, variantSnapshot);
           }
         });
       } else {
-        addToCart(product, undefined, selectedSize, cartVariantName);
+        addToCart(productToCart, undefined, selectedSize, cartVariantName, variantSnapshot);
       }
 
       setAdded(true);
@@ -290,14 +327,84 @@ export function ProductDetail() {
 
       <div className="grid md:grid-cols-2 gap-6 md:gap-8">
         {/* Main Image Gallery */}
-        <div className="aspect-square overflow-hidden rounded-lg bg-muted">
-          <ImageCarousel
-            images={carouselImages}
-            alt={product.name}
-            className="w-full h-full"
-            currentIndex={activeImageIndex}
-            onIndexChange={setActiveImageIndex}
-          />
+        <div className="space-y-4">
+          <div className="aspect-square overflow-hidden rounded-lg bg-muted">
+            <ImageCarousel
+              images={carouselImages}
+              alt={product.name}
+              className="w-full h-full"
+              currentIndex={activeImageIndex}
+              onIndexChange={setActiveImageIndex}
+            />
+          </div>
+
+          {/* Variants Selection (Mobile/Tablet only) */}
+          {variants.length > 1 && (
+            <div className="block md:hidden space-y-4 p-4 border border-border/60 bg-card rounded-2xl shadow-sm">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                  <LayoutGrid className="size-4 text-primary" /> Select Design & Pattern
+                </Label>
+                {selectedVariant && (
+                  <span className="text-xs text-muted-foreground">
+                    Selected: <span className="font-bold text-primary">{selectedVariant.variantName}</span>
+                  </span>
+                )}
+              </div>
+              <div className="flex gap-4 overflow-x-auto pb-2 pt-1 scrollbar-thin scrollbar-thumb-muted-foreground/20 hover:scrollbar-thumb-muted-foreground/30 snap-x snap-mandatory scroll-smooth">
+                {variants.map((variant, idx) => {
+                  const isSelected = selectedVariant?.variantName === variant.variantName;
+                  const variantImageUrl = variant.images && variant.images[0]
+                    ? (typeof variant.images[0] === 'string' ? variant.images[0] : variant.images[0].imageUrl)
+                    : '';
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setSelectedVariant(variant);
+                        setActiveImageIndex(0);
+                      }}
+                      className="flex flex-col items-center gap-2 shrink-0 snap-start focus-visible:outline-none group relative py-1"
+                      aria-label={`Select ${variant.variantName || 'Default'} variant`}
+                    >
+                      {/* Circular Swatch Container */}
+                      <div className={`relative size-16 rounded-full overflow-hidden transition-all duration-300 bg-muted border-2 ${
+                        isSelected 
+                          ? 'border-primary ring-4 ring-primary/20 scale-105 shadow-md' 
+                          : 'border-border/60 hover:border-primary/60 hover:scale-102 hover:shadow-sm'
+                      }`}>
+                        {variantImageUrl ? (
+                          <img 
+                            src={variantImageUrl} 
+                            alt={variant.variantName} 
+                            className="w-full h-full object-cover select-none transition-transform duration-500 group-hover:scale-110" 
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-muted-foreground text-[10px] bg-muted">No img</div>
+                        )}
+                        
+                        {/* Inner selected ring/indicator */}
+                        {isSelected && (
+                          <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
+                            <div className="bg-primary text-primary-foreground rounded-full p-1 shadow-sm scale-90">
+                              <Check className="size-3 stroke-[3]" />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Swatch Label */}
+                      <span className={`text-[10px] font-medium text-center max-w-[80px] truncate transition-colors duration-200 ${
+                        isSelected ? 'text-primary font-bold' : 'text-muted-foreground group-hover:text-foreground'
+                      }`} title={variant.variantName || 'Default'}>
+                        {variant.variantName || 'Default'}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Product Info & Settings */}
@@ -314,15 +421,27 @@ export function ProductDetail() {
             </Badge>
           </div>
 
-          <p className="text-lg md:text-xl">
-            ₹{product.price.toLocaleString('en-IN')}
-            {product.soldBy === 'meter' && <span className="text-sm text-muted-foreground ml-1">/meter</span>}
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-lg md:text-xl border-b pb-4">
+            <span className="font-semibold text-gray-900 dark:text-white">
+              ₹{product.price.toLocaleString('en-IN')}
+            </span>
+            {product.soldBy === 'meter' && <span className="text-sm text-muted-foreground">/meter</span>}
             {product.additionalChargeAmount && product.additionalChargeAmount > 0 && (
-              <span className="text-sm font-medium text-emerald-500 ml-2">
+              <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
                 + ₹{product.additionalChargeAmount.toLocaleString('en-IN')} ({product.additionalChargeName || 'Additional'})
               </span>
             )}
-          </p>
+            {product.soldBy === 'meter' && meterPieces[0] && (
+              <span className="text-base font-bold bg-primary/10 text-primary px-3 py-1 rounded-full border border-primary/20 transition-all duration-300 ml-1">
+                = ₹{(product.price * meterPieces[0].meters * meterPieces[0].pieces + (product.additionalChargeAmount || 0) * meterPieces[0].pieces).toLocaleString('en-IN')} (Total for {meterPieces[0].meters}m)
+              </span>
+            )}
+            {product.soldBy === 'piece' && (
+              <span className="text-base font-bold bg-primary/10 text-primary px-3 py-1 rounded-full border border-primary/20 transition-all duration-300 ml-1">
+                = ₹{(product.price + (product.additionalChargeAmount || 0)).toLocaleString('en-IN')} (Total for 1 pc)
+              </span>
+            )}
+          </div>
 
           <div className="space-y-2">
             <h3 className="text-base md:text-lg">
@@ -335,9 +454,9 @@ export function ProductDetail() {
 
           <div className="space-y-4 pt-4">
             
-            {/* Variants Selection */}
+            {/* Variants Selection (Desktop only) */}
             {variants.length > 1 && (
-              <div className="space-y-4 p-4 border border-border/60 bg-card rounded-2xl shadow-sm">
+              <div className="hidden md:block space-y-4 p-4 border border-border/60 bg-card rounded-2xl shadow-sm">
                 <div className="flex items-center justify-between">
                   <Label className="text-sm md:text-base font-semibold flex items-center gap-2 text-foreground">
                     <LayoutGrid className="size-4 text-primary" /> Select Design & Pattern

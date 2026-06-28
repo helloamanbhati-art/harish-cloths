@@ -142,8 +142,8 @@ export function MyOrders() {
                             style={{ marginLeft: idx > 0 ? '-12px' : '0', zIndex: 3 - idx }}
                           >
                             <img
-                              src={item.product.image}
-                              alt={item.product.name}
+                              src={item.selectedVariant?.primaryImage || item.productImage || item.product?.image}
+                              alt={item.productName || item.product?.name}
                               className="size-full object-cover"
                             />
                           </div>
@@ -199,7 +199,7 @@ export function MyOrders() {
                                 className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-sm"
                               >
                                 <span className="truncate max-w-[150px]">
-                                  {item.product.name}
+                                  {item.productName || item.product?.name}
                                 </span>
                                 <Badge variant="secondary" className="text-xs">
                                   ×{item.quantity}

@@ -10,6 +10,18 @@ export interface ProductVariant {
   images: VariantImage[];
 }
 
+export interface SelectedVariantSnapshot {
+  variantId: string;
+  variantName: string;
+  color: string | null;
+  pattern: string | null;
+  sku: string | null;
+  thumbnail: string | null;
+  primaryImage: string | null;
+  galleryImages: string[];
+  priceAtPurchase: number;
+}
+
 export interface Product {
   id: string;
   name: string;

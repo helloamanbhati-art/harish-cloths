@@ -39,7 +39,7 @@ export function Cart() {
           <ShoppingBag className="size-16 mx-auto mb-4 text-muted-foreground" />
           <h2 className="text-2xl mb-2">Your cart is empty</h2>
           <p className="text-muted-foreground mb-6">
-            Add some luxury beauty products to get started
+            Add some luxury clothing products to get started
           </p>
           <Link to="/">
             <Button>Continue Shopping</Button>

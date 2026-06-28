@@ -34,13 +34,22 @@ exports.createOrderSchema = Joi.object({
         meters: Joi.number().positive(),
         selectedSize: Joi.string().allow('', null),
         selectedColor: Joi.string().allow('', null),
+        selectedVariant: Joi.object({
+          variantId: Joi.string().required(),
+          variantName: Joi.string().required(),
+          color: Joi.string().allow('', null),
+          pattern: Joi.string().allow('', null),
+          sku: Joi.string().allow('', null),
+          thumbnail: Joi.string().allow('', null),
+          primaryImage: Joi.string().allow('', null),
+          galleryImages: Joi.array().items(Joi.string()).default([]),
+          priceAtPurchase: Joi.number().min(0),
+        }).allow(null),
       })
     )
     .min(1)
     .required(),
   shippingAddress: addressSchema.required(),
-  billingAddress: addressSchema,
-  sameAsShipping: Joi.boolean().default(true),
   paymentMethod: Joi.string()
     .valid("razorpay", "upi", "card", "netbanking", "wallet")
     .required(),

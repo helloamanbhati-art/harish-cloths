@@ -1,16 +1,23 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Product } from '../types/product';
+import { Product, SelectedVariantSnapshot } from '../types/product';
 
 export interface CartItem extends Product {
   quantity: number;
   selectedMeters?: number; // For products sold by meter
   selectedSize?: string; // For sized products
   selectedColor?: string; // For color variants
+  selectedVariant?: SelectedVariantSnapshot; // Full variant details snapshot
 }
 
 interface CartContextType {
   items: CartItem[];
-  addToCart: (product: Product, selectedMeters?: number, selectedSize?: string, selectedColor?: string) => void;
+  addToCart: (
+    product: Product,
+    selectedMeters?: number,
+    selectedSize?: string,
+    selectedColor?: string,
+    selectedVariant?: SelectedVariantSnapshot
+  ) => void;
   removeFromCart: (productId: string, selectedMeters?: number, selectedSize?: string, selectedColor?: string) => void;
   updateQuantity: (productId: string, quantity: number, selectedMeters?: number, selectedSize?: string, selectedColor?: string) => void;
   clearCart: () => void;
@@ -58,6 +65,7 @@ const normalizeCartItems = (rawItems: unknown): CartItem[] => {
             ? item.selectedMeters
             : undefined,
         selectedColor: typeof item.selectedColor === 'string' ? item.selectedColor : undefined,
+        selectedVariant: item.selectedVariant && typeof item.selectedVariant === 'object' ? item.selectedVariant : undefined,
       };
     });
 };
@@ -88,8 +96,49 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('cart', JSON.stringify(items));
   }, [items]);
 
-  const addToCart = (product: Product, selectedMeters?: number, selectedSize?: string, selectedColor?: string) => {
+  const addToCart = (
+    product: Product,
+    selectedMeters?: number,
+    selectedSize?: string,
+    selectedColor?: string,
+    selectedVariant?: SelectedVariantSnapshot
+  ) => {
     const normalizedProduct = normalizeProduct(product);
+
+    // Ensure selectedVariant is always a fully formed SelectedVariantSnapshot
+    let variantSnapshot: SelectedVariantSnapshot;
+
+    if (selectedVariant) {
+      variantSnapshot = selectedVariant;
+    } else {
+      // Find matching variant by name/color or fall back to the first variant
+      const matchingVariant = product.variants?.find(v => v.variantName === selectedColor) || product.variants?.[0];
+      if (matchingVariant) {
+        variantSnapshot = {
+          variantId: matchingVariant.variantId,
+          variantName: matchingVariant.variantName,
+          color: matchingVariant.variantName || product.colors?.[0] || null,
+          pattern: product.name,
+          sku: product.sku || null,
+          thumbnail: matchingVariant.images?.[0]?.imageUrl || product.image || null,
+          primaryImage: (matchingVariant.images?.find(img => img.isPrimary) || matchingVariant.images?.[0])?.imageUrl || product.image || null,
+          galleryImages: matchingVariant.images?.map(img => img.imageUrl) || [],
+          priceAtPurchase: product.price
+        };
+      } else {
+        variantSnapshot = {
+          variantId: 'default',
+          variantName: selectedColor || 'Default',
+          color: selectedColor || 'Default',
+          pattern: product.name,
+          sku: product.sku || null,
+          thumbnail: product.image || null,
+          primaryImage: product.image || null,
+          galleryImages: product.images || [],
+          priceAtPurchase: product.price
+        };
+      }
+    }
 
     setItems(current => {
       const existing = current.find(
@@ -104,7 +153,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         );
       }
 
-      return [...current, { ...normalizedProduct, quantity: 1, selectedMeters, selectedSize, selectedColor }];
+      return [...current, { ...normalizedProduct, quantity: 1, selectedMeters, selectedSize, selectedColor, selectedVariant: variantSnapshot }];
     });
   };
 

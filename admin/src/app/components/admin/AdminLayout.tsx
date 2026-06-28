@@ -81,7 +81,7 @@ export function AdminLayout() {
 
             <Link to="/admin" className="flex items-center gap-3">
               <img
-                src="/harish-clothing-logo.png"
+                src="/harish-clothing-logo.svg"
                 alt="Harish Clothing"
                 className="h-10 w-auto object-contain"
               />

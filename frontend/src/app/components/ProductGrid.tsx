@@ -23,7 +23,7 @@ export function ProductGrid({ products }: ProductGridProps) {
   return (
     <div className="flex-1 p-4 md:p-6">
       <div className="mb-4 md:mb-6">
-        <h1 className="text-xl md:text-2xl font-semibold mb-2">Luxury Beauty Products</h1>
+        <h1 className="text-xl md:text-2xl font-semibold mb-2">Luxury Clothing Products</h1>
         <p className="text-sm md:text-base text-muted-foreground">
           Showing {products.length} product{products.length !== 1 ? 's' : ''}
         </p>

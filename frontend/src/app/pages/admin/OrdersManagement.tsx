@@ -315,22 +315,22 @@ export function OrdersManagement() {
                         className="flex gap-3 p-3 rounded-lg border"
                       >
                         <img
-                          src={item.product.image}
-                          alt={item.product.name}
+                          src={item.selectedVariant?.primaryImage || item.productImage || item.product?.image}
+                          alt={item.productName || item.product?.name}
                           className="size-16 rounded object-cover"
                         />
                         <div className="flex-1">
-                          <p className="font-medium">{item.product.name}</p>
+                          <p className="font-medium">{item.productName || item.product?.name}</p>
                           <p className="text-sm text-muted-foreground">
-                            {typeof item.product.category === 'object' ? item.product.category?.name : item.product.category}
+                            {item.brand || (typeof item.product?.brand === 'object' ? item.product.brand?.name : item.product?.brand)}
                           </p>
                           <div className="flex items-center gap-3 mt-1 text-sm">
                             <span>Qty: {item.quantity}</span>
-                            {item.selectedMeters && (
-                              <span>× {item.selectedMeters}m each</span>
+                            {(item.selectedMeters || item.meters) && (
+                              <span>× {item.selectedMeters || item.meters}m each</span>
                             )}
                             <Badge variant="secondary" className="text-xs">
-                              {item.product.soldBy === 'meter' ? 'Per Meter' : 'Per Piece'}
+                              {item.soldBy === 'meter' ? 'Per Meter' : 'Per Piece'}
                             </Badge>
                           </div>
                         </div>
@@ -338,9 +338,10 @@ export function OrdersManagement() {
                           <p className="font-bold flex items-center gap-0.5">
                             <IndianRupee className="size-3" />
                             {(
-                              item.product.price *
-                              item.quantity *
-                              (item.selectedMeters || 1)
+                              item.subtotal ||
+                              ((item.price || item.product?.price || 0) *
+                                item.quantity *
+                                (item.selectedMeters || item.meters || 1))
                             ).toLocaleString('en-IN')}
                           </p>
                         </div>

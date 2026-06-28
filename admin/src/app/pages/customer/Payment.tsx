@@ -136,8 +136,6 @@ export default function Payment() {
           meters: item.selectedMeters || 1,
         })),
         shippingAddress: parsedCheckoutData.shippingAddress,
-        billingAddress: parsedCheckoutData.billingAddress,
-        sameAsShipping: parsedCheckoutData.sameAsShipping,
         email: parsedCheckoutData.email,
         paymentMethod: 'razorpay',
         shippingMethod: 'standard',

@@ -10,7 +10,7 @@ const taxService = require("../services/taxService");
 // Create order
 exports.createOrder = async (req, res, next) => {
   try {
-    const { items, shippingAddress, billingAddress, sameAsShipping, paymentMethod, shippingMethod, couponCode, customerNotes } = req.body;
+    const { items, shippingAddress, paymentMethod, shippingMethod, couponCode, customerNotes } = req.body;
 
     // Validate items
     let subtotal = 0;
@@ -49,13 +49,72 @@ exports.createOrder = async (req, res, next) => {
       const itemTotal = product.price * item.quantity * metersPerPiece + additionalCharge;
       subtotal += itemTotal;
 
+      // Validate that the selected variant belongs to the product (if product has variants)
+      let selectedVariantSnapshot = item.selectedVariant || null;
+
+      if (product.variants && product.variants.length > 0) {
+        if (!selectedVariantSnapshot) {
+          // Resolve a default variant snapshot if the client didn't send one (e.g. legacy carts, list pages)
+          let matchedVariant = null;
+          if (item.selectedColor) {
+            matchedVariant = product.variants.find(
+              v => v.variantName && v.variantName.toLowerCase() === item.selectedColor.toLowerCase()
+            );
+          }
+          if (!matchedVariant) {
+            matchedVariant = product.variants[0];
+          }
+
+          selectedVariantSnapshot = {
+            variantId: matchedVariant.variantId,
+            variantName: matchedVariant.variantName,
+            color: matchedVariant.variantName || product.colors?.[0] || null,
+            pattern: product.name,
+            sku: product.sku || null,
+            thumbnail: matchedVariant.images?.[0]?.imageUrl || product.image || null,
+            primaryImage: (matchedVariant.images?.find(img => img.isPrimary) || matchedVariant.images?.[0])?.imageUrl || product.image || null,
+            galleryImages: matchedVariant.images?.map(img => img.imageUrl) || [],
+            priceAtPurchase: product.price
+          };
+        } else {
+          // If the variant snapshot was provided, validate that it belongs to the product
+          const variantExists = product.variants.some(
+            v => v.variantId === selectedVariantSnapshot.variantId
+          );
+          if (!variantExists && selectedVariantSnapshot.variantId !== 'default') {
+            return res.status(400).json({
+              success: false,
+              message: `Selected variant '${selectedVariantSnapshot.variantName}' does not belong to product ${product.name}`,
+            });
+          }
+        }
+      }
+
+      // If no variant snapshot is provided (e.g. from guest checkouts or simple cards), synthesize a default variant snapshot from product info
+      if (!selectedVariantSnapshot) {
+        selectedVariantSnapshot = {
+          variantId: "default",
+          variantName: item.selectedColor || "Default",
+          color: item.selectedColor || "Default",
+          pattern: product.name,
+          sku: product.sku || null,
+          thumbnail: product.image || null,
+          primaryImage: product.image || null,
+          galleryImages: product.images && product.images.length > 0 ? product.images : (product.image ? [product.image] : []),
+          priceAtPurchase: product.price
+        };
+      }
+
+      const productImage = selectedVariantSnapshot.primaryImage || selectedVariantSnapshot.thumbnail || product.image;
+
       orderItems.push({
         product: product._id,
         productName: product.name,
-        productImage: product.image,
+        productImage: productImage,
         brand: product.brand,
         size: item.selectedSize || null, // Include selected size
         color: item.selectedColor || null, // Include selected color
+        selectedVariant: selectedVariantSnapshot, // Complete snapshot of the purchased variant
         price: product.price,
         quantity: item.quantity,
         meters: metersPerPiece,
@@ -101,7 +160,6 @@ exports.createOrder = async (req, res, next) => {
       tax,
       shippingMethod,
       shippingAddress,
-      billingAddress: sameAsShipping ? shippingAddress : billingAddress,
       paymentMethod,
       customerNotes,
     });

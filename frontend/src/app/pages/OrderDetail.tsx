@@ -191,14 +191,14 @@ export function OrderDetail() {
             <div className="space-y-4 mb-6">
               {order.items.map((item, idx) => (
                 <div
-                  key={`${item.product.id}-${item.selectedMeters || 'piece'}-${idx}`}
+                  key={`${item.productId || item.product?.id || item.product}-${item.selectedMeters || item.meters || 'piece'}-${idx}`}
                   className="flex gap-4 p-4 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors"
                 >
                   {/* Product Image */}
                   <div className="size-20 rounded-lg overflow-hidden bg-white flex-shrink-0">
                     <img
-                      src={item.product.image}
-                      alt={item.product.name}
+                      src={item.selectedVariant?.primaryImage || item.productImage || item.product?.image}
+                      alt={item.productName || item.product?.name}
                       className="size-full object-cover"
                     />
                   </div>
@@ -206,10 +206,10 @@ export function OrderDetail() {
                   {/* Product Details */}
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-base mb-1 truncate">
-                      {item.product.name}
+                      {item.productName || item.product?.name}
                     </h3>
                     <p className="text-sm text-muted-foreground mb-2">
-                      {typeof item.product.category === 'object' ? item.product.category?.name : item.product.category}
+                      {item.brand || (typeof item.product?.brand === 'object' ? item.product.brand?.name : item.product?.brand)}
                     </p>
 
                     {/* Quantity & Meter Info */}
@@ -237,17 +237,17 @@ export function OrderDetail() {
                         <span className="font-semibold">{item.quantity}</span>
                       </div>
                       
-                      {item.product.soldBy === 'meter' && item.selectedMeters && (
+                      {item.soldBy === 'meter' && (item.selectedMeters || item.meters) && (
                         <div className="flex items-center gap-1.5">
                           <span className="text-muted-foreground">Length:</span>
-                          <span className="font-semibold">{item.selectedMeters}m each</span>
+                          <span className="font-semibold">{item.selectedMeters || item.meters}m each</span>
                         </div>
                       )}
                       
                       <div className="flex items-center gap-1.5">
                         <span className="text-muted-foreground">Unit:</span>
                         <Badge variant="secondary" className="text-xs">
-                          {item.product.soldBy === 'meter' ? 'Per Meter' : 'Per Piece'}
+                          {item.soldBy === 'meter' ? 'Per Meter' : 'Per Piece'}
                         </Badge>
                       </div>
                     </div>
@@ -259,7 +259,7 @@ export function OrderDetail() {
                       <p className="text-xs text-muted-foreground mb-1">Unit Price</p>
                       <p className="font-semibold flex items-center justify-end gap-0.5">
                         <IndianRupee className="size-3.5" />
-                        {item.product.price.toLocaleString('en-IN')}
+                        {(item.price || item.product?.price || 0).toLocaleString('en-IN')}
                       </p>
                     </div>
                     <div className="pt-2 border-t mt-2">
@@ -267,9 +267,10 @@ export function OrderDetail() {
                       <p className="text-lg font-bold flex items-center justify-end gap-0.5">
                         <IndianRupee className="size-4" />
                         {(
-                          item.product.price *
-                          item.quantity *
-                          (item.selectedMeters || 1)
+                          item.subtotal || 
+                          ((item.price || item.product?.price || 0) *
+                            item.quantity *
+                            (item.selectedMeters || item.meters || 1))
                         ).toLocaleString('en-IN')}
                       </p>
                     </div>

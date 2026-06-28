@@ -43,7 +43,6 @@ export function Checkout() {
     city: '',
     state: '',
     zip: '',
-    sameAsShipping: true,
     couponCode: '',
     customerNotes: '',
   });
@@ -135,8 +134,6 @@ export function Checkout() {
     // Store checkout data in sessionStorage for payment page
     const checkoutData = {
       shippingAddress,
-      billingAddress: formData.sameAsShipping ? shippingAddress : shippingAddress,
-      sameAsShipping: formData.sameAsShipping,
       email: formData.email,
       couponCode: formData.couponCode,
       customerNotes: formData.customerNotes,

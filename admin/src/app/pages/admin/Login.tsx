@@ -70,7 +70,7 @@ export function AdminLogin() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center space-y-4">
           <img
-            src="/harish-clothing-logo.png"
+            src="/harish-clothing-logo.svg"
             alt="Harish Clothing"
             className="mx-auto h-16 w-auto object-contain"
           />

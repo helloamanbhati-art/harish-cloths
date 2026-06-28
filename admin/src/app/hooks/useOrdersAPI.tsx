@@ -1,6 +1,18 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
+export interface SelectedVariantSnapshot {
+  variantId: string;
+  variantName: string;
+  color?: string | null;
+  pattern?: string | null;
+  sku?: string | null;
+  thumbnail?: string | null;
+  primaryImage?: string | null;
+  galleryImages?: string[];
+  priceAtPurchase?: number;
+}
+
 export interface OrderItem {
   id: string;
   productId: string;
@@ -11,6 +23,7 @@ export interface OrderItem {
   quantity: number;
   meters?: number;
   soldBy: 'meter' | 'piece';
+  selectedVariant?: SelectedVariantSnapshot;
 }
 
 export interface StatusHistory {

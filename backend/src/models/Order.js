@@ -1,5 +1,17 @@
 const mongoose = require("mongoose");
 
+const selectedVariantSchema = new mongoose.Schema({
+  variantId: { type: String, required: true },
+  variantName: { type: String, required: true, trim: true },
+  color: { type: String, default: null },
+  pattern: { type: String, default: null },
+  sku: { type: String, default: null },
+  thumbnail: { type: String, default: null },
+  primaryImage: { type: String, default: null },
+  galleryImages: { type: [String], default: [] },
+  priceAtPurchase: { type: Number, default: 0 }
+}, { _id: false });
+
 const orderItemSchema = new mongoose.Schema(
   {
     product: {
@@ -16,6 +28,10 @@ const orderItemSchema = new mongoose.Schema(
     },
     color: {
       type: String,
+      default: null,
+    },
+    selectedVariant: {
+      type: selectedVariantSchema,
       default: null,
     },
     price: { type: Number, required: true, min: 0 },
@@ -97,22 +113,7 @@ const orderSchema = new mongoose.Schema(
     trackingNumber: String,
     carrier: String, // e.g., "Shipway", "Easypost"
 
-    // Billing
-    billingAddress: {
-      fullName: String,
-      phone: String,
-      houseName: String,
-      building: String,
-      street: String,
-      landmark: String,
-      addressLine1: String,
-      addressLine2: String,
-      city: String,
-      state: String,
-      zipCode: String,
-      country: String,
-    },
-    sameAsShipping: { type: Boolean, default: true },
+
 
     // Payment
     paymentMethod: {
