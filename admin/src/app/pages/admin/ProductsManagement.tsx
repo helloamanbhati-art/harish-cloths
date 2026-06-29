@@ -341,19 +341,19 @@ useEffect(() => {
       // Step 2: Save product to database
       const payload = {
         name: formData.name,
-        description: formData.description,
+        description: formData.description || formData.name, // Ensure description is never blank to satisfy backend validation
         brand: formData.brand,
         category: formData.category,
         price: parseFloat(formData.price),
         soldBy: formData.soldBy,
-        clothingType: formData.clothingType || null,
-        availableSizes: formData.availableSizes,
+        clothingType: null,
+        availableSizes: [],
         variants: finalizedVariants,
         inStock: formData.inStock,
         isFlatPrice: formData.soldBy === 'meter' ? true : formData.isFlatPrice,
         isActive: true,
-        additionalChargeName: formData.additionalChargeName || '',
-        additionalChargeAmount: formData.additionalChargeAmount ? parseFloat(formData.additionalChargeAmount) : 0,
+        additionalChargeName: '',
+        additionalChargeAmount: 0,
       };
 
   if (editingProduct) {
@@ -624,11 +624,7 @@ useEffect(() => {
                         <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                           per {product.soldBy}
                         </div>
-                        {product.additionalChargeAmount && product.additionalChargeAmount > 0 && (
-                          <div className="text-xs text-emerald-500 mt-1 font-medium">
-                            + ₹{product.additionalChargeAmount} ({product.additionalChargeName || 'Additional'})
-                          </div>
-                        )}
+
                         <div className="mt-3">
                           <div className="flex items-center gap-2">
                             <Switch
@@ -693,17 +689,6 @@ useEffect(() => {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Enter product description"
-                rows={3}
-              />
-            </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="brand">Brand *</Label>
@@ -761,93 +746,11 @@ useEffect(() => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="additionalChargeName">Additional Charge Name</Label>
-                <Input
-                  id="additionalChargeName"
-                  value={formData.additionalChargeName}
-                  onChange={(e) => setFormData({ ...formData, additionalChargeName: e.target.value })}
-                  placeholder="e.g., Ordna, Stitching Charge"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="additionalChargeAmount">Additional Charge (₹)</Label>
-                <Input
-                  id="additionalChargeAmount"
-                  type="number"
-                  value={formData.additionalChargeAmount}
-                  onChange={(e) => setFormData({ ...formData, additionalChargeAmount: e.target.value })}
-                  placeholder="0"
-                  min="0"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="clothingType">Clothing Type</Label>
-                <Select
-                  value={formData.clothingType || 'none'}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, clothingType: value === 'none' ? '' : value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select clothing type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    {clothingTypeOptions.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Available Sizes</Label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                {sizeOptions.map((size) => (
-                  <label key={size} className="flex items-center gap-2 text-sm">
-                    <Checkbox
-                      checked={formData.availableSizes.includes(size)}
-                      onCheckedChange={(checked) => {
-                        const next = checked
-                          ? [...formData.availableSizes, size]
-                          : formData.availableSizes.filter((s) => s !== size);
-                        setFormData({ ...formData, availableSizes: next });
-                      }}
-                    />
-                    <span>{size}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
             <div className="space-y-2">
               <Label>Product Variants & Images *</Label>
               <VariantManager
                 variants={variantsDraft}
                 onChange={setVariantsDraft}
-              />
-            </div>
-
-            <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-              <div>
-                <Label htmlFor="inStock">Stock Status</Label>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {formData.inStock ? 'In Stock' : 'Out of Stock'}
-                </p>
-              </div>
-              <Switch
-                id="inStock"
-                checked={formData.inStock}
-                onCheckedChange={(checked) => setFormData({ ...formData, inStock: checked })}
               />
             </div>
           </div>

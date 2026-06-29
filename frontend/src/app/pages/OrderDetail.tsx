@@ -232,15 +232,18 @@ export function OrderDetail() {
                         </div>
                       )}
                       
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-muted-foreground">Quantity:</span>
-                        <span className="font-semibold">{item.quantity}</span>
-                      </div>
-                      
-                      {item.soldBy === 'meter' && (item.selectedMeters || item.meters) && (
-                        <div className="text-xs text-muted-foreground mt-0.5">
-                          <span className="font-semibold">{item.selectedMeters || item.meters}m each</span>
+                      {item.soldBy !== 'meter' ? (
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-muted-foreground">Quantity:</span>
+                          <span className="font-semibold">{item.quantity}</span>
                         </div>
+                      ) : (
+                        (item.selectedMeters || item.meters) && (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-muted-foreground">Length:</span>
+                            <span className="font-semibold">{item.selectedMeters || item.meters} Meters</span>
+                          </div>
+                        )
                       )}
                     </div>
                   </div>
@@ -276,13 +279,16 @@ export function OrderDetail() {
                 <span className="text-muted-foreground">Subtotal:</span>
                 <span className="font-semibold flex items-center gap-0.5">
                   <IndianRupee className="size-3.5" />
-                  {order.totalPrice.toLocaleString('en-IN')}
+                  {(order.subtotal || order.totalPrice).toLocaleString('en-IN')}
                 </span>
               </div>
 
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Shipping:</span>
-                <span className="font-semibold text-green-600">FREE</span>
+                <span className="font-semibold flex items-center gap-0.5">
+                  <IndianRupee className="size-3.5" />
+                  {(order.shippingCharges !== undefined ? order.shippingCharges : 80).toLocaleString('en-IN')}
+                </span>
               </div>
 
               <div className="flex justify-between items-center pt-3 border-t">

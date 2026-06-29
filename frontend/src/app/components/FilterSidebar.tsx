@@ -141,33 +141,7 @@ export function FilterSidebar({
             </div>
           </div>
 
-          <Separator />
 
-          {/* Price Filter */}
-          <div className="space-y-3 md:space-y-2">
-            <h3 className="text-sm font-medium">Price Range</h3>
-            
-            {/* Predefined Ranges */}
-            <div className="space-y-2">
-              <div className="grid grid-cols-1 gap-2">
-                {priceRanges.map((range, index) => (
-                  <Button
-                    key={index}
-                    variant={
-                      filters.priceRange[0] === range.min && filters.priceRange[1] === range.max
-                        ? 'default'
-                        : 'outline'
-                    }
-                    size="sm"
-                    onClick={() => handlePredefinedRangeClick(range.min, range.max)}
-                    className="text-xs h-8 justify-start"
-                  >
-                    {range.label}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </div>
 
           <Separator />
 

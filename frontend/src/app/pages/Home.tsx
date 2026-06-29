@@ -3,9 +3,8 @@ import { ProductGrid } from '../components/ProductGrid';
 import { useProductFilters } from '../hooks/useProductFilters';
 import { useProductContext } from '../contexts/ProductContext';
 import { usePageTitle } from '../hooks/usePageTitle';
-import { useState } from 'react';
-import { Button } from '../components/ui/button';
-import { SlidersHorizontal, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
 
 export function Home() {
   usePageTitle();
@@ -23,6 +22,12 @@ export function Home() {
   } = useProductFilters(products);
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  useEffect(() => {
+    const handleToggle = () => setIsFilterOpen(prev => !prev);
+    window.addEventListener('toggle-filters', handleToggle);
+    return () => window.removeEventListener('toggle-filters', handleToggle);
+  }, []);
 
   if (error) {
     return (
@@ -45,18 +50,6 @@ export function Home() {
 
   return (
     <div className="flex flex-col md:flex-row h-[calc(100vh-73px)]">
-      {/* Mobile Filter Button */}
-      <div className="md:hidden p-4 border-b">
-        <Button 
-          variant="outline" 
-          onClick={() => setIsFilterOpen(!isFilterOpen)}
-          className="w-full"
-        >
-          <SlidersHorizontal className="size-4 mr-2" />
-          Filters & Sorting
-        </Button>
-      </div>
-
       {/* Filter Sidebar */}
       <FilterSidebar
         filters={filters}

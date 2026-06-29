@@ -202,8 +202,7 @@ export function MyOrders() {
                                   {item.productName || item.product?.name}
                                 </span>
                                 <Badge variant="secondary" className="text-xs">
-                                  ×{item.quantity}
-                                  {item.selectedMeters ? ` (${item.selectedMeters}m)` : ''}
+                                  {item.selectedMeters ? `${item.selectedMeters} Meters` : `×${item.quantity}`}
                                   {item.size ? ` - ${item.size}` : ''}
                                   {item.color ? ` - ${item.color}` : ''}
                                 </Badge>

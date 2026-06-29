@@ -98,7 +98,25 @@ export function Payment() {
     }
   }, [items.length, navigate]);
 
-  const finalAmount = totalPrice;
+  const [shippingCharge, setShippingCharge] = useState(80);
+  const [finalAmount, setFinalAmount] = useState(totalPrice);
+
+  useEffect(() => {
+    const checkoutData = sessionStorage.getItem('checkoutData');
+    if (checkoutData) {
+      try {
+        const parsed = JSON.parse(checkoutData);
+        if (parsed.shippingCharge !== undefined) {
+          setShippingCharge(parsed.shippingCharge);
+        }
+        if (parsed.totalPrice !== undefined) {
+          setFinalAmount(parsed.totalPrice);
+        }
+      } catch (err) {
+        console.error('Error parsing checkoutData:', err);
+      }
+    }
+  }, [totalPrice]);
 
   // Poll for payment status
   const pollPaymentStatus = async (
@@ -145,6 +163,8 @@ export function Payment() {
                 orderNumber: data.data?.orderNumber,
                 paymentId: data.data?.razorpayPaymentId,
                 status: data.data?.status,
+                shippingCost: data.data?.shippingCost || shippingCharge,
+                subtotal: data.data?.subtotal || totalPrice,
               },
             });
 
@@ -406,6 +426,8 @@ export function Payment() {
           orderNumber: verifyData.data.orderNumber,
           paymentId: response.razorpay_payment_id,
           status: verifyData.data.status,
+          shippingCost: verifyData.data.shippingCost || shippingCharge,
+          subtotal: verifyData.data.subtotal || totalPrice,
         },
       });
 
@@ -608,7 +630,7 @@ export function Payment() {
                 </div>
                 <div className="flex justify-between text-xs md:text-sm">
                   <span className="text-muted-foreground">Shipping</span>
-                  <span className="text-green-600 font-medium">Free</span>
+                  <span>₹{shippingCharge}</span>
                 </div>
               </div>
 

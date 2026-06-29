@@ -164,8 +164,9 @@ exports.createOrder = async (req, res, next) => {
       customerNotes,
     });
 
-    // Calculate totals
-    const shippingCost = shippingMethod === "standard" ? 0 : 50; // Adjust as needed
+    // Calculate totals based on shipping address state: Rajasthan = 50, other states = 80
+    const stateStr = (shippingAddress.state || "").trim().toLowerCase();
+    const shippingCost = stateStr === "rajasthan" ? 50 : 80;
     order.shippingCost = shippingCost;
     order.total = subtotal - discountAmount + tax + shippingCost;
 

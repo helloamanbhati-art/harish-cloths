@@ -1,7 +1,7 @@
 import { useParams, Link, useNavigate } from "react-router";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
-import { ArrowLeft, ShoppingCart, Minus, Plus, Trash2, Loader, LayoutGrid, Check, Star } from "lucide-react";
+import { ArrowLeft, ShoppingCart, Minus, Plus, Trash2, Loader, LayoutGrid, Check, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import { useCart } from "../contexts/CartContext";
 import { usePageTitle } from "../hooks/usePageTitle";
 import { useState, useRef, useEffect } from "react";
@@ -352,38 +352,90 @@ export function ProductDetail() {
 
       <div className="grid md:grid-cols-2 gap-6 md:gap-10">
         
-        {/* Left Column: Main Image & Gallery Thumbnails */}
+        {/* Left Column: Main Image Carousel */}
         <div className="space-y-4">
-          {/* Main Image container */}
-          <div className="aspect-square overflow-hidden rounded-lg bg-muted border border-border shadow-sm">
+          {/* Main Image container with scroll/carousel overlay */}
+          <div className="relative aspect-square overflow-hidden rounded-lg bg-muted border border-border shadow-sm group">
             <img
               src={carouselImages[activeImageIndex] || product.image}
               alt={product.name}
-              className="w-full h-full object-cover transition-all duration-300 animate-fade-in"
+              className="w-full h-full object-cover transition-all duration-350 animate-fade-in"
             />
+            {carouselImages.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setActiveImageIndex((prev) => (prev === 0 ? carouselImages.length - 1 : prev - 1));
+                  }}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity focus-visible:opacity-100 cursor-pointer z-10"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft className="size-5" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setActiveImageIndex((prev) => (prev === carouselImages.length - 1 ? 0 : prev + 1));
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity focus-visible:opacity-100 cursor-pointer z-10"
+                  aria-label="Next image"
+                >
+                  <ChevronRight className="size-5" />
+                </button>
+
+                {/* Dot Indicators */}
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 bg-black/30 px-3 py-1.5 rounded-full z-10">
+                  {carouselImages.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setActiveImageIndex(idx)}
+                      className={`size-2 rounded-full transition-all ${
+                        idx === activeImageIndex ? 'bg-white scale-125' : 'bg-white/50 hover:bg-white/80'
+                      }`}
+                      aria-label={`Go to slide ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
           </div>
 
-          {/* Thumbnails list inline */}
-          {carouselImages.length > 1 && (
-            <div className="flex gap-2.5 overflow-x-auto py-1 scrollbar-thin">
-              {carouselImages.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setActiveImageIndex(index)}
-                  className={`w-24 h-24 md:w-28 md:h-28 rounded-md overflow-hidden border-2 transition-all flex-shrink-0 ${
-                    index === activeImageIndex
-                      ? 'border-primary ring-2 ring-primary/20 scale-105 shadow-sm'
-                      : 'border-border/60 hover:border-primary/60'
-                  }`}
-                  aria-label={`View image ${index + 1}`}
-                >
-                  <img
-                    src={image}
-                    alt={`${product.name} thumbnail ${index + 1}`}
-                    className="w-full h-full object-cover select-none"
-                  />
-                </button>
-              ))}
+          {/* Variants Swatches Selection */}
+          {variants.length > 1 && (
+            <div className="flex gap-3.5 overflow-x-auto py-2.5 px-2.5 scrollbar-none">
+              {variants.map((variant, idx) => {
+                const isSelected = selectedVariant?.variantName === variant.variantName;
+                const variantImageUrl = variant.images && variant.images[0]
+                  ? (typeof variant.images[0] === 'string' ? variant.images[0] : variant.images[0].imageUrl)
+                  : '';
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      setSelectedVariant(variant);
+                      setActiveImageIndex(0);
+                    }}
+                    className="shrink-0 focus-visible:outline-none"
+                    aria-label={`Select variant ${variant.variantName}`}
+                  >
+                    <div className={`relative size-24 md:size-32 rounded-md overflow-hidden border-2 transition-all ${
+                      isSelected ? 'border-primary ring-2 ring-primary/20 scale-105' : 'border-border/60 hover:border-primary/60'
+                    }`}>
+                      {variantImageUrl ? (
+                        <img src={variantImageUrl} alt={variant.variantName} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-[8px] bg-muted">No img</div>
+                      )}
+                      {isSelected && (
+                        <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
+                          <Check className="size-3 text-primary stroke-[3]" />
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
@@ -413,43 +465,7 @@ export function ProductDetail() {
             </div>
           </div>
 
-          {/* Variants Swatches Selection */}
-          {variants.length > 1 && (
-            <div className="flex gap-3 overflow-x-auto py-1.5 scrollbar-none">
-              {variants.map((variant, idx) => {
-                const isSelected = selectedVariant?.variantName === variant.variantName;
-                const variantImageUrl = variant.images && variant.images[0]
-                  ? (typeof variant.images[0] === 'string' ? variant.images[0] : variant.images[0].imageUrl)
-                  : '';
-                return (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      setSelectedVariant(variant);
-                      setActiveImageIndex(0);
-                    }}
-                    className="shrink-0 focus-visible:outline-none"
-                    aria-label={`Select variant ${variant.variantName}`}
-                  >
-                    <div className={`relative size-16 md:size-20 rounded-md overflow-hidden border-2 transition-all ${
-                      isSelected ? 'border-primary ring-2 ring-primary/20 scale-105' : 'border-border/60 hover:border-primary/60'
-                    }`}>
-                      {variantImageUrl ? (
-                        <img src={variantImageUrl} alt={variant.variantName} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-[8px] bg-muted">No img</div>
-                      )}
-                      {isSelected && (
-                        <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
-                          <Check className="size-3 text-primary stroke-[3]" />
-                        </div>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+
 
           {/* Size Selection (if available) */}
           {product.availableSizes && product.availableSizes.length > 0 && (
@@ -528,40 +544,6 @@ export function ProductDetail() {
         </div>
       </div>
 
-      {/* Bottom area: Description and details tab */}
-      <div className="mt-10 border-t pt-8">
-        <div className="flex border-b border-border">
-          <button className="bg-primary text-primary-foreground font-semibold text-sm px-6 py-2.5 rounded-t-md focus:outline-none select-none">
-            Description
-          </button>
-        </div>
-
-        <div className="p-4 md:p-6 border border-t-0 border-border rounded-b-md bg-card space-y-4 text-sm text-muted-foreground leading-relaxed">
-          <p className="text-foreground leading-relaxed">
-            {product.description}
-          </p>
-          
-          {/* Detailed specs table */}
-          <div className="space-y-2 pt-4 border-t border-border max-w-md">
-            <div className="flex justify-between items-center py-1">
-              <span className="font-semibold text-foreground">product weight:</span>
-              <span className="font-medium">850 gm</span>
-            </div>
-            <div className="flex justify-between items-center py-1 border-t border-border/40">
-              <span className="font-semibold text-foreground">5 mtr weight:</span>
-              <span className="font-medium">750 gm</span>
-            </div>
-            <div className="flex justify-between items-center py-1 border-t border-border/40">
-              <span className="font-semibold text-foreground">raj shipping:</span>
-              <span className="font-medium">80</span>
-            </div>
-            <div className="flex justify-between items-center py-1 border-t border-border/40">
-              <span className="font-semibold text-foreground">out of Rajasthan:</span>
-              <span className="font-medium">80</span>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Add To Cart Animation */}
       {showAnimation && (

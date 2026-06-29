@@ -1,6 +1,6 @@
-import { Sun, Moon, ShoppingCart, Package, Shield } from 'lucide-react';
+import { Sun, Moon, ShoppingCart, Package, Shield, SlidersHorizontal } from 'lucide-react';
 import { Button } from './ui/button';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import { useCart } from '../contexts/CartContext';
 import { useRef, useEffect, useState } from 'react';
 import { motion } from 'motion/react';
@@ -17,6 +17,8 @@ export function Navbar({ theme, onThemeToggle, onCartIconReady }: NavbarProps) {
   const cartButtonRef = useRef<HTMLDivElement>(null);
   const [prevTotalItems, setPrevTotalItems] = useState(totalItems);
   const [bounce, setBounce] = useState(false);
+  const location = useLocation();
+  const isHome = location.pathname === '/';
 
   useEffect(() => {
     if (cartButtonRef.current && onCartIconReady) {
@@ -36,9 +38,22 @@ export function Navbar({ theme, onThemeToggle, onCartIconReady }: NavbarProps) {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border shadow-sm">
       <div className="flex items-center justify-between px-4 md:px-8 py-3 md:py-4">
         {/* Logo Section - Left */}
-        <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
-          <HarishClothsLogo className="h-10 md:h-12 w-auto text-foreground" />
-        </Link>
+        <div className="flex items-center gap-1.5 md:gap-3">
+          {isHome && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => window.dispatchEvent(new Event('toggle-filters'))}
+              aria-label="Toggle filters"
+            >
+              <SlidersHorizontal className="size-5 text-foreground" />
+            </Button>
+          )}
+          <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
+            <HarishClothsLogo className="h-10 md:h-12 w-auto text-foreground" />
+          </Link>
+        </div>
         
         {/* Right Section: My Orders + Theme Toggle + Cart */}
         <div className="flex items-center gap-2 md:gap-3">

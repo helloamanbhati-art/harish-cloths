@@ -28,6 +28,8 @@ export function OrderSuccess() {
     upiId?: string;
     selectedBank?: string;
     selectedWallet?: string;
+    shippingCost?: number;
+    subtotal?: number;
   } | null;
   
   // Redirect if no order data
@@ -256,8 +258,8 @@ export function OrderSuccess() {
         })),
 
         // Pricing breakdown
-        subtotal: orderData.totalPrice,
-        shippingCharges: 0, // Free shipping
+        subtotal: orderData.subtotal !== undefined ? orderData.subtotal : orderData.totalPrice,
+        shippingCharges: orderData.shippingCost !== undefined ? orderData.shippingCost : 80,
         discount: 0,
         totalPrice: orderData.totalPrice,
         
@@ -429,15 +431,18 @@ export function OrderSuccess() {
                         </div>
                       )}
 
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-muted-foreground">Quantity:</span>
-                        <span className="font-semibold">{item.quantity}</span>
-                      </div>
-                      
-                      {item.soldBy === 'meter' && item.selectedMeters && (
-                        <div className="text-xs text-muted-foreground mt-0.5">
-                          <span className="font-semibold">{item.selectedMeters}m each</span>
+                      {item.soldBy !== 'meter' ? (
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-muted-foreground">Quantity:</span>
+                          <span className="font-semibold">{item.quantity}</span>
                         </div>
+                      ) : (
+                        item.selectedMeters && (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-muted-foreground">Length:</span>
+                            <span className="font-semibold">{item.selectedMeters} Meters</span>
+                          </div>
+                        )
                       )}
                       
                     </div>
@@ -470,13 +475,16 @@ export function OrderSuccess() {
                 <span className="text-muted-foreground">Subtotal:</span>
                 <span className="font-semibold flex items-center gap-0.5">
                   <IndianRupee className="size-3.5" />
-                  {orderData?.totalPrice.toLocaleString('en-IN')}
+                  {(orderData?.subtotal || (orderData?.totalPrice ? orderData.totalPrice - (orderData.shippingCost || 0) : 0)).toLocaleString('en-IN')}
                 </span>
               </div>
 
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Shipping:</span>
-                <span className="font-semibold text-green-600">FREE</span>
+                <span className="font-semibold flex items-center gap-0.5">
+                  <IndianRupee className="size-3.5" />
+                  {(orderData?.shippingCost || 0).toLocaleString('en-IN')}
+                </span>
               </div>
 
               <div className="flex justify-between items-center pt-3 border-t">

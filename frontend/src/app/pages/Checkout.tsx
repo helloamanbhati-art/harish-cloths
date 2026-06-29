@@ -47,6 +47,16 @@ export function Checkout() {
     customerNotes: '',
   });
 
+  const getShippingCharge = () => {
+    if (!formData.state.trim()) {
+      return 80;
+    }
+    return formData.state.trim().toLowerCase() === 'rajasthan' ? 50 : 80;
+  };
+
+  const shippingCharge = getShippingCharge();
+  const finalTotalPrice = totalPrice + shippingCharge;
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value, type } = e.target as HTMLInputElement;
     
@@ -116,6 +126,9 @@ export function Checkout() {
 
     setIsProcessing(true);
 
+    const shippingChargeVal = formData.state.trim().toLowerCase() === 'rajasthan' ? 50 : 80;
+    const finalTotalPriceVal = totalPrice + shippingChargeVal;
+
     // Prepare shipping address
     const shippingAddress = {
       fullName: `${formData.firstName} ${formData.lastName}`,
@@ -137,6 +150,8 @@ export function Checkout() {
       email: formData.email,
       couponCode: formData.couponCode,
       customerNotes: formData.customerNotes,
+      shippingCharge: shippingChargeVal,
+      totalPrice: finalTotalPriceVal,
     };
 
     sessionStorage.setItem('checkoutData', JSON.stringify(checkoutData));
@@ -333,7 +348,7 @@ export function Checkout() {
                     <div key={`${item.id}-${idx}`} className="flex justify-between text-sm gap-2">
                       <div className="flex flex-col">
                         <span className="text-muted-foreground font-medium">
-                          {item.name} x {item.quantity} {item.soldBy === 'meter' ? 'pcs' : 'pcs'}{item.soldBy === 'meter' && item.selectedMeters && ` (${item.selectedMeters}m)`}
+                          {item.name} {item.soldBy === 'meter' && item.selectedMeters ? `(${item.selectedMeters} Meters)` : `x ${item.quantity} pcs`}
                         </span>
                         {(item.selectedColor || item.selectedSize) && (
                           <span className="text-xs text-muted-foreground/75">
@@ -342,16 +357,9 @@ export function Checkout() {
                             {item.selectedSize && `Size: ${item.selectedSize}`}
                           </span>
                         )}
-                        {item.additionalChargeAmount && item.additionalChargeAmount > 0 && (
-                          <span className="text-xs text-emerald-500">
-                            + ₹{(item.additionalChargeAmount * item.quantity).toLocaleString('en-IN')} ({item.additionalChargeName || 'Additional'})
-                          </span>
-                        )}
                       </div>
                       <span className="shrink-0">
-                        ₹{(
-                          (item.price * item.quantity) + (item.additionalChargeAmount || 0) * item.quantity
-                        ).toLocaleString('en-IN')}
+                        ₹{(item.price * item.quantity).toLocaleString('en-IN')}
                       </span>
                     </div>
                   ))}
@@ -364,14 +372,14 @@ export function Checkout() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Shipping</span>
-                    <span>Free</span>
+                    <span>₹{shippingCharge}</span>
                   </div>
                 </div>
 
                 <div className="flex justify-between pt-4 border-t">
                   <span className="font-semibold">Total</span>
                   <span className="font-semibold text-xl">
-                    ₹{totalPrice.toLocaleString('en-IN')}
+                    ₹{finalTotalPrice.toLocaleString('en-IN')}
                   </span>
                 </div>
 
