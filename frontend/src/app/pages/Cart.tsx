@@ -22,7 +22,7 @@ const getDisplayValue = (value: unknown) => {
 
 export function Cart() {
   usePageTitle('Shopping Cart');
-  const { items, removeFromCart, updateQuantity, totalPrice, clearCart } = useCart();
+  const { items, removeFromCart, updateQuantity, updateMeters, totalPrice, clearCart } = useCart();
   const navigate = useNavigate();
 
   if (items.length === 0) {
@@ -103,9 +103,23 @@ export function Cart() {
                         )}
                         {/* Show meter info if applicable */}
                         {item.soldBy === 'meter' && item.selectedMeters && (
-                          <Badge variant="secondary" className="mt-1 text-xs">
-                            {item.selectedMeters} meters per piece
-                          </Badge>
+                          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                            <span className="text-xs text-muted-foreground font-medium">Length:</span>
+                            <select
+                              value={item.selectedMeters}
+                              onChange={(e) => {
+                                const newMeters = parseFloat(e.target.value);
+                                if (!isNaN(newMeters)) {
+                                  updateMeters(item.id, item.selectedMeters || 4, newMeters, item.selectedSize, item.selectedColor);
+                                }
+                              }}
+                              className="text-xs bg-muted text-foreground border border-border rounded-md px-2 py-1 font-semibold focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary cursor-pointer hover:bg-muted/80 transition-colors shadow-sm"
+                            >
+                              <option value="4">4.0 Meters</option>
+                              <option value="4.5">4.5 Meters</option>
+                              <option value="5">5.0 Meters</option>
+                            </select>
+                          </div>
                         )}
                         {/* Show additional charge if applicable */}
                         {item.additionalChargeAmount && item.additionalChargeAmount > 0 && (
@@ -123,35 +137,35 @@ export function Cart() {
                       </Button>
                     </div>
 
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
                       <div className="flex items-center gap-2">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => updateQuantity(item.id, item.quantity - 1, item.selectedMeters, item.selectedSize, item.selectedColor)}
+                          className="h-8 w-8"
                         >
                           <Minus className="size-3" />
                         </Button>
-                        <span className="w-20 text-center text-sm">
+                        <span className="w-20 text-center text-sm font-medium">
                           {item.quantity} {item.soldBy === 'meter' ? 'piece' + (item.quantity > 1 ? 's' : '') : 'pc' + (item.quantity > 1 ? 's' : '')}
                         </span>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => updateQuantity(item.id, item.quantity + 1, item.selectedMeters, item.selectedSize, item.selectedColor)}
+                          className="h-8 w-8"
                         >
                           <Plus className="size-3" />
                         </Button>
                       </div>
-                      <div className="text-right">
-                        <div className="font-semibold text-base">
+                      <div className="text-left sm:text-right">
+                        <span className="text-xs text-muted-foreground block sm:inline mr-1">Total:</span>
+                        <span className="font-bold text-base sm:text-lg">
                           ₹{(
-                            (item.soldBy === 'meter' && item.selectedMeters
-                              ? item.price * item.selectedMeters * item.quantity
-                              : item.price * item.quantity
-                            ) + (item.additionalChargeAmount || 0) * item.quantity
+                            (item.price * item.quantity) + (item.additionalChargeAmount || 0) * item.quantity
                           ).toLocaleString('en-IN')}
-                        </div>
+                        </span>
                       </div>
                     </div>
                   </div>

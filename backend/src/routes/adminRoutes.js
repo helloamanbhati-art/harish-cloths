@@ -207,6 +207,7 @@ router.post('/products', async (req, res) => {
       colors: data.colors || [],
       variants,
       inStock: data.inStock ?? true,
+      isFlatPrice: data.soldBy === 'meter' ? true : (data.isFlatPrice ?? false),
       isActive: data.isActive ?? true,
       createdBy: req.admin?._id,
       sku: data.sku || `SKU-${Date.now()}`,
@@ -291,6 +292,7 @@ router.put('/products/:productId', async (req, res) => {
 
     const updatePayload = {
       ...data,
+      isFlatPrice: data.soldBy === 'meter' ? true : (data.isFlatPrice !== undefined ? data.isFlatPrice : undefined),
       brand: brandId,
       category: categoryId,
       updatedBy: req.admin._id,

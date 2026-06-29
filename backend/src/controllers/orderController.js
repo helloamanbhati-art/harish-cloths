@@ -41,12 +41,12 @@ exports.createOrder = async (req, res, next) => {
         }
       }
 
-      const metersPerPiece =
+      const selectedMeters =
         product.soldBy === "meter"
-          ? Math.max(Number(item.meters) || 1, 1)
+          ? Math.max(Number(item.meters) || 4, 1)
           : 1;
       const additionalCharge = (product.additionalChargeAmount || 0) * item.quantity;
-      const itemTotal = product.price * item.quantity * metersPerPiece + additionalCharge;
+      const itemTotal = product.price * item.quantity + additionalCharge;
       subtotal += itemTotal;
 
       // Validate that the selected variant belongs to the product (if product has variants)
@@ -117,7 +117,7 @@ exports.createOrder = async (req, res, next) => {
         selectedVariant: selectedVariantSnapshot, // Complete snapshot of the purchased variant
         price: product.price,
         quantity: item.quantity,
-        meters: metersPerPiece,
+        meters: selectedMeters,
         soldBy: product.soldBy,
         subtotal: itemTotal,
         additionalChargeName: product.additionalChargeName || '',

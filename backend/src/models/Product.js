@@ -127,6 +127,10 @@ const productSchema = new mongoose.Schema(
       default: 0,
       min: [0, 'Additional charge cannot be negative'],
     },
+    isFlatPrice: {
+      type: Boolean,
+      default: false,
+    },
 
     // Variants
     hasVariants: { type: Boolean, default: false },
@@ -175,6 +179,15 @@ productSchema.pre("save", function (next) {
   }
   next();
 });
+
+// Force flat price for meter products
+productSchema.pre("save", function (next) {
+  if (this.soldBy === "meter") {
+    this.isFlatPrice = true;
+  }
+  next();
+});
+
 
 // Sync legacy image and images fields from new variants array for backward compatibility
 productSchema.pre("save", function (next) {

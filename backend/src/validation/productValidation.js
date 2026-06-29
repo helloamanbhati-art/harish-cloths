@@ -48,6 +48,7 @@ exports.createProductSchema = Joi.object({
   isFeatured: Joi.boolean(),
   additionalChargeName: Joi.string().trim().allow('').default(''),
   additionalChargeAmount: Joi.number().min(0).default(0),
+  isFlatPrice: Joi.boolean().default(false),
 }).required();
 
 // Update Product Schema
@@ -86,6 +87,7 @@ exports.updateProductSchema = Joi.object({
   isFeatured: Joi.boolean(),
   additionalChargeName: Joi.string().trim().allow(''),
   additionalChargeAmount: Joi.number().min(0),
+  isFlatPrice: Joi.boolean(),
 }).min(1);
 
 // Bulk Update Products

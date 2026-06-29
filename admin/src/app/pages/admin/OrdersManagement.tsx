@@ -500,13 +500,13 @@ export function OrdersManagement() {
                             <div className="text-left sm:text-right">
                               <span className="sm:hidden text-[10px] text-gray-400 block mb-0.5">Unit Price</span>
                               <p className="text-sm text-gray-500 dark:text-gray-400">
-                                ₹{item.selectedVariant?.priceAtPurchase || item.price} / {item.soldBy}
+                                ₹{item.selectedVariant?.priceAtPurchase || item.price}
                               </p>
                             </div>
                             <div className="text-right mt-0 sm:mt-2">
                               <span className="sm:hidden text-[10px] text-gray-400 block mb-0.5 font-bold">Subtotal</span>
                               <p className="font-extrabold text-lg text-primary">
-                                ₹{(item.soldBy === 'meter' ? (item.selectedVariant?.priceAtPurchase || item.price) * item.quantity * (item.meters || 1) : (item.selectedVariant?.priceAtPurchase || item.price) * item.quantity).toLocaleString('en-IN')}
+                                ₹{((item.selectedVariant?.priceAtPurchase || item.price) * item.quantity).toLocaleString('en-IN')}
                               </p>
                             </div>
                           </div>

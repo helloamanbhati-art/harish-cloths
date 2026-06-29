@@ -59,6 +59,7 @@ interface Product {
   clothingType?: string;
   availableSizes?: string[];
   inStock?: boolean;
+  isFlatPrice?: boolean;
   additionalChargeName?: string;
   additionalChargeAmount?: number;
 }
@@ -136,6 +137,7 @@ useEffect(() => {
           clothingType: p.clothingType || '',
           availableSizes: p.availableSizes || [],
           inStock: p.inStock ?? true,
+          isFlatPrice: p.isFlatPrice ?? false,
           additionalChargeName: p.additionalChargeName || '',
           additionalChargeAmount: p.additionalChargeAmount || 0,
         };
@@ -223,6 +225,7 @@ useEffect(() => {
         clothingType: product.clothingType || '',
         availableSizes: product.availableSizes || [],
         inStock: product.inStock ?? true,
+        isFlatPrice: product.isFlatPrice ?? false,
         additionalChargeName: product.additionalChargeName || '',
         additionalChargeAmount: product.additionalChargeAmount ? product.additionalChargeAmount.toString() : '',
       });
@@ -267,6 +270,7 @@ useEffect(() => {
         clothingType: '',
         availableSizes: [],
         inStock: true,
+        isFlatPrice: false,
         additionalChargeName: '',
         additionalChargeAmount: '',
       });
@@ -346,6 +350,7 @@ useEffect(() => {
         availableSizes: formData.availableSizes,
         variants: finalizedVariants,
         inStock: formData.inStock,
+        isFlatPrice: formData.soldBy === 'meter' ? true : formData.isFlatPrice,
         isActive: true,
         additionalChargeName: formData.additionalChargeName || '',
         additionalChargeAmount: formData.additionalChargeAmount ? parseFloat(formData.additionalChargeAmount) : 0,
@@ -374,6 +379,7 @@ useEffect(() => {
       clothingType: data.data.clothingType || '',
       availableSizes: data.data.availableSizes || [],
       inStock: data.data.inStock,
+      isFlatPrice: data.data.isFlatPrice ?? false,
       additionalChargeName: data.data.additionalChargeName || '',
       additionalChargeAmount: data.data.additionalChargeAmount || 0,
     };
@@ -402,6 +408,7 @@ useEffect(() => {
       clothingType: data.data.clothingType || '',
       availableSizes: data.data.availableSizes || [],
       inStock: data.data.inStock,
+      isFlatPrice: data.data.isFlatPrice ?? false,
       additionalChargeName: data.data.additionalChargeName || '',
       additionalChargeAmount: data.data.additionalChargeAmount || 0,
     };
@@ -420,6 +427,7 @@ useEffect(() => {
     clothingType: '',
     availableSizes: [],
     inStock: true,
+    isFlatPrice: false,
     additionalChargeName: '',
     additionalChargeAmount: '',
   });
@@ -587,9 +595,10 @@ useEffect(() => {
                           <Badge variant="outline" className="text-xs">
                             {product.category || 'Unknown Category'}
                           </Badge>
-                          <Badge className={product.soldBy === 'meter' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs' : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs'}>
-                            {product.soldBy === 'meter' ? 'Per Meter' : 'Per Piece'}
-                          </Badge>
+                           {/* Selling unit badge */}
+                           <Badge className={product.soldBy === 'meter' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs' : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs'}>
+                             {product.soldBy === 'meter' ? 'Sold by Meter' : 'Sold by Piece'}
+                           </Badge>
                           {product.clothingType ? (
                             <Badge variant="secondary" className="text-xs">
                               {product.clothingType}

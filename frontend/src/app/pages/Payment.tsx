@@ -594,9 +594,7 @@ export function Payment() {
                     </span>
                     <span className="flex-shrink-0">
                       ₹{(
-                        item.soldBy === 'meter' && item.selectedMeters
-                          ? item.price * item.selectedMeters * item.quantity
-                          : item.price * item.quantity
+                        item.price * item.quantity
                       ).toLocaleString('en-IN')}
                     </span>
                   </div>

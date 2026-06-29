@@ -238,18 +238,10 @@ export function OrderDetail() {
                       </div>
                       
                       {item.soldBy === 'meter' && (item.selectedMeters || item.meters) && (
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-muted-foreground">Length:</span>
+                        <div className="text-xs text-muted-foreground mt-0.5">
                           <span className="font-semibold">{item.selectedMeters || item.meters}m each</span>
                         </div>
                       )}
-                      
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-muted-foreground">Unit:</span>
-                        <Badge variant="secondary" className="text-xs">
-                          {item.soldBy === 'meter' ? 'Per Meter' : 'Per Piece'}
-                        </Badge>
-                      </div>
                     </div>
                   </div>
 
@@ -269,8 +261,7 @@ export function OrderDetail() {
                         {(
                           item.subtotal || 
                           ((item.price || item.product?.price || 0) *
-                            item.quantity *
-                            (item.selectedMeters || item.meters || 1))
+                            item.quantity)
                         ).toLocaleString('en-IN')}
                       </p>
                     </div>

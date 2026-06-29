@@ -435,18 +435,11 @@ export function OrderSuccess() {
                       </div>
                       
                       {item.soldBy === 'meter' && item.selectedMeters && (
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-muted-foreground">Length:</span>
+                        <div className="text-xs text-muted-foreground mt-0.5">
                           <span className="font-semibold">{item.selectedMeters}m each</span>
                         </div>
                       )}
                       
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-muted-foreground">Unit:</span>
-                        <Badge variant="secondary" className="text-xs">
-                          {item.soldBy === 'meter' ? 'Per Meter' : 'Per Piece'}
-                        </Badge>
-                      </div>
                     </div>
                   </div>
 
@@ -463,11 +456,7 @@ export function OrderSuccess() {
                       <p className="text-xs text-muted-foreground mb-1">Subtotal</p>
                       <p className="text-lg font-bold flex items-center justify-end gap-0.5">
                         <IndianRupee className="size-4" />
-                        {(
-                          item.price *
-                          item.quantity *
-                          (item.selectedMeters || 1)
-                        ).toLocaleString('en-IN')}
+                        {(item.price * item.quantity).toLocaleString('en-IN')}
                       </p>
                     </div>
                   </div>

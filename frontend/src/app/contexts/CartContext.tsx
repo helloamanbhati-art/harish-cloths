@@ -16,10 +16,12 @@ interface CartContextType {
     selectedMeters?: number,
     selectedSize?: string,
     selectedColor?: string,
-    selectedVariant?: SelectedVariantSnapshot
+    selectedVariant?: SelectedVariantSnapshot,
+    quantity?: number
   ) => void;
   removeFromCart: (productId: string, selectedMeters?: number, selectedSize?: string, selectedColor?: string) => void;
   updateQuantity: (productId: string, quantity: number, selectedMeters?: number, selectedSize?: string, selectedColor?: string) => void;
+  updateMeters: (productId: string, currentMeters: number, newMeters: number, selectedSize?: string, selectedColor?: string) => void;
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
@@ -101,7 +103,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     selectedMeters?: number,
     selectedSize?: string,
     selectedColor?: string,
-    selectedVariant?: SelectedVariantSnapshot
+    selectedVariant?: SelectedVariantSnapshot,
+    quantity = 1
   ) => {
     const normalizedProduct = normalizeProduct(product);
 
@@ -148,12 +151,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (existing) {
         return current.map(item =>
           matchesCartItem(item, normalizedProduct.id, selectedMeters, selectedSize, selectedColor)
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: item.quantity + quantity }
             : item
         );
       }
 
-      return [...current, { ...normalizedProduct, quantity: 1, selectedMeters, selectedSize, selectedColor, selectedVariant: variantSnapshot }];
+      return [...current, { ...normalizedProduct, quantity, selectedMeters, selectedSize, selectedColor, selectedVariant: variantSnapshot }];
     });
   };
 
@@ -174,15 +177,48 @@ export function CartProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  const updateMeters = (
+    productId: string,
+    currentMeters: number,
+    newMeters: number,
+    selectedSize?: string,
+    selectedColor?: string
+  ) => {
+    setItems(current => {
+      const targetIdx = current.findIndex(
+        item => matchesCartItem(item, productId, currentMeters, selectedSize, selectedColor)
+      );
+      if (targetIdx === -1) return current;
+
+      const targetItem = current[targetIdx];
+      const existingIdx = current.findIndex(
+        item => matchesCartItem(item, productId, newMeters, selectedSize, selectedColor)
+      );
+
+      if (existingIdx !== -1 && existingIdx !== targetIdx) {
+        return current
+          .map((item, idx) => {
+            if (idx === existingIdx) {
+              return { ...item, quantity: item.quantity + targetItem.quantity };
+            }
+            return item;
+          })
+          .filter((_, idx) => idx !== targetIdx);
+      } else {
+        return current.map((item, idx) =>
+          idx === targetIdx ? { ...item, selectedMeters: newMeters } : item
+        );
+      }
+    });
+  };
+
   const clearCart = () => {
     setItems([]);
   };
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = items.reduce((sum, item) => {
-    const itemPrice = item.soldBy === 'meter' && item.selectedMeters
-      ? item.price * item.selectedMeters
-      : item.price;
+    const itemPrice = item.price;
     const additionalCharge = (item.additionalChargeAmount || 0) * item.quantity;
     return sum + (itemPrice * item.quantity) + additionalCharge;
   }, 0);
@@ -194,6 +230,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         addToCart,
         removeFromCart,
         updateQuantity,
+        updateMeters,
         clearCart,
         totalItems,
         totalPrice,

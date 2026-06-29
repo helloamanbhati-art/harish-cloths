@@ -61,7 +61,7 @@ export function Products() {
                       </div>
                     </td>
                     <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{typeof product.brand === 'object' ? product.brand?.name : product.brand}</td>
-                    <td className="py-3 px-4 font-medium">₹{product.price}/{product.soldBy}</td>
+                    <td className="py-3 px-4 font-medium">₹{product.price}</td>
                     <td className="py-3 px-4">
                       <Badge className={product.stock > 20 ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'}>
                         {product.stock} in stock

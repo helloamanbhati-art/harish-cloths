@@ -421,7 +421,7 @@ export function ProductsManagement() {
                             : 'bg-green-100 text-green-800'
                         }
                       >
-                        {product.soldBy === 'meter' ? 'Per Meter' : 'Per Piece'}
+                        {product.soldBy === 'meter' ? 'Sold by Meter' : 'Sold by Piece'}
                       </Badge>
                     </TableCell>
                     <TableCell>

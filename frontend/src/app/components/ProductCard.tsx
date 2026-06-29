@@ -58,17 +58,11 @@ export function ProductCard({ product }: ProductCardProps) {
     <>
       <Link to={`/product/${product.id}`}>
         <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer h-full group">
-          <div className="aspect-square overflow-hidden relative">
-            <ImageCarousel
-              images={(() => {
-                const variantWithImages = product.variants?.find(v => v.images && v.images.length > 0);
-                if (variantWithImages) {
-                  return variantWithImages.images.map((img: any) => typeof img === 'string' ? img : img.imageUrl);
-                }
-                return product.images || [];
-              })()}
+          <div className="aspect-square overflow-hidden relative bg-muted">
+            <img
+              src={product.image || (product.images && product.images[0]) || ''}
               alt={product.name}
-              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 select-none"
             />
             {/* Quick Add Button */}
             <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity" ref={buttonRef}>
@@ -81,26 +75,21 @@ export function ProductCard({ product }: ProductCardProps) {
               </Button>
             </div>
           </div>
-          <CardContent className="p-3 md:p-4 space-y-2">
-            <div className="flex items-start justify-between">
-              <div className="space-y-1 flex-1">
-                <Badge variant="outline" className="text-xs">
-                  {typeof product.brand === 'object' ? product.brand?.name : product.brand}
-                </Badge>
-                <h3 className="font-medium leading-tight text-sm md:text-base">{product.name}</h3>
-                <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">
-                  {product.description}
-                </p>
-              </div>
+          <CardContent className="p-3.5 space-y-1 text-left">
+            <div className="text-[10px] md:text-xs uppercase tracking-wider text-muted-foreground font-medium flex items-center gap-1.5">
+              <span>{typeof product.category === 'object' ? product.category?.name : product.category}</span>
+              {product.brand && (
+                <>
+                  <span className="text-muted-foreground/30">•</span>
+                  <span>{typeof product.brand === 'object' ? product.brand?.name : product.brand}</span>
+                </>
+              )}
             </div>
-            <div className="flex items-center justify-between pt-2">
-              <span className="text-base md:text-lg font-semibold">
-                ₹{product.price.toLocaleString('en-IN')}
-                {product.soldBy === 'meter' && <span className="text-xs text-muted-foreground ml-1">/meter</span>}
-              </span>
-              <Badge variant="secondary" className="text-xs">
-                {typeof product.category === 'object' ? product.category?.name : product.category}
-              </Badge>
+            <h3 className="font-semibold text-base md:text-lg text-foreground truncate hover:text-primary transition-colors">
+              {product.name}
+            </h3>
+            <div className="font-bold text-base md:text-lg text-primary">
+              ₹{product.price.toLocaleString('en-IN')}
             </div>
           </CardContent>
         </Card>

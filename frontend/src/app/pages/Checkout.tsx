@@ -350,10 +350,7 @@ export function Checkout() {
                       </div>
                       <span className="shrink-0">
                         ₹{(
-                          (item.soldBy === 'meter' && item.selectedMeters
-                            ? item.price * item.selectedMeters * item.quantity
-                            : item.price * item.quantity
-                          ) + (item.additionalChargeAmount || 0) * item.quantity
+                          (item.price * item.quantity) + (item.additionalChargeAmount || 0) * item.quantity
                         ).toLocaleString('en-IN')}
                       </span>
                     </div>

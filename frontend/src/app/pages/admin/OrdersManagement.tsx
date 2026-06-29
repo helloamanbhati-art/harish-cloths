@@ -329,9 +329,6 @@ export function OrdersManagement() {
                             {(item.selectedMeters || item.meters) && (
                               <span>× {item.selectedMeters || item.meters}m each</span>
                             )}
-                            <Badge variant="secondary" className="text-xs">
-                              {item.soldBy === 'meter' ? 'Per Meter' : 'Per Piece'}
-                            </Badge>
                           </div>
                         </div>
                         <div className="text-right">
@@ -340,8 +337,7 @@ export function OrdersManagement() {
                             {(
                               item.subtotal ||
                               ((item.price || item.product?.price || 0) *
-                                item.quantity *
-                                (item.selectedMeters || item.meters || 1))
+                                item.quantity)
                             ).toLocaleString('en-IN')}
                           </p>
                         </div>
