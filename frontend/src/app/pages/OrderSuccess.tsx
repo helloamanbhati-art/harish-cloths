@@ -343,7 +343,7 @@ export function OrderSuccess() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Card className="mb-6 bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+        <Card className="mb-6 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200 dark:border-green-800">
           <CardContent className="pt-6 pb-6">
             <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
               <motion.div
@@ -357,8 +357,8 @@ export function OrderSuccess() {
               </motion.div>
               
               <div className="flex-1 text-center md:text-left">
-                <h1 className="text-2xl md:text-3xl font-bold mb-2 text-gray-900">Order Confirmed Successfully! 🎉</h1>
-                <p className="text-gray-700 text-sm md:text-base">
+                <h1 className="text-2xl md:text-3xl font-bold mb-2 text-gray-900 dark:text-gray-100">Order Confirmed Successfully! 🎉</h1>
+                <p className="text-gray-700 dark:text-gray-300 text-sm md:text-base">
                   Thank you for shopping with A&S. Your order is being processed.
                 </p>
               </div>
@@ -495,9 +495,9 @@ export function OrderSuccess() {
                 </span>
               </div>
 
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 border border-green-200">
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-950/25 border border-green-200 dark:border-green-800">
                 <CheckCircle className="size-5 text-green-600 flex-shrink-0" />
-                <p className="text-sm text-green-800">
+                <p className="text-sm text-green-800 dark:text-green-300">
                   <span className="font-semibold">Payment Confirmed</span> - Your order has been successfully processed
                 </p>
               </div>

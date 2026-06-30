@@ -59,7 +59,7 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <>
       <Link to={`/product/${product.id}`}>
-        <Card className="overflow-hidden cursor-pointer h-full bg-white border-none rounded-none shadow-none group p-0 m-0">
+        <Card className="overflow-hidden cursor-pointer h-full bg-card border-none rounded-none shadow-none group p-0 m-0 gap-1.5">
           <div className="aspect-[3/4] overflow-hidden relative bg-muted rounded-none">
             <img
               src={product.image || (product.images && product.images[0]) || ''}
@@ -67,7 +67,7 @@ export function ProductCard({ product }: ProductCardProps) {
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 select-none rounded-none"
             />
             {variantsCount > 1 && (
-              <span className="absolute bottom-2.5 right-2.5 bg-white/90 backdrop-blur-sm text-[10px] md:text-xs font-semibold text-gray-700 px-2 py-0.5 rounded-none shadow-sm z-10">
+              <span className="absolute bottom-2.5 right-2.5 bg-white/90 dark:bg-black/90 backdrop-blur-sm text-[10px] md:text-xs font-semibold text-gray-700 dark:text-gray-200 px-2 py-0.5 rounded-none shadow-sm z-10">
                 +{variantsCount - 1} More
               </span>
             )}
@@ -89,11 +89,11 @@ export function ProductCard({ product }: ProductCardProps) {
               </div>
             )}
           </div>
-          <CardContent className="pt-1 pb-2 px-0 space-y-0.5 text-center bg-transparent border-none">
-            <h3 className="text-sm font-semibold text-gray-700 truncate px-1">
+          <CardContent className="pt-1 pb-1 px-0 space-y-0.5 text-center bg-transparent border-none last:pb-1">
+            <h3 className="text-base font-semibold text-gray-700 dark:text-gray-200 truncate px-1">
               {product.name}
             </h3>
-            <div className="font-bold text-base md:text-lg text-emerald-600">
+            <div className="font-bold text-base md:text-lg text-emerald-600 dark:text-emerald-400">
               ₹{product.price.toFixed(2)}
             </div>
           </CardContent>

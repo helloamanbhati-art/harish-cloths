@@ -140,7 +140,7 @@ export function OrderDetail() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Card className="mb-6 bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+        <Card className="mb-6 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200 dark:border-green-800">
           <CardContent className="pt-6 pb-6">
             <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
               <motion.div
@@ -154,8 +154,8 @@ export function OrderDetail() {
               </motion.div>
               
               <div className="flex-1 text-center md:text-left">
-                <h1 className="text-2xl md:text-3xl font-bold mb-2 text-gray-900">Order Details</h1>
-                <p className="text-gray-700 text-sm md:text-base">
+                <h1 className="text-2xl md:text-3xl font-bold mb-2 text-gray-900 dark:text-gray-100">Order Details</h1>
+                <p className="text-gray-700 dark:text-gray-300 text-sm md:text-base">
                   Order placed on {formatDate(order.orderDate)}
                 </p>
               </div>
@@ -299,9 +299,9 @@ export function OrderDetail() {
                 </span>
               </div>
 
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 border border-green-200">
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-950/25 border border-green-200 dark:border-green-800">
                 <CheckCircle className="size-5 text-green-600 flex-shrink-0" />
-                <p className="text-sm text-green-800">
+                <p className="text-sm text-green-800 dark:text-green-300">
                   <span className="font-semibold">Payment Confirmed</span> - Your order has been successfully processed
                 </p>
               </div>
@@ -368,14 +368,14 @@ export function OrderDetail() {
               </div>
 
               {/* Estimated Delivery */}
-              <div className="p-4 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200">
+              <div className="p-4 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border border-blue-200 dark:border-blue-800">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-blue-500">
                     <Truck className="size-5 text-white" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">Estimated Delivery</p>
-                    <p className="text-lg font-bold text-blue-700">{formatDate(order.estimatedDelivery)}</p>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Estimated Delivery</p>
+                    <p className="text-lg font-bold text-blue-700 dark:text-blue-400">{formatDate(order.estimatedDelivery)}</p>
                   </div>
                 </div>
               </div>
@@ -528,26 +528,26 @@ export function OrderDetail() {
           </Card>
 
           {/* Delivery Address */}
-          <Card className="bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200">
+          <Card className="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-950/20 dark:to-yellow-950/20 border-amber-200 dark:border-amber-800">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <MapPin className="size-5 text-amber-600" />
+                <MapPin className="size-5 text-amber-600 dark:text-amber-400" />
                 Delivery Address
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="p-3 rounded-lg bg-white/70 border border-amber-200/50 space-y-1">
-                <p className="font-semibold text-gray-900">{order.shippingAddress.name}</p>
-                <p className="text-sm text-gray-700">{order.shippingAddress.addressLine1}</p>
-                <p className="text-sm text-gray-700">{order.shippingAddress.addressLine2}</p>
-                <p className="text-sm text-gray-700">
+              <div className="p-3 rounded-lg bg-white/70 dark:bg-zinc-900/75 border border-amber-200/50 dark:border-amber-950/50 space-y-1">
+                <p className="font-semibold text-gray-900 dark:text-gray-100">{order.shippingAddress.name}</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300">{order.shippingAddress.addressLine1}</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300">{order.shippingAddress.addressLine2}</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300">
                   {order.shippingAddress.city}, {order.shippingAddress.state}
                 </p>
-                <p className="text-sm text-gray-700">{order.shippingAddress.pincode}</p>
-                <div className="pt-2 mt-2 border-t border-amber-200/50 flex items-center gap-4">
+                <p className="text-sm text-gray-700 dark:text-gray-300">{order.shippingAddress.pincode}</p>
+                <div className="pt-2 mt-2 border-t border-amber-200/50 dark:border-amber-950/50 flex items-center gap-4">
                   <div className="flex items-center gap-1.5">
-                    <Phone className="size-3.5 text-amber-600" />
-                    <p className="text-xs font-medium text-gray-700">{order.shippingAddress.phone}</p>
+                    <Phone className="size-3.5 text-amber-600 dark:text-amber-400" />
+                    <p className="text-xs font-medium text-gray-700 dark:text-gray-300">{order.shippingAddress.phone}</p>
                   </div>
                 </div>
               </div>

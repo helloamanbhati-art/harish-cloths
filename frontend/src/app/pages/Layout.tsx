@@ -15,8 +15,6 @@ function LayoutContent() {
       <OrderProvider>
         <CartProvider>
           <Navbar 
-            theme={theme} 
-            onThemeToggle={toggleTheme}
             onCartIconReady={setCartIconElement}
           />
           <div className="pt-[73px] flex-1">

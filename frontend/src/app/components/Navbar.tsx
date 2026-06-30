@@ -7,12 +7,10 @@ import { motion } from 'motion/react';
 import { HarishClothsLogo } from './HarishClothsLogo';
 
 interface NavbarProps {
-  theme: 'light' | 'dark';
-  onThemeToggle: () => void;
   onCartIconReady?: (element: HTMLElement) => void;
 }
 
-export function Navbar({ theme, onThemeToggle, onCartIconReady }: NavbarProps) {
+export function Navbar({ onCartIconReady }: NavbarProps) {
   const { totalItems } = useCart();
   const cartButtonRef = useRef<HTMLDivElement>(null);
   const [prevTotalItems, setPrevTotalItems] = useState(totalItems);
@@ -77,27 +75,7 @@ export function Navbar({ theme, onThemeToggle, onCartIconReady }: NavbarProps) {
             </Button>
           </Link>
 
-          {/* Theme Toggle */}
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={onThemeToggle}
-            aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-            className="relative overflow-hidden transition-all duration-300 hover:scale-105"
-          >
-            <motion.div
-              initial={false}
-              animate={{ rotate: theme === 'light' ? 0 : 180 }}
-              transition={{ duration: 0.3 }}
-              className="flex items-center justify-center"
-            >
-              {theme === 'light' ? (
-                <Moon className="size-4 md:size-5" />
-              ) : (
-                <Sun className="size-4 md:size-5" />
-              )}
-            </motion.div>
-          </Button>
+
           
           {/* Cart Button */}
           <Link to="/cart">
