@@ -405,7 +405,7 @@ export function ProductDetail() {
 
           {/* Variants Swatches Selection */}
           {variants.length > 1 && (
-            <div className="flex gap-3.5 overflow-x-auto py-2.5 px-2.5 scrollbar-none">
+            <div className="grid grid-cols-3 md:grid-cols-4 gap-3.5 py-2.5 px-2.5 w-fit">
               {variants.map((variant, idx) => {
                 const isSelected = selectedVariant?.variantId === variant.variantId;
                 const variantImageUrl = variant.images && variant.images[0]

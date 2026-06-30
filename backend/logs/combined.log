@@ -3837,3 +3837,5 @@
 {"duration":200,"ip":"::1","level":"info","message":"GET /api/v1/products - 304 - 200ms","method":"GET","service":"harish-cloths","statusCode":304,"timestamp":"2026-06-30 12:30:35","url":"/api/v1/products"}
 {"duration":191,"ip":"::1","level":"info","message":"GET /api/v1/products - 304 - 191ms","method":"GET","service":"harish-cloths","statusCode":304,"timestamp":"2026-06-30 12:30:35","url":"/api/v1/products"}
 {"duration":206,"ip":"::1","level":"info","message":"GET /api/v1/products - 200 - 206ms","method":"GET","service":"harish-cloths","statusCode":200,"timestamp":"2026-06-30 12:30:36","url":"/api/v1/products"}
+{"duration":261,"ip":"::1","level":"info","message":"GET /api/v1/products - 304 - 261ms","method":"GET","service":"harish-cloths","statusCode":304,"timestamp":"2026-06-30 13:00:14","url":"/api/v1/products"}
+{"duration":196,"ip":"::1","level":"info","message":"GET /api/v1/products/6a433d5fdfabec969543c67c - 304 - 196ms","method":"GET","service":"harish-cloths","statusCode":304,"timestamp":"2026-06-30 13:09:28","url":"/api/v1/products/6a433d5fdfabec969543c67c"}
