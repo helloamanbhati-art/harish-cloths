@@ -32,6 +32,7 @@ interface Product {
   inStock?: boolean;
   additionalChargeName?: string;
   additionalChargeAmount?: number;
+  compareAtPrice?: number;
 }
 
 export function ProductDetail() {
@@ -127,6 +128,7 @@ export function ProductDetail() {
           inStock: productData.inStock !== false,
           additionalChargeName: productData.additionalChargeName || '',
           additionalChargeAmount: productData.additionalChargeAmount || 0,
+          compareAtPrice: productData.compareAtPrice || 0,
         };
 
         // Synthesize default variant if needed
@@ -355,11 +357,11 @@ export function ProductDetail() {
         {/* Left Column: Main Image Carousel */}
         <div className="space-y-4">
           {/* Main Image container with scroll/carousel overlay */}
-          <div className="relative aspect-square overflow-hidden rounded-lg bg-muted border border-border shadow-sm group">
+          <div className="relative overflow-hidden rounded-none bg-muted group p-0">
             <img
               src={carouselImages[activeImageIndex] || product.image}
               alt={product.name}
-              className="w-full h-full object-cover transition-all duration-350 animate-fade-in"
+              className="w-full h-auto object-contain transition-all duration-350 animate-fade-in rounded-none p-0 m-0"
             />
             {carouselImages.length > 1 && (
               <>
@@ -405,7 +407,7 @@ export function ProductDetail() {
           {variants.length > 1 && (
             <div className="flex gap-3.5 overflow-x-auto py-2.5 px-2.5 scrollbar-none">
               {variants.map((variant, idx) => {
-                const isSelected = selectedVariant?.variantName === variant.variantName;
+                const isSelected = selectedVariant?.variantId === variant.variantId;
                 const variantImageUrl = variant.images && variant.images[0]
                   ? (typeof variant.images[0] === 'string' ? variant.images[0] : variant.images[0].imageUrl)
                   : '';
@@ -416,21 +418,16 @@ export function ProductDetail() {
                       setSelectedVariant(variant);
                       setActiveImageIndex(0);
                     }}
-                    className="shrink-0 focus-visible:outline-none"
+                    className="shrink-0 focus-visible:outline-none p-0 m-0"
                     aria-label={`Select variant ${variant.variantName}`}
                   >
-                    <div className={`relative size-24 md:size-32 rounded-md overflow-hidden border-2 transition-all ${
-                      isSelected ? 'border-primary ring-2 ring-primary/20 scale-105' : 'border-border/60 hover:border-primary/60'
+                    <div className={`relative size-24 md:size-32 rounded-none overflow-hidden border-2 transition-all p-0 ${
+                      isSelected ? 'border-emerald-600 ring-2 ring-emerald-500/20 scale-105' : 'border-border/60 hover:border-gray-400'
                     }`}>
                       {variantImageUrl ? (
-                        <img src={variantImageUrl} alt={variant.variantName} className="w-full h-full object-cover" />
+                        <img src={variantImageUrl} alt={variant.variantName} className="w-full h-full object-cover rounded-none p-0 m-0" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-[8px] bg-muted">No img</div>
-                      )}
-                      {isSelected && (
-                        <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
-                          <Check className="size-3 text-primary stroke-[3]" />
-                        </div>
+                        <div className="w-full h-full flex items-center justify-center text-[8px] bg-muted rounded-none p-0 m-0">No img</div>
                       )}
                     </div>
                   </button>
@@ -461,7 +458,9 @@ export function ProductDetail() {
           {/* Price section with dividers */}
           <div className="border-t border-b border-border py-4 my-2">
             <div className="text-2xl md:text-3xl font-bold text-emerald-600 font-sans">
-              ₹{product.price.toFixed(2)}
+              ₹{(product.soldBy === 'meter' && selectedMeters === 5
+                ? (product.price + (product.compareAtPrice || 0))
+                : product.price).toFixed(2)}
             </div>
           </div>
 
@@ -498,11 +497,18 @@ export function ProductDetail() {
                 onValueChange={(val) => setSelectedMeters(parseFloat(val))}
               >
                 <SelectTrigger className="w-full bg-background border border-border">
-                  <SelectValue />
+                  <span>
+                    {selectedMeters} meter
+                    {selectedMeters === 5 && product.compareAtPrice && product.compareAtPrice > 0
+                      ? ` (+₹${product.compareAtPrice.toFixed(2)})`
+                      : ''}
+                  </span>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="4">4 meter</SelectItem>
-                  <SelectItem value="5">5 meter</SelectItem>
+                  <SelectItem value="5">
+                    5 meter {product.compareAtPrice && product.compareAtPrice > 0 ? `(+₹${product.compareAtPrice.toFixed(2)})` : ''}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -514,29 +520,31 @@ export function ProductDetail() {
               {/* Quantity selector */}
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold text-muted-foreground">Qty</span>
-                <input
-                  type="number"
-                  min="1"
-                  value={quantity}
-                  onChange={(e) => {
-                    const val = parseInt(e.target.value);
-                    if (!isNaN(val) && val >= 1) {
-                      setQuantity(val);
-                    }
-                  }}
-                  className="w-16 text-center border border-border rounded-md py-1.5 text-sm font-semibold focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
-                />
+                <Select
+                  value={String(quantity)}
+                  onValueChange={(val) => setQuantity(parseInt(val))}
+                >
+                  <SelectTrigger className="w-20 bg-background border border-border">
+                    <span>{quantity}</span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1</SelectItem>
+                    <SelectItem value="2">2</SelectItem>
+                    <SelectItem value="3">3</SelectItem>
+                    <SelectItem value="4">4</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Add to Cart button */}
               <div ref={buttonRef} className="flex-1">
                 <Button
                   onClick={handleAddToCart}
-                  disabled={product.availableSizes && product.availableSizes.length > 0 && !selectedSize}
+                  disabled={!product.inStock || (product.availableSizes && product.availableSizes.length > 0 && !selectedSize)}
                   className="w-full flex items-center justify-center gap-2 py-2"
                 >
                   <ShoppingCart className="size-4" />
-                  {added ? "Added!" : "Add to Cart"}
+                  {!product.inStock ? "Out of Stock" : added ? "Added!" : "Add to Cart"}
                 </Button>
               </div>
             </div>

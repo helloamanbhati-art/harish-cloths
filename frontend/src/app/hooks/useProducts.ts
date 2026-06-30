@@ -83,6 +83,7 @@ const transformProduct = (product: any): Product => {
     availableSizes: Array.isArray(product.availableSizes) ? product.availableSizes : [],
     clothingType: product.clothingType || '',
     inStock: product.inStock !== false,
+    compareAtPrice: product.compareAtPrice || 0,
   };
 };
 

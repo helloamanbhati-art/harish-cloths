@@ -218,7 +218,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = items.reduce((sum, item) => {
-    const itemPrice = item.price;
+    const itemPrice = item.soldBy === 'meter' && item.selectedMeters === 5
+      ? item.price + (item.compareAtPrice || 0)
+      : item.price;
     return sum + (itemPrice * item.quantity);
   }, 0);
 

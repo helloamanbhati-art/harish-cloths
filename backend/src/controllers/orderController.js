@@ -25,6 +25,14 @@ exports.createOrder = async (req, res, next) => {
         });
       }
 
+      // Check if product is in stock
+      if (!product.inStock) {
+        return res.status(400).json({
+          success: false,
+          message: `Product '${product.name}' is currently out of stock`,
+        });
+      }
+
       // Validate size selection for products with available sizes
       if (product.availableSizes && product.availableSizes.length > 0) {
         if (!item.selectedSize) {
@@ -46,7 +54,10 @@ exports.createOrder = async (req, res, next) => {
           ? Math.max(Number(item.meters) || 4, 1)
           : 1;
       const additionalCharge = (product.additionalChargeAmount || 0) * item.quantity;
-      const itemTotal = product.price * item.quantity + additionalCharge;
+      const basePrice = (product.soldBy === "meter" && selectedMeters === 5)
+        ? product.price + (product.compareAtPrice || 0)
+        : product.price;
+      const itemTotal = basePrice * item.quantity + additionalCharge;
       subtotal += itemTotal;
 
       // Validate that the selected variant belongs to the product (if product has variants)
@@ -115,7 +126,7 @@ exports.createOrder = async (req, res, next) => {
         size: item.selectedSize || null, // Include selected size
         color: item.selectedColor || null, // Include selected color
         selectedVariant: selectedVariantSnapshot, // Complete snapshot of the purchased variant
-        price: product.price,
+        price: basePrice,
         quantity: item.quantity,
         meters: selectedMeters,
         soldBy: product.soldBy,

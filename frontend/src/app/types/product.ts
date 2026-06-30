@@ -39,6 +39,7 @@ export interface Product {
   additionalChargeName?: string; // Custom charge label set by admin (e.g., "Ordna", "Stitching")
   additionalChargeAmount?: number; // Additional charge amount per piece
   isFlatPrice?: boolean; // If true, do not multiply price by selected meters
+  compareAtPrice?: number; // Price for 5 meters package
 }
 
 export interface FilterState {

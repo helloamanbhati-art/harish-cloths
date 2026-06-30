@@ -211,6 +211,7 @@ router.post('/products', async (req, res) => {
       isActive: data.isActive ?? true,
       createdBy: req.admin?._id,
       sku: data.sku || `SKU-${Date.now()}`,
+      compareAtPrice: Number(data.compareAtPrice) || 0,
     };
 
     console.log('[POST /products] Creating product with data:', productData);

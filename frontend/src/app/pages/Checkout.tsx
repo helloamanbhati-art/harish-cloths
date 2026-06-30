@@ -359,7 +359,7 @@ export function Checkout() {
                         )}
                       </div>
                       <span className="shrink-0">
-                        ₹{(item.price * item.quantity).toLocaleString('en-IN')}
+                        ₹{((item.soldBy === 'meter' && item.selectedMeters === 5 ? item.price + (item.compareAtPrice || 0) : item.price) * item.quantity).toLocaleString('en-IN')}
                       </span>
                     </div>
                   ))}

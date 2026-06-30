@@ -59,35 +59,42 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <>
       <Link to={`/product/${product.id}`}>
-        <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer h-full bg-white border border-border/60 rounded-lg group">
-          <div className="aspect-[3/4] overflow-hidden relative bg-muted">
+        <Card className="overflow-hidden cursor-pointer h-full bg-white border-none rounded-none shadow-none group p-0 m-0">
+          <div className="aspect-[3/4] overflow-hidden relative bg-muted rounded-none">
             <img
               src={product.image || (product.images && product.images[0]) || ''}
               alt={product.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 select-none"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 select-none rounded-none"
             />
             {variantsCount > 1 && (
-              <span className="absolute bottom-2.5 right-2.5 bg-white/90 backdrop-blur-sm text-[10px] md:text-xs font-semibold text-gray-700 px-2 py-0.5 rounded shadow-sm z-10">
+              <span className="absolute bottom-2.5 right-2.5 bg-white/90 backdrop-blur-sm text-[10px] md:text-xs font-semibold text-gray-700 px-2 py-0.5 rounded-none shadow-sm z-10">
                 +{variantsCount - 1} More
               </span>
             )}
+            {!product.inStock && (
+              <Badge variant="destructive" className="absolute top-2.5 left-2.5 font-semibold text-[10px] md:text-xs bg-red-600 text-white border-none rounded-none shadow-md z-10">
+                Out of Stock
+              </Badge>
+            )}
             {/* Quick Add Button */}
-            <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity" ref={buttonRef}>
-              <Button
-                size="icon"
-                onClick={handleAddToCart}
-                className="rounded-full shadow-lg"
-              >
-                <ShoppingCart className="size-4" />
-              </Button>
-            </div>
+            {product.inStock && (
+              <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity" ref={buttonRef}>
+                <Button
+                  size="icon"
+                  onClick={handleAddToCart}
+                  className="rounded-none shadow-lg"
+                >
+                  <ShoppingCart className="size-4" />
+                </Button>
+              </div>
+            )}
           </div>
-          <CardContent className="p-3.5 space-y-1.5 text-left">
-            <h3 className="text-sm text-muted-foreground font-medium truncate">
+          <CardContent className="pt-1 pb-2 px-0 space-y-0.5 text-center bg-transparent border-none">
+            <h3 className="text-sm font-semibold text-gray-700 truncate px-1">
               {product.name}
             </h3>
-            <div className="font-bold text-base md:text-lg text-gray-900">
-              ₹{product.price.toLocaleString('en-IN')}
+            <div className="font-bold text-base md:text-lg text-emerald-600">
+              ₹{product.price.toFixed(2)}
             </div>
           </CardContent>
         </Card>

@@ -62,6 +62,7 @@ interface Product {
   isFlatPrice?: boolean;
   additionalChargeName?: string;
   additionalChargeAmount?: number;
+  compareAtPrice?: number;
 }
 
 const initialProducts: Product[] = [];
@@ -140,6 +141,7 @@ useEffect(() => {
           isFlatPrice: p.isFlatPrice ?? false,
           additionalChargeName: p.additionalChargeName || '',
           additionalChargeAmount: p.additionalChargeAmount || 0,
+          compareAtPrice: p.compareAtPrice || 0,
         };
       });
       console.log('[fetchProducts] Mapped products:', mapped.length);
@@ -193,6 +195,7 @@ useEffect(() => {
     inStock: true,
     additionalChargeName: '',
     additionalChargeAmount: '',
+    compareAtPrice: '',
   });
 
   // Filter products
@@ -228,6 +231,7 @@ useEffect(() => {
         isFlatPrice: product.isFlatPrice ?? false,
         additionalChargeName: product.additionalChargeName || '',
         additionalChargeAmount: product.additionalChargeAmount ? product.additionalChargeAmount.toString() : '',
+        compareAtPrice: product.compareAtPrice ? product.compareAtPrice.toString() : '',
       });
 
       if (product.variants && product.variants.length > 0) {
@@ -263,7 +267,7 @@ useEffect(() => {
       setFormData({
         name: '',
         description: '',
-        brand: '',
+        brand: brands[0]?.name || 'harish_cloth',
         category: '',
         price: '',
         soldBy: 'meter',
@@ -273,6 +277,7 @@ useEffect(() => {
         isFlatPrice: false,
         additionalChargeName: '',
         additionalChargeAmount: '',
+        compareAtPrice: '',
       });
       setVariantsDraft([newVariantDraft('Default')]);
     }
@@ -354,6 +359,7 @@ useEffect(() => {
         isActive: true,
         additionalChargeName: '',
         additionalChargeAmount: 0,
+        compareAtPrice: parseFloat(formData.compareAtPrice) || 0,
       };
 
   if (editingProduct) {
@@ -382,6 +388,7 @@ useEffect(() => {
       isFlatPrice: data.data.isFlatPrice ?? false,
       additionalChargeName: data.data.additionalChargeName || '',
       additionalChargeAmount: data.data.additionalChargeAmount || 0,
+      compareAtPrice: data.data.compareAtPrice || 0,
     };
     setProducts(prev => prev.map(p => p.id === editingProduct.id ? updatedProduct : p));
     toast.success('Product updated successfully');
@@ -411,6 +418,7 @@ useEffect(() => {
       isFlatPrice: data.data.isFlatPrice ?? false,
       additionalChargeName: data.data.additionalChargeName || '',
       additionalChargeAmount: data.data.additionalChargeAmount || 0,
+      compareAtPrice: data.data.compareAtPrice || 0,
     };
     setProducts(prev => [newProduct, ...prev]);
     toast.success('Product added successfully');
@@ -420,7 +428,7 @@ useEffect(() => {
   setFormData({
     name: '',
     description: '',
-    brand: '',
+    brand: brands[0]?.name || 'harish_cloth',
     category: '',
     price: '',
     soldBy: 'meter',
@@ -430,6 +438,7 @@ useEffect(() => {
     isFlatPrice: false,
     additionalChargeName: '',
     additionalChargeAmount: '',
+    compareAtPrice: '',
   });
     } catch (err) {
       console.error('Error saving product:', err);
@@ -454,11 +463,41 @@ useEffect(() => {
     }
   };
 
-  const handleToggleStock = (product: Product) => {
-    setProducts(products.map(p =>
-      p.id === product.id ? { ...p, inStock: !p.inStock } : p
-    ));
-    toast.success(`Stock status updated for ${product.name}`);
+  const handleToggleStock = async (product: Product) => {
+    const nextInStock = !product.inStock;
+    
+    // Optimistic UI update
+    setProducts(prev =>
+      prev.map(p => (p.id === product.id ? { ...p, inStock: nextInStock } : p))
+    );
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/admin/products/${product.id}`, {
+        method: 'PUT',
+        headers: {
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...product,
+          inStock: nextInStock,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to update stock status in database');
+      }
+
+      toast.success(`Stock status updated for ${product.name}`);
+    } catch (err) {
+      console.error('Error toggling stock status:', err);
+      toast.error('Failed to update stock status in database');
+      
+      // Revert UI update on failure
+      setProducts(prev =>
+        prev.map(p => (p.id === product.id ? { ...p, inStock: product.inStock } : p))
+      );
+    }
   };
 
   return (
@@ -691,17 +730,15 @@ useEffect(() => {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="brand">Brand *</Label>
-                <Select value={formData.brand} onValueChange={(value) => setFormData({ ...formData, brand: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select brand" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {brands.map(brand => (
-                      <SelectItem key={brand.id} value={brand.name}>{brand.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="compareAtPrice">5 Meter Price (₹)</Label>
+                <Input
+                  id="compareAtPrice"
+                  type="number"
+                  value={formData.compareAtPrice}
+                  onChange={(e) => setFormData({ ...formData, compareAtPrice: e.target.value })}
+                  placeholder="Price for 5m"
+                  min="0"
+                />
               </div>
 
               <div className="space-y-2">

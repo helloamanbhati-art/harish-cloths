@@ -85,7 +85,7 @@ export function ImageCarousel({
     <div className={`space-y-3 ${className}`}>
       {/* Main image */}
       <div
-        className="relative group w-full h-full overflow-hidden rounded-lg bg-muted"
+        className="relative group w-full h-full overflow-hidden rounded-none bg-muted p-0"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -94,7 +94,7 @@ export function ImageCarousel({
           key={safeIndex}
           src={images[safeIndex]}
           alt={`${alt} - Image ${safeIndex + 1}`}
-          className="w-full h-full object-cover select-none animate-fade-in transition-all duration-350"
+          className="w-full h-full object-cover select-none animate-fade-in transition-all duration-350 rounded-none p-0 m-0"
         />
 
         {/* Image counter pill */}
@@ -134,9 +134,9 @@ export function ImageCarousel({
             <button
               key={`${image}-${index}`}
               onClick={(e) => goToSlide(index, e)}
-              className={`shrink-0 size-16 md:size-18 rounded-md overflow-hidden border-2 transition-all ${
+              className={`shrink-0 size-16 md:size-18 rounded-none overflow-hidden border-2 transition-all p-0 m-0 ${
                 index === safeIndex
-                  ? 'border-primary ring-2 ring-primary/30 scale-105'
+                  ? 'border-emerald-600 ring-2 ring-emerald-500/30 scale-105'
                   : 'border-transparent hover:border-muted-foreground/40 opacity-70 hover:opacity-100'
               }`}
               aria-label={`Go to image ${index + 1}`}
@@ -144,7 +144,7 @@ export function ImageCarousel({
               <ImageWithFallback
                 src={image}
                 alt={`${alt} thumbnail ${index + 1}`}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover rounded-none p-0 m-0"
               />
             </button>
           ))}

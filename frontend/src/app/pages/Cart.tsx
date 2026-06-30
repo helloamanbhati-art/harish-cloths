@@ -151,7 +151,7 @@ export function Cart() {
                       <div className="text-left sm:text-right">
                         <span className="text-xs text-muted-foreground block sm:inline mr-1">Total:</span>
                         <span className="font-bold text-base sm:text-lg">
-                          ₹{(item.price * item.quantity).toLocaleString('en-IN')}
+                          ₹{((item.soldBy === 'meter' && item.selectedMeters === 5 ? item.price + (item.compareAtPrice || 0) : item.price) * item.quantity).toLocaleString('en-IN')}
                         </span>
                       </div>
                     </div>
