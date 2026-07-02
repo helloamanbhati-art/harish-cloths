@@ -68,16 +68,16 @@ const transformProduct = (product: any): Product => {
     id: product._id || product.id,
     name: product.name,
     brand: typeof product.brand === 'object'
-      ? product.brand?.name || 'Unknown'
-      : product.brand,
+      ? product.brand?.name || ''
+      : product.brand || '',
     price: product.price,
     image: primaryImage,
     images: fallbackImages,
     colors: Array.isArray(product.colors) ? product.colors : [],
     variants,
     category: typeof product.category === 'object'
-      ? product.category?.name || 'Unknown'
-      : product.category,
+      ? product.category?.name || ''
+      : product.category || '',
     description: product.description || product.shortDescription || '',
     soldBy: product.soldBy || 'piece',
     availableSizes: Array.isArray(product.availableSizes) ? product.availableSizes : [],
@@ -87,51 +87,81 @@ const transformProduct = (product: any): Product => {
   };
 };
 
+// Module-level cache: persists for the lifetime of the browser session (page not refreshed).
+// Re-visits to the home page use cached data instantly with no loading spinner.
+let _cachedProducts: Product[] | null = null;
+let _isFetching = false;
+const _listeners: Array<(products: Product[]) => void> = [];
+
+async function fetchAndCacheProducts(): Promise<Product[]> {
+  if (_cachedProducts) return _cachedProducts;
+  if (_isFetching) {
+    // Wait for in-progress fetch
+    return new Promise((resolve) => {
+      _listeners.push(resolve);
+    });
+  }
+
+  _isFetching = true;
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/v1/products`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!response.ok) {
+      let message = response.statusText;
+      try {
+        const errorBody = await response.json();
+        if (errorBody?.message) message = errorBody.message;
+      } catch { /* ignore */ }
+      throw new Error(`Failed to fetch products: ${response.status} ${message}`);
+    }
+
+    const data = await response.json();
+    const rawProducts = data.data || data.products || [];
+    const products = rawProducts.map(transformProduct);
+    _cachedProducts = products;
+    // Notify any waiting listeners
+    _listeners.forEach((cb) => cb(products));
+    _listeners.length = 0;
+    return products;
+  } finally {
+    _isFetching = false;
+  }
+}
+
 export function useProducts() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Start with cached data immediately if available (instant render)
+  const [products, setProducts] = useState<Product[]>(_cachedProducts ?? []);
+  const [loading, setLoading] = useState(_cachedProducts === null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const response = await fetch(`${API_BASE_URL}/api/v1/products`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+    if (_cachedProducts) {
+      // Already have data — show it instantly, then do a silent background refresh
+      setProducts(_cachedProducts);
+      setLoading(false);
+      fetchAndCacheProducts()
+        .then((fresh) => {
+          _cachedProducts = fresh;
+          setProducts(fresh);
+        })
+        .catch(() => { /* ignore background refresh errors */ });
+      return;
+    }
 
-        if (!response.ok) {
-          let message = response.statusText;
-          try {
-            const errorBody = await response.json();
-            if (errorBody?.message) {
-              message = errorBody.message;
-            }
-          } catch {
-            // ignore parse failure
-          }
-          throw new Error(`Failed to fetch products: ${response.status} ${message}`);
-        }
-
-        const data = await response.json();
-        const rawProducts = data.data || data.products || [];
-        const transformedProducts = rawProducts.map(transformProduct);
-        setProducts(transformedProducts);
-      } catch (err) {
+    fetchAndCacheProducts()
+      .then((data) => {
+        setProducts(data);
+        setLoading(false);
+      })
+      .catch((err) => {
         const message = err instanceof Error ? err.message : 'Failed to fetch products';
         setError(message);
-        console.error('Error fetching products:', message);
-      } finally {
         setLoading(false);
-      }
-    };
-
-    fetchProducts();
+        console.error('Error fetching products:', message);
+      });
   }, []);
 
   return { products, loading, error };

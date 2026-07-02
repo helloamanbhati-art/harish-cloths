@@ -1,10 +1,10 @@
-import { useParams, Link, useNavigate } from "react-router";
+import { useParams, Link, useNavigate, useLocation } from "react-router";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { ArrowLeft, ShoppingCart, Minus, Plus, Trash2, Loader, LayoutGrid, Check, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import { useCart } from "../contexts/CartContext";
 import { usePageTitle } from "../hooks/usePageTitle";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { AddToCartAnimation } from "../components/AddToCartAnimation";
 import { useCartIcon } from "../contexts/CartIconContext";
 import { toast } from "sonner";
@@ -38,6 +38,7 @@ interface Product {
 export function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   usePageTitle('Product Details');
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -116,11 +117,11 @@ export function ProductDetail() {
                 ),
           })),
           brand: typeof productData.brand === 'object'
-            ? productData.brand?.name || 'Unknown'
-            : productData.brand,
+            ? productData.brand?.name || ''
+            : productData.brand || '',
           category: typeof productData.category === 'object'
-            ? productData.category?.name || 'Unknown'
-            : productData.category,
+            ? productData.category?.name || ''
+            : productData.category || '',
           soldBy: productData.soldBy || 'piece',
           isFlatPrice: productData.isFlatPrice ?? false,
           availableSizes: Array.isArray(productData.availableSizes) ? productData.availableSizes : [],
@@ -146,8 +147,27 @@ export function ProductDetail() {
 
         setProduct(transformedProduct);
         if (transformedProduct.variants && transformedProduct.variants.length > 0) {
-          setSelectedVariant(transformedProduct.variants[0]);
+          // Check if a specific variant was requested via ?variant=<variantId> in the URL
+          const params = new URLSearchParams(location.search);
+          const requestedVariantId = params.get('variant');
+          const matchedVariant = requestedVariantId
+            ? transformedProduct.variants.find((v: ProductVariant) => v.variantId === requestedVariantId)
+            : null;
+          setSelectedVariant(matchedVariant || transformedProduct.variants[0]);
         }
+
+        // Preload all variant images in the background so switching feels instant
+        const allVariantImageUrls: string[] = [];
+        (transformedProduct.variants || []).forEach((v: any) => {
+          (v.images || []).forEach((img: any) => {
+            const url = typeof img === 'string' ? img : img.imageUrl;
+            if (url) allVariantImageUrls.push(url);
+          });
+        });
+        allVariantImageUrls.forEach((url) => {
+          const preloadImg = new window.Image();
+          preloadImg.src = url;
+        });
 
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Failed to load product';
@@ -302,9 +322,14 @@ export function ProductDetail() {
     navigate('/cart');
   };
 
-  const handleAnimationComplete = () => {
+  const handleAnimationComplete = useCallback(() => {
     setShowAnimation(false);
-  };
+  }, []);
+
+  const handleVariantSelect = useCallback((variant: ProductVariant) => {
+    setSelectedVariant(variant);
+    setActiveImageIndex(0);
+  }, []);
 
   if (loading) {
     return (
@@ -361,7 +386,9 @@ export function ProductDetail() {
             <img
               src={carouselImages[activeImageIndex] || product.image}
               alt={product.name}
-              className="w-full h-auto object-contain transition-all duration-350 animate-fade-in rounded-none p-0 m-0"
+              loading="eager"
+              decoding="async"
+              className="w-full h-auto object-contain transition-opacity duration-150 rounded-none p-0 m-0"
             />
             {carouselImages.length > 1 && (
               <>
@@ -414,10 +441,7 @@ export function ProductDetail() {
                 return (
                   <button
                     key={idx}
-                    onClick={() => {
-                      setSelectedVariant(variant);
-                      setActiveImageIndex(0);
-                    }}
+                    onClick={() => handleVariantSelect(variant)}
                     className="shrink-0 focus-visible:outline-none p-0 m-0"
                     aria-label={`Select variant ${variant.variantName}`}
                   >
@@ -425,7 +449,7 @@ export function ProductDetail() {
                       isSelected ? 'border-emerald-600 ring-2 ring-emerald-500/20 scale-105' : 'border-border/60 hover:border-gray-400'
                     }`}>
                       {variantImageUrl ? (
-                        <img src={variantImageUrl} alt={variant.variantName} className="w-full h-full object-cover rounded-none p-0 m-0" />
+                        <img src={variantImageUrl} alt={variant.variantName} loading="lazy" decoding="async" className="w-full h-full object-cover rounded-none p-0 m-0" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-[8px] bg-muted rounded-none p-0 m-0">No img</div>
                       )}

@@ -40,12 +40,18 @@ export function useProductFilters(products: Product[]) {
   const [filters, setFilters] = useState<FilterState>(initialFilters);
 
   const brands = useMemo(
-    () => Array.from(new Set(products.map((product) => product.brand))).sort(),
+    () =>
+      Array.from(new Set(products.map((product) => product.brand)))
+        .filter((b) => b && b.toLowerCase() !== 'unknown')
+        .sort(),
     [products]
   );
 
   const categories = useMemo(
-    () => Array.from(new Set(products.map((product) => product.category))).sort(),
+    () =>
+      Array.from(new Set(products.map((product) => product.category)))
+        .filter((c) => c && c.toLowerCase() !== 'unknown')
+        .sort(),
     [products]
   );
 

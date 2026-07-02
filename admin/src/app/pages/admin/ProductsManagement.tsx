@@ -16,13 +16,18 @@ import {
   DialogFooter,
 } from '../../components/ui/dialog';
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '../../components/ui/popover';
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '../../components/ui/select';
-import { Plus, Search, Pencil, Trash2, Package, Loader2, Images } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Package, Loader2, Images, Link, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { useBrands } from '../../contexts/BrandContext';
 import { useCategories } from '../../contexts/CategoryContext';
@@ -75,6 +80,9 @@ export function ProductsManagement() {
   const [products, setProducts] = useState<Product[]>([]);
   const [sizeOptions, setSizeOptions] = useState<string[]>([]);
   const [clothingTypeOptions, setClothingTypeOptions] = useState<string[]>([]);
+
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [popoverProductId, setPopoverProductId] = useState<string | null>(null);
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('adminToken');
@@ -549,7 +557,7 @@ useEffect(() => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Brands</SelectItem>
-              {brands.map(brand => (
+              {brands.filter(b => b.name && b.name.toLowerCase() !== 'unknown').map(brand => (
                 <SelectItem key={brand.id} value={brand.name}>{brand.name}</SelectItem>
               ))}
             </SelectContent>
@@ -628,12 +636,16 @@ useEffect(() => {
                           {product.description}
                         </p>
                         <div className="flex flex-wrap items-center gap-2 mt-3">
-                          <Badge variant="outline" className="text-xs">
-                            {product.brand || 'Unknown Brand'}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            {product.category || 'Unknown Category'}
-                          </Badge>
+                          {product.brand && product.brand.toLowerCase() !== 'unknown' && (
+                            <Badge variant="outline" className="text-xs">
+                              {product.brand}
+                            </Badge>
+                          )}
+                          {product.category && product.category.toLowerCase() !== 'unknown' && (
+                            <Badge variant="outline" className="text-xs">
+                              {product.category}
+                            </Badge>
+                          )}
                            {/* Selling unit badge */}
                            <Badge className={product.soldBy === 'meter' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs' : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs'}>
                              {product.soldBy === 'meter' ? 'Sold by Meter' : 'Sold by Piece'}
@@ -689,6 +701,96 @@ useEffect(() => {
                         <Pencil className="size-4 mr-2" />
                         Edit
                       </Button>
+                      {/* Copy Link — single variant: copy directly; multi-variant: pick from popover */}
+                      {(!product.variants || product.variants.length <= 1) ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const url = `https://harishcloths.com/product/${product.id}`;
+                            navigator.clipboard.writeText(url).then(() => {
+                              setCopiedId(product.id);
+                              setTimeout(() => setCopiedId(null), 2000);
+                            });
+                          }}
+                          className={`flex-1 transition-colors ${
+                            copiedId === product.id
+                              ? 'text-emerald-600 border-emerald-400 bg-emerald-50 dark:bg-emerald-900/20'
+                              : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 border-blue-200 dark:border-blue-900/30'
+                          }`}
+                          title="Copy product link to share"
+                        >
+                          {copiedId === product.id ? (
+                            <><Check className="size-4 mr-1" /> Copied!</>
+                          ) : (
+                            <><Link className="size-4 mr-1" /> Copy Link</>
+                          )}
+                        </Button>
+                      ) : (
+                        <Popover
+                          open={popoverProductId === product.id}
+                          onOpenChange={(open) => setPopoverProductId(open ? product.id : null)}
+                        >
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 border-blue-200 dark:border-blue-900/30"
+                              title="Copy variant link to share"
+                            >
+                              <Link className="size-4 mr-1" /> Copy Link
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-64 p-2" align="start">
+                            <p className="text-xs font-semibold text-muted-foreground px-2 py-1 mb-1">Pick a variant to copy its link:</p>
+                            <div className="space-y-1">
+                              {/* All variants option */}
+                              <button
+                                onClick={() => {
+                                  const url = `https://harishcloths.com/product/${product.id}`;
+                                  navigator.clipboard.writeText(url).then(() => {
+                                    setCopiedId(`${product.id}-all`);
+                                    setTimeout(() => { setCopiedId(null); setPopoverProductId(null); }, 1800);
+                                  });
+                                }}
+                                className="w-full flex items-center gap-2 text-left px-3 py-2 rounded-md hover:bg-muted text-sm transition-colors"
+                              >
+                                {copiedId === `${product.id}-all` ? (
+                                  <Check className="size-3.5 text-emerald-500 shrink-0" />
+                                ) : (
+                                  <Link className="size-3.5 text-muted-foreground shrink-0" />
+                                )}
+                                <span className="truncate font-medium">All variants (main link)</span>
+                              </button>
+                              {/* Per-variant options */}
+                              {product.variants!.map((variant) => (
+                                <button
+                                  key={variant.variantId}
+                                  onClick={() => {
+                                    const url = `https://harishcloths.com/product/${product.id}?variant=${variant.variantId}`;
+                                    navigator.clipboard.writeText(url).then(() => {
+                                      setCopiedId(`${product.id}-${variant.variantId}`);
+                                      setTimeout(() => { setCopiedId(null); setPopoverProductId(null); }, 1800);
+                                    });
+                                  }}
+                                  className="w-full flex items-center gap-2 text-left px-3 py-2 rounded-md hover:bg-muted text-sm transition-colors"
+                                >
+                                  {copiedId === `${product.id}-${variant.variantId}` ? (
+                                    <Check className="size-3.5 text-emerald-500 shrink-0" />
+                                  ) : (
+                                    variant.images?.[0]?.imageUrl ? (
+                                      <img src={variant.images[0].imageUrl} className="size-5 rounded object-cover shrink-0" />
+                                    ) : (
+                                      <Link className="size-3.5 text-muted-foreground shrink-0" />
+                                    )
+                                  )}
+                                  <span className="truncate">{variant.variantName}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      )}
                       <Button
                         variant="outline"
                         size="sm"

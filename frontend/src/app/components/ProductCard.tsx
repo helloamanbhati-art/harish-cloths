@@ -27,13 +27,13 @@ export function ProductCard({ product }: ProductCardProps) {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     // For meter products, user must go to product detail page to select meters
     if (product.soldBy === 'meter') {
       // Navigate to product detail - handled by the Link wrapper
       return;
     }
-    
+
     if (buttonRef.current && cartIconElement) {
       const buttonRect = buttonRef.current.getBoundingClientRect();
       const cartRect = cartIconElement.getBoundingClientRect();
@@ -58,12 +58,14 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <>
-      <Link to={`/product/${product.id}`}>
-        <Card className="overflow-hidden cursor-pointer h-full bg-card border-none rounded-none shadow-none group p-0 m-0 gap-1.5">
+      <Link to={`/product/${product.id}`} className="block">
+        <Card className="overflow-hidden cursor-pointer bg-card border-none rounded-none shadow-none group p-0 m-0 gap-1.5">
           <div className="aspect-[3/4] overflow-hidden relative bg-muted rounded-none">
             <img
               src={product.image || (product.images && product.images[0]) || ''}
               alt={product.name}
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 select-none rounded-none"
             />
             {variantsCount > 1 && (
@@ -89,7 +91,7 @@ export function ProductCard({ product }: ProductCardProps) {
               </div>
             )}
           </div>
-          <CardContent className="pt-1 pb-1 px-0 space-y-0.5 text-center bg-transparent border-none last:pb-1">
+          <CardContent className="pt-1 px-0 space-y-0.5 text-center bg-transparent border-none [&:last-child]:pb-3">
             <h3 className="text-base font-semibold text-gray-700 dark:text-gray-200 truncate px-1">
               {product.name}
             </h3>

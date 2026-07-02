@@ -226,7 +226,11 @@ exports.getRelatedProducts = async (req, res, next) => {
 // Get brands
 exports.getBrands = async (req, res, next) => {
   try {
-    const brands = await Brand.find({ isActive: true }).sort({ name: 1 });
+    // Exclude any brand whose name is 'Unknown' (case-insensitive) — these are placeholder entries
+    const brands = await Brand.find({
+      isActive: true,
+      name: { $not: /^unknown$/i },
+    }).sort({ name: 1 });
 
     res.json({
       success: true,

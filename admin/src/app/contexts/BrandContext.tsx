@@ -67,11 +67,13 @@ export function BrandProvider({ children }: { children: ReactNode }) {
         if (response.ok) {
           const data = await response.json();
           console.log('[fetchBrands] Data received:', data);
-          const mapped = (data.brands || []).map((b: any) => ({
-            id: b._id || b.id,
-            name: b.name,
-            productCount: b.productCount || 0,
-          }));
+          const mapped = (data.brands || [])
+            .filter((b: any) => b.name && b.name.toLowerCase() !== 'unknown')
+            .map((b: any) => ({
+              id: b._id || b.id,
+              name: b.name,
+              productCount: b.productCount || 0,
+            }));
           setBrands(mapped);
         } else {
           const errorData = await response.json();

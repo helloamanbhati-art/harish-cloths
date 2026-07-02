@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { ImageWithFallback } from './figma/ImageWithFallback';
+import { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from './ui/button';
 
@@ -28,13 +27,13 @@ export function ImageCarousel({
     }
   }, [images.length]);
 
-  const setActiveIndex = (index: number) => {
+  const setActiveIndex = useCallback((index: number) => {
     if (onIndexChange) {
       onIndexChange(index);
     } else {
       setInternalIndex(index);
     }
-  };
+  }, [onIndexChange]);
 
   const goToPrevious = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -83,18 +82,20 @@ export function ImageCarousel({
 
   return (
     <div className={`space-y-3 ${className}`}>
-      {/* Main image */}
+      {/* Main image — NO key prop so the <img> element is reused and src is just updated.
+          This avoids remounting/redownloading on every variant/slide switch. */}
       <div
         className="relative group w-full h-full overflow-hidden rounded-none bg-muted p-0"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <ImageWithFallback
-          key={safeIndex}
+        <img
           src={images[safeIndex]}
           alt={`${alt} - Image ${safeIndex + 1}`}
-          className="w-full h-full object-cover select-none animate-fade-in transition-all duration-350 rounded-none p-0 m-0"
+          loading="eager"
+          decoding="async"
+          className="w-full h-full object-cover select-none rounded-none p-0 m-0 transition-opacity duration-150"
         />
 
         {/* Image counter pill */}
@@ -132,7 +133,7 @@ export function ImageCarousel({
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
           {images.map((image, index) => (
             <button
-              key={`${image}-${index}`}
+              key={`thumb-${index}`}
               onClick={(e) => goToSlide(index, e)}
               className={`shrink-0 size-16 md:size-18 rounded-none overflow-hidden border-2 transition-all p-0 m-0 ${
                 index === safeIndex
@@ -141,9 +142,11 @@ export function ImageCarousel({
               }`}
               aria-label={`Go to image ${index + 1}`}
             >
-              <ImageWithFallback
+              <img
                 src={image}
                 alt={`${alt} thumbnail ${index + 1}`}
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover rounded-none p-0 m-0"
               />
             </button>

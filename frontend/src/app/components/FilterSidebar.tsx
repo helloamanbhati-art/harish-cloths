@@ -170,31 +170,6 @@ export function FilterSidebar({
             </div>
           </div>
 
-          <Separator />
-
-          {/* Brand Filter */}
-          <div className="space-y-3 md:space-y-2">
-            <h3 className="text-sm font-medium">Brands</h3>
-            <div className="space-y-2.5 md:space-y-2">
-              {brandCounts.map((brandCount) => (
-                <div key={brandCount.brand} className="flex items-center space-x-2.5 md:space-x-2">
-                  <Checkbox
-                    id={brandCount.brand}
-                    checked={filters.selectedBrands.includes(brandCount.brand)}
-                    onCheckedChange={() => handleBrandToggle(brandCount.brand)}
-                  />
-                  <label 
-                    htmlFor={brandCount.brand}
-                    className="text-sm cursor-pointer"
-                  >
-                    {brandCount.brand}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <Separator />
 
           {/* Size Filter */}
           {sizeCounts && sizeCounts.length > 0 && (
