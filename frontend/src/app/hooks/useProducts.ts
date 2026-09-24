@@ -167,6 +167,32 @@ export function useProducts() {
   return { products, loading, error };
 }
 
+export function useCatalogCategories() {
+  const [categories, setCategories] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/v1/catalog/categories`, {
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error(`Failed to fetch categories: ${response.status}`);
+        return response.json();
+      })
+      .then((payload) => {
+        const records = payload.data || payload.categories || [];
+        setCategories(
+          records
+            .map((category: any) => category.name)
+            .filter(Boolean)
+            .sort((a: string, b: string) => a.localeCompare(b)),
+        );
+      })
+      .catch((error) => console.error('Error fetching catalog categories:', error));
+  }, []);
+
+  return categories;
+}
+
 export function useProductById(productId: string) {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);

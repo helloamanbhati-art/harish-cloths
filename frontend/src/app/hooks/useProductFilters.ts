@@ -36,7 +36,7 @@ const initialFilters: FilterState = {
   selectedClothingTypes: [],
 };
 
-export function useProductFilters(products: Product[]) {
+export function useProductFilters(products: Product[], managedCategories: string[] = []) {
   const [filters, setFilters] = useState<FilterState>(initialFilters);
 
   const brands = useMemo(
@@ -49,10 +49,10 @@ export function useProductFilters(products: Product[]) {
 
   const categories = useMemo(
     () =>
-      Array.from(new Set(products.map((product) => product.category)))
+      Array.from(new Set([...managedCategories, ...products.map((product) => product.category)]))
         .filter((c) => c && c.toLowerCase() !== 'unknown')
         .sort(),
-    [products]
+    [managedCategories, products]
   );
 
   const priceRanges = useMemo(() => computePriceRanges(products), [products]);

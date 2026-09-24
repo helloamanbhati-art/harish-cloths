@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { Plus, Trash2, GripVertical, Upload, X, Star, Image as ImageIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Trash2, GripVertical, Upload, X, Star, Images, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
@@ -24,7 +24,12 @@ interface VariantManagerProps {
   onChange: (variants: VariantDraft[]) => void;
   maxImagesPerVariant?: number;
   maxFileSizeMB?: number;
+  maxVideoSizeMB?: number;
 }
+
+const isVideoFile = (file: File) => file.type.startsWith('video/');
+const isSupportedMediaFile = (file: File) => file.type.startsWith('image/') || isVideoFile(file);
+const isVideoUrl = (url: string) => /\.(mp4|webm|ogg|mov|m4v)(?:[?#]|$)/i.test(url);
 
 let _id = 0;
 export function newVariantDraft(name = ''): VariantDraft {
@@ -36,6 +41,7 @@ export function VariantManager({
   onChange,
   maxImagesPerVariant = 20,
   maxFileSizeMB = 5,
+  maxVideoSizeMB = 50,
 }: VariantManagerProps) {
 
   const addVariant = () => {
@@ -59,8 +65,9 @@ export function VariantManager({
     const files = Array.from(fileList);
     for (const file of files) {
       if (accepted.length >= remaining) break;
-      if (!file.type.startsWith('image/')) continue;
-      if (file.size / (1024 * 1024) > maxFileSizeMB) continue;
+      if (!isSupportedMediaFile(file)) continue;
+      const sizeLimitMB = isVideoFile(file) ? maxVideoSizeMB : maxFileSizeMB;
+      if (file.size / (1024 * 1024) > sizeLimitMB) continue;
       accepted.push(file);
     }
     if (accepted.length > 0) {
@@ -99,7 +106,7 @@ export function VariantManager({
     <div className="space-y-4">
       {variants.length === 0 && (
         <div className="border-2 border-dashed border-muted rounded-xl p-8 text-center text-muted-foreground">
-          <ImageIcon className="size-10 mx-auto mb-3 opacity-40" />
+          <Images className="size-10 mx-auto mb-3 opacity-40" />
           <p className="text-sm font-medium">No variants yet</p>
           <p className="text-xs mt-1 opacity-70">Click "Add Variant" to create the first one</p>
         </div>
@@ -112,6 +119,7 @@ export function VariantManager({
           variantIndex={variantIndex}
           maxImagesPerVariant={maxImagesPerVariant}
           maxFileSizeMB={maxFileSizeMB}
+          maxVideoSizeMB={maxVideoSizeMB}
           onNameChange={(name) => updateName(variant.clientId, name)}
           onAddFiles={(files) => addFiles(variant.clientId, files)}
           onRemoveImage={(itemId) => removeImage(variant.clientId, itemId)}
@@ -140,6 +148,7 @@ interface VariantCardProps {
   variantIndex: number;
   maxImagesPerVariant: number;
   maxFileSizeMB: number;
+  maxVideoSizeMB: number;
   onNameChange: (name: string) => void;
   onAddFiles: (files: FileList) => void;
   onRemoveImage: (itemId: string) => void;
@@ -152,6 +161,7 @@ function VariantCard({
   variantIndex,
   maxImagesPerVariant,
   maxFileSizeMB,
+  maxVideoSizeMB,
   onNameChange,
   onAddFiles,
   onRemoveImage,
@@ -159,8 +169,8 @@ function VariantCard({
   onDelete,
 }: VariantCardProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const totalImages = variant.images.length;
-  const canAdd = totalImages < maxImagesPerVariant;
+  const totalMedia = variant.images.length;
+  const canAdd = totalMedia < maxImagesPerVariant;
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -173,6 +183,7 @@ function VariantCard({
     return {
       id: item.id,
       src,
+      isVideo: item.file ? isVideoFile(item.file) : isVideoUrl(src),
       type: item.url ? ('existing' as const) : ('new' as const),
     };
   });
@@ -206,7 +217,7 @@ function VariantCard({
       {/* Body */}
       <div className="p-4 space-y-3">
         <Label className="text-xs text-muted-foreground">
-          Images — {totalImages}/{maxImagesPerVariant} · First image shown as variant preview · Hover preview to reorder
+          Photos & videos — {totalMedia}/{maxImagesPerVariant} · First item is the variant preview · Hover preview to reorder
         </Label>
 
         {/* Drop zone */}
@@ -223,14 +234,19 @@ function VariantCard({
         >
           <Upload className="size-4 text-muted-foreground" />
           <p className="text-xs text-muted-foreground font-medium">
-            {canAdd ? 'Click or drop images here' : `Max ${maxImagesPerVariant} images reached`}
+            {canAdd ? 'Click or drop photos and videos here' : `Max ${maxImagesPerVariant} media items reached`}
           </p>
+          {canAdd && (
+            <p className="text-[10px] text-muted-foreground/80">
+              Images up to {maxFileSizeMB}MB · Videos up to {maxVideoSizeMB}MB
+            </p>
+          )}
         </div>
 
         <input
           ref={inputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,video/*"
           multiple
           className="hidden"
           onChange={(e) => { if (e.target.files) { onAddFiles(e.target.files); e.target.value = ''; } }}
@@ -247,12 +263,22 @@ function VariantCard({
                   globalIdx === 0 ? 'border-primary shadow-sm' : 'border-transparent'
                 )}
               >
-                <img
-                  src={item.src}
-                  alt={`Variant image ${globalIdx + 1}`}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
+                {item.isVideo ? (
+                  <video
+                    src={item.src}
+                    aria-label={`Variant video ${globalIdx + 1}`}
+                    className="w-full h-full object-cover"
+                    controls
+                    preload="metadata"
+                  />
+                ) : (
+                  <img
+                    src={item.src}
+                    alt={`Variant image ${globalIdx + 1}`}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                )}
 
                 {/* Primary badge */}
                 {globalIdx === 0 && (
@@ -273,6 +299,7 @@ function VariantCard({
                   type="button"
                   onClick={() => onRemoveImage(item.id)}
                   className="absolute top-1 right-1 bg-black/70 hover:bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-sm"
+                  aria-label={`Remove ${item.isVideo ? 'video' : 'image'} ${globalIdx + 1}`}
                 >
                   <X className="size-2.5" />
                 </button>

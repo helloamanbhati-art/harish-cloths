@@ -9,6 +9,7 @@ import { useCart } from '../contexts/CartContext';
 import { useCartIcon } from '../contexts/CartIconContext';
 import { AddToCartAnimation } from './AddToCartAnimation';
 import { useState, useRef } from 'react';
+import { isVideoMediaUrl } from '../utils/media';
 
 interface ProductCardProps {
   product: Product;
@@ -55,19 +56,33 @@ export function ProductCard({ product }: ProductCardProps) {
   };
 
   const variantsCount = product.variants ? product.variants.length : 0;
+  const primaryMedia = product.image || (product.images && product.images[0]) || '';
 
   return (
     <>
       <Link to={`/product/${product.id}`} className="block">
         <Card className="overflow-hidden cursor-pointer bg-card border-none rounded-none shadow-none group p-0 m-0 gap-1.5">
           <div className="aspect-[3/4] overflow-hidden relative bg-muted rounded-none">
-            <img
-              src={product.image || (product.images && product.images[0]) || ''}
-              alt={product.name}
-              loading="lazy"
-              decoding="async"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 select-none rounded-none"
-            />
+            {isVideoMediaUrl(primaryMedia) ? (
+              <video
+                src={primaryMedia}
+                aria-label={`${product.name} product video`}
+                muted
+                loop
+                autoPlay
+                playsInline
+                preload="metadata"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 select-none rounded-none"
+              />
+            ) : (
+              <img
+                src={primaryMedia}
+                alt={product.name}
+                loading="lazy"
+                decoding="async"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 select-none rounded-none"
+              />
+            )}
             {variantsCount > 1 && (
               <span className="absolute bottom-2.5 right-2.5 bg-white/90 dark:bg-black/90 backdrop-blur-sm text-[10px] md:text-xs font-semibold text-gray-700 dark:text-gray-200 px-2 py-0.5 rounded-none shadow-sm z-10">
                 +{variantsCount - 1} More

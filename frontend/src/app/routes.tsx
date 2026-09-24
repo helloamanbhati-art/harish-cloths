@@ -10,6 +10,7 @@ import { MyOrders } from './pages/MyOrders';
 import { OrderDetail } from './pages/OrderDetail';
 import { PrivacyPolicy } from './pages/PrivacyPolicy';
 import { NotFound } from './pages/NotFound';
+import { StoreInformation } from './pages/StoreInformation';
 import { AdminLayout } from './admin/pages/AdminLayout';
 import { AdminProducts } from './admin/pages/AdminProducts';
 import { AdminOrders } from './admin/pages/AdminOrders';
@@ -55,6 +56,22 @@ export const router = createBrowserRouter([
       { 
         path: 'privacy-policy', 
         element: <PrivacyPolicy /> 
+      },
+      {
+        path: 'about-us',
+        element: <StoreInformation />
+      },
+      {
+        path: 'contact-us',
+        element: <StoreInformation />
+      },
+      {
+        path: 'size-guide',
+        element: <StoreInformation />
+      },
+      {
+        path: 'shipping-delivery',
+        element: <StoreInformation />
       },
       { 
         path: '*', 

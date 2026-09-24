@@ -1,13 +1,11 @@
 import { Outlet, Link } from 'react-router';
 import { Navbar } from '../components/Navbar';
-import { useTheme } from '../hooks/useTheme';
 import { CartProvider } from '../contexts/CartContext';
 import { CartIconProvider, useCartIcon } from '../contexts/CartIconContext';
 import { OrderProvider } from '../contexts/OrderContext';
 import { Shield } from 'lucide-react';
 
 function LayoutContent() {
-  const { theme, toggleTheme } = useTheme();
   const { setCartIconElement } = useCartIcon();
 
   return (
@@ -17,7 +15,7 @@ function LayoutContent() {
           <Navbar 
             onCartIconReady={setCartIconElement}
           />
-          <div className="pt-[73px] flex-1">
+          <div className="flex-1 pt-[73px]">
             <Outlet />
           </div>
           

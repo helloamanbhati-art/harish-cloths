@@ -70,6 +70,16 @@ interface Product {
   compareAtPrice?: number;
 }
 
+const isVideoUrl = (url: string) => /\.(mp4|webm|ogg|mov|m4v)(?:[?#]|$)/i.test(url);
+
+function ProductMediaPreview({ src, name, className }: { src: string; name: string; className: string }) {
+  if (isVideoUrl(src)) {
+    return <video src={src} aria-label={`${name} video`} className={className} controls preload="metadata" />;
+  }
+
+  return <img src={src} alt={name} className={className} />;
+}
+
 const initialProducts: Product[] = [];
 // Note: Products are now fetched from the real API
 
@@ -186,6 +196,7 @@ useEffect(() => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [newProductSize, setNewProductSize] = useState('');
   
   // Variants state for the form
   const [variantsDraft, setVariantsDraft] = useState<VariantDraft[]>([]);
@@ -224,6 +235,7 @@ useEffect(() => {
   });
 
   const handleOpenDialog = (product?: Product) => {
+    setNewProductSize('');
     if (product) {
       setEditingProduct(product);
       setFormData({
@@ -292,15 +304,28 @@ useEffect(() => {
     setDialogOpen(true);
   };
 
+  const handleAddProductSize = () => {
+    const size = newProductSize.trim();
+    if (!size) return;
+
+    if (formData.availableSizes.some((item) => item.toLowerCase() === size.toLowerCase())) {
+      toast.error('This size is already selected');
+      return;
+    }
+
+    setFormData({ ...formData, availableSizes: [...formData.availableSizes, size] });
+    setNewProductSize('');
+  };
+
   const handleSaveProduct = async () => {
     if (!formData.name || !formData.brand || !formData.category || !formData.price) {
       toast.error('Please fill in all required fields');
       return;
     }
 
-    const totalImages = variantsDraft.reduce((acc, v) => acc + v.images.length, 0);
-    if (totalImages === 0) {
-      toast.error('Please upload at least one product image in your variants');
+    const totalMedia = variantsDraft.reduce((acc, v) => acc + v.images.length, 0);
+    if (totalMedia === 0) {
+      toast.error('Please upload at least one product photo or video in your variants');
       return;
     }
 
@@ -322,13 +347,15 @@ useEffect(() => {
             headers: getAuthHeaders(),
             body: imagesForm,
           });
-          
+
+          const uploadData = await uploadRes.json().catch(() => null);
           if (!uploadRes.ok) {
-            toast.error(`Image upload failed for variant ${variant.name}`);
+            const reason = uploadData?.message || `Upload returned status ${uploadRes.status}`;
+            toast.error(`Media upload failed for ${variant.name || 'Default'}: ${reason}`);
             setIsSaving(false);
             return;
           }
-          const uploadData = await uploadRes.json();
+
           uploadedUrls = uploadData?.urls || [];
         }
         
@@ -359,8 +386,8 @@ useEffect(() => {
         category: formData.category,
         price: parseFloat(formData.price),
         soldBy: formData.soldBy,
-        clothingType: null,
-        availableSizes: [],
+        clothingType: formData.clothingType || null,
+        availableSizes: formData.availableSizes,
         variants: finalizedVariants,
         inStock: formData.inStock,
         isFlatPrice: formData.soldBy === 'meter' ? true : formData.isFlatPrice,
@@ -486,10 +513,7 @@ useEffect(() => {
           ...getAuthHeaders(),
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...product,
-          inStock: nextInStock,
-        }),
+        body: JSON.stringify({ inStock: nextInStock }),
       });
 
       if (!res.ok) {
@@ -603,15 +627,23 @@ useEffect(() => {
                   {/* Product Images Strip */}
                   <div className="flex-shrink-0">
                     <div className="flex flex-col gap-1">
-                      {/* Primary image */}
-                      <img
+                      {/* Primary media */}
+                      {isVideoUrl(product.variants?.[0]?.images?.[0]?.imageUrl || product.image || (product.images && product.images[0])) ? (
+                        <video
+                          src={product.variants?.[0]?.images?.[0]?.imageUrl || product.image || (product.images && product.images[0])}
+                          aria-label={`${product.name} video`}
+                          className="size-20 rounded-lg object-cover border border-gray-200 dark:border-gray-700"
+                          controls
+                          preload="metadata"
+                        />
+                      ) : <img
                         src={product.variants?.[0]?.images?.[0]?.imageUrl || product.image || (product.images && product.images[0])}
                         alt={product.name}
                         className="size-20 rounded-lg object-cover border border-gray-200 dark:border-gray-700"
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODgiIGhlaWdodD0iODgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjOTk5IiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWxsPSJub25lIiBzdHJva2Utd2lkdGg9IjMiPjxyZWN0IHg9IjgiIHk9IjgiIHdpZHRoPSI3MiIgaGVpZ2h0PSI3MiIgcng9IjYiLz48cGF0aCBkPSJtOCA1NiAxNi0yMCAzMiAzMiIvPjxjaXJjbGUgY3g9IjUyIiBjeT0iMzIiIHI9IjgiLz48L3N2Zz4=';
                         }}
-                      />
+                      />}
                       {/* Extra variants/images count badge */}
                       {(product.variants && product.variants.length > 1) ? (
                         <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
@@ -621,7 +653,7 @@ useEffect(() => {
                       ) : (product.images && product.images.length > 1) ? (
                         <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
                           <Images className="size-3" />
-                          {product.images.length} photos
+                          {product.images.length} media items
                         </div>
                       ) : null}
                     </div>
@@ -779,7 +811,11 @@ useEffect(() => {
                                     <Check className="size-3.5 text-emerald-500 shrink-0" />
                                   ) : (
                                     variant.images?.[0]?.imageUrl ? (
-                                      <img src={variant.images[0].imageUrl} className="size-5 rounded object-cover shrink-0" />
+                                      <ProductMediaPreview
+                                        src={variant.images[0].imageUrl}
+                                        name={variant.variantName}
+                                        className="size-5 rounded object-cover shrink-0"
+                                      />
                                     ) : (
                                       <Link className="size-3.5 text-muted-foreground shrink-0" />
                                     )
@@ -886,12 +922,98 @@ useEffect(() => {
             </div>
 
             <div className="space-y-2">
-              <Label>Product Variants & Images *</Label>
+              <Label>Product Variants, Photos & Videos *</Label>
               <VariantManager
                 variants={variantsDraft}
                 onChange={setVariantsDraft}
               />
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="clothingType">Clothing type</Label>
+              <Select
+                value={formData.clothingType || 'none'}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, clothingType: value === 'none' ? '' : value })
+                }
+              >
+                <SelectTrigger id="clothingType">
+                  <SelectValue placeholder="Select clothing type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Not specified</SelectItem>
+                  {clothingTypeOptions.map((type) => (
+                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <fieldset className="space-y-3 rounded-md border p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <legend className="text-sm font-medium">Available sizes</legend>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Customers must choose one of these sizes before adding this product to their cart.
+                  </p>
+                </div>
+                {formData.availableSizes.length > 0 && (
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setFormData({ ...formData, availableSizes: [] })}>
+                    Clear
+                  </Button>
+                )}
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Input
+                  value={newProductSize}
+                  onChange={(event) => setNewProductSize(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      handleAddProductSize();
+                    }
+                  }}
+                  placeholder="Add a size, e.g. M(38)"
+                  aria-label="New product size"
+                />
+                <Button type="button" variant="outline" onClick={handleAddProductSize} disabled={!newProductSize.trim()}>
+                  <Plus className="mr-2 size-4" />
+                  Add size
+                </Button>
+              </div>
+              {[...new Set([...sizeOptions, ...formData.availableSizes])].length > 0 ? (
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+                  {[...new Set([...sizeOptions, ...formData.availableSizes])].map((size) => {
+                    const checked = formData.availableSizes.includes(size);
+                    const inputId = `product-size-${size.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+                    return (
+                      <label key={size} htmlFor={inputId} className={`flex min-h-10 cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors ${checked ? 'border-primary bg-primary/5 font-medium' : 'hover:bg-muted'}`}>
+                        <Checkbox
+                          id={inputId}
+                          checked={checked}
+                          onCheckedChange={(nextChecked) => {
+                            const availableSizes = nextChecked
+                              ? [...formData.availableSizes, size]
+                              : formData.availableSizes.filter((item) => item !== size);
+                            setFormData({ ...formData, availableSizes });
+                          }}
+                        />
+                        <span>{size}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="rounded-md bg-muted p-3 text-sm text-muted-foreground">
+                  Type a size above to add the first option for this product.
+                </p>
+              )}
+              {formData.availableSizes.length > 0 && (
+                <p className="text-xs font-medium text-muted-foreground" aria-live="polite">
+                  {formData.availableSizes.length} size{formData.availableSizes.length === 1 ? '' : 's'} selected
+                </p>
+              )}
+            </fieldset>
           </div>
 
           <DialogFooter>

@@ -39,6 +39,8 @@ exports.createProductSchema = Joi.object({
     })
   ),
   variants: Joi.array().items(variantJoiSchema),
+  clothingType: Joi.string().trim().allow('', null),
+  availableSizes: Joi.array().items(Joi.string().trim().min(1)).unique().default([]),
   taxable: Joi.boolean(),
   taxClass: Joi.string().valid("standard", "reduced", "zero"),
   seoTitle: Joi.string(),
@@ -78,6 +80,8 @@ exports.updateProductSchema = Joi.object({
     })
   ),
   variants: Joi.array().items(variantJoiSchema),
+  clothingType: Joi.string().trim().allow('', null),
+  availableSizes: Joi.array().items(Joi.string().trim().min(1)).unique(),
   taxable: Joi.boolean(),
   taxClass: Joi.string().valid("standard", "reduced", "zero"),
   seoTitle: Joi.string(),

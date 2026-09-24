@@ -20,14 +20,36 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 },
+  fileFilter: (_req, file, callback) => {
+    const isSupportedMedia = file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/');
+    if (!isSupportedMedia) {
+      const error = new Error('Only image and video files are allowed');
+      error.statusCode = 400;
+      return callback(error);
+    }
+    callback(null, true);
+  },
+});
 
 const router = express.Router();
+
+function containsApplicationErrorText(value) {
+  return typeof value === 'string'
+    && /Unexpected Application Error|ReferenceError:\s*\w+ is not defined/i.test(value);
+}
+
+function hasCorruptedProductContent(data) {
+  return [data?.name, data?.description, data?.image, ...(Array.isArray(data?.images) ? data.images : [])]
+    .some(containsApplicationErrorText);
+}
 
 async function uploadBufferToCloudinary(fileBuffer) {
   return new Promise((resolve, reject) => {
     cloudinary.uploader
-      .upload_stream({ folder: "harish-cloths/products" }, (error, result) => {
+      .upload_stream({ folder: "harish-cloths/products", resource_type: "auto" }, (error, result) => {
         if (error) return reject(error);
         resolve(result);
       })
@@ -70,13 +92,13 @@ router.use(authenticateAdmin);
 router.use(apiLimiter);
 
 
-// Image Upload
+// Product media upload (images and videos)
 router.post('/products/upload-image', upload.single('image'), async (req, res) => {
   try {
     console.log('[UPLOAD] Request received');
     if (!req.file) {
       console.log('[UPLOAD] No file in request');
-      return res.status(400).json({ success: false, message: 'No image uploaded' });
+      return res.status(400).json({ success: false, message: 'No media file uploaded' });
     }
     console.log('[UPLOAD] File received:', req.file.originalname, 'Size:', req.file.size);
 
@@ -93,7 +115,7 @@ router.post("/products/upload-images", upload.array("images", 20), async (req, r
   try {
     const files = req.files || [];
     if (!Array.isArray(files) || files.length === 0) {
-      return res.status(400).json({ success: false, message: "No images uploaded" });
+      return res.status(400).json({ success: false, message: "No media files uploaded" });
     }
 
     const uploaded = [];
@@ -128,6 +150,13 @@ router.post('/products', async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Missing required fields: name, description, price, soldBy are required'
+      });
+    }
+
+    if (hasCorruptedProductContent(data)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Product content cannot contain an application error message',
       });
     }
 
@@ -244,6 +273,13 @@ router.put('/products/:productId', async (req, res) => {
     const data = req.body;
     const Product = require('../models/Product');
 
+    if (hasCorruptedProductContent(data)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Product content cannot contain an application error message',
+      });
+    }
+
     let brandId = data.brand;
     if (data.brand && !data.brand.match(/^[0-9a-fA-F]{24}$/)) {
       let brand = await Brand.findOne({ name: data.brand });
@@ -294,8 +330,8 @@ router.put('/products/:productId', async (req, res) => {
     const updatePayload = {
       ...data,
       isFlatPrice: data.soldBy === 'meter' ? true : (data.isFlatPrice !== undefined ? data.isFlatPrice : undefined),
-      brand: brandId,
-      category: categoryId,
+      ...(brandId !== undefined && { brand: brandId }),
+      ...(categoryId !== undefined && { category: categoryId }),
       updatedBy: req.admin._id,
       ...(variants !== undefined && { variants }),
       ...(legacyImages !== undefined && { images: legacyImages }),

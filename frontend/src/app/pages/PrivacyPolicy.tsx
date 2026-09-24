@@ -28,7 +28,7 @@ export function PrivacyPolicy() {
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold">1. Introduction</h2>
             <p className="leading-relaxed">
-              Welcome to A&S (Aman & Sons) ("we," "us," "our," or "Company"). We are committed to protecting your privacy and ensuring you have a positive experience on our website and mobile application. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website (www.amanandsons.com), mobile application, and related services.
+              Welcome to Siddhi Fashion & Tailoring ("we," "us," "our," or "Company"), owned by Vishesh. We are committed to protecting your privacy and ensuring you have a positive experience on our website. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our related services.
             </p>
             <p className="leading-relaxed">
               Please read this Privacy Policy carefully. If you do not agree with our policies and practices, please do not use our services. By accessing and using our services, you acknowledge that you have read, understood, and agree to be bound by all the terms of this Privacy Policy.
@@ -182,7 +182,7 @@ export function PrivacyPolicy() {
             </ul>
 
             <p className="leading-relaxed mt-4">
-              To exercise these rights, contact us at helloamanbhati@gmail.com. We will respond within 30 days of receiving your request.
+              To exercise these rights, contact us at <a href="mailto:visheshashwani@icloud.com" className="font-medium text-primary hover:underline">visheshashwani@icloud.com</a>. We will respond within 30 days of receiving your request.
             </p>
           </section>
 
@@ -207,7 +207,7 @@ export function PrivacyPolicy() {
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold">9. Children's Privacy</h2>
             <p className="leading-relaxed">
-              Our services are not intended for children under the age of 13. We do not knowingly collect personal information from children under 13. If we discover that we have collected information from a child under 13, we will promptly delete such information. If you believe we have collected information from a child under 13, please contact us immediately at helloamanbhati@gmail.com.
+              Our services are not intended for children under the age of 13. We do not knowingly collect personal information from children under 13. If we discover that we have collected information from a child under 13, we will promptly delete such information. If you believe we have collected information from a child under 13, please contact us immediately at <a href="mailto:visheshashwani@icloud.com" className="font-medium text-primary hover:underline">visheshashwani@icloud.com</a>.
             </p>
           </section>
 
@@ -242,12 +242,13 @@ export function PrivacyPolicy() {
               If you have questions, concerns, or requests regarding this Privacy Policy or our privacy practices, please contact us at:
             </p>
             <div className="bg-muted p-6 rounded-lg space-y-2 ml-4 mt-4">
-              <p><strong>A&S (Aman & Sons)</strong></p>
+              <p><strong>Siddhi Fashion &amp; Tailoring</strong></p>
+              <p className="text-muted-foreground">Owner: Vishesh</p>
               <p className="text-muted-foreground">
-                Email: helloamanbhati@gmail.com<br/>
-                Email: support@amanandsons.com<br/>
-                Phone: +91-9358587006<br/>
-                Address: Rajasthan, Jodhpur
+                Email: <a href="mailto:visheshashwani@icloud.com" className="hover:text-foreground hover:underline">visheshashwani@icloud.com</a><br/>
+                Phone: <a href="tel:+918875724342" className="hover:text-foreground hover:underline">+91 88757 24342</a><br/>
+                Address: 430, Fashion Street, Lane No. 1, near Hanuman Dhaba Chauraha, Raja Park, Jaipur, Rajasthan 302004<br/>
+                GST No.: 08AAYPA5478L1ZW
               </p>
             </div>
             <p className="leading-relaxed mt-4">
@@ -258,7 +259,7 @@ export function PrivacyPolicy() {
           {/* Footer */}
           <div className="border-t pt-8 mt-8">
             <p className="text-sm text-muted-foreground">
-              This Privacy Policy is effective as of the date last updated and applies to all users of A&S services. Thank you for trusting us with your information.
+              This Privacy Policy is effective as of the date last updated and applies to all users of Siddhi Fashion &amp; Tailoring services. Thank you for trusting us with your information.
             </p>
           </div>
         </div>

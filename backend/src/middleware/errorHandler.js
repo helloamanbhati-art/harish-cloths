@@ -7,6 +7,16 @@ exports.errorHandler = (err, req, res, next) => {
     method: req.method,
   });
 
+  // Multer upload validation errors
+  if (err.name === "MulterError") {
+    return res.status(400).json({
+      success: false,
+      message: err.code === "LIMIT_FILE_SIZE"
+        ? "Media file is too large (maximum 50MB)"
+        : "Invalid media upload",
+    });
+  }
+
   // Mongoose validation error
   if (err.name === "ValidationError") {
     const messages = Object.values(err.errors).map((e) => e.message);

@@ -9,13 +9,13 @@ export function Logo({ className, showSubtitle = true }: LogoProps) {
   return (
     <div className={cn('flex items-center gap-3', className)}>
       <img
-        src="/harish-clothing-logo.svg"
-        alt="Harish Clothing"
+        src="/siddhi-fashion-logo.png"
+        alt="Siddhi Fashion Retail"
         className="h-10 w-auto object-contain"
       />
       {showSubtitle ? (
         <div>
-          <h1 className="text-xl font-bold text-foreground">Harish Clothing</h1>
+          <h1 className="text-xl font-bold text-foreground">Siddhi Fashion</h1>
           <p className="text-xs text-muted-foreground">Admin Panel</p>
         </div>
       ) : null}

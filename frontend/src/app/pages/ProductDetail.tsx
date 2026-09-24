@@ -1,7 +1,7 @@
-import { useParams, Link, useNavigate, useLocation } from "react-router";
+import { useParams, Link, useLocation } from "react-router";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
-import { ArrowLeft, ShoppingCart, Minus, Plus, Trash2, Loader, LayoutGrid, Check, Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, ShoppingCart, Minus, Plus, Loader, Check, ChevronDown, ChevronLeft, ChevronRight, Share2 } from "lucide-react";
 import { useCart } from "../contexts/CartContext";
 import { usePageTitle } from "../hooks/usePageTitle";
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -9,7 +9,7 @@ import { AddToCartAnimation } from "../components/AddToCartAnimation";
 import { useCartIcon } from "../contexts/CartIconContext";
 import { toast } from "sonner";
 import { ProductVariant, SelectedVariantSnapshot } from "../types/product";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
+import { isVideoMediaUrl } from "../utils/media";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -37,7 +37,6 @@ interface Product {
 
 export function ProductDetail() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const location = useLocation();
   usePageTitle('Product Details');
   const [product, setProduct] = useState<Product | null>(null);
@@ -89,6 +88,27 @@ export function ProductDetail() {
           throw new Error('Product data not found');
         }
 
+        let availableSizes = Array.isArray(productData.availableSizes)
+          ? productData.availableSizes
+          : [];
+
+        // Legacy per-piece products may not have sizes stored directly on the
+        // product. Fall back to the public admin-managed size options so the
+        // customer can still select a size before adding the item to cart.
+        if ((productData.soldBy || 'piece') === 'piece' && availableSizes.length === 0) {
+          try {
+            const optionsResponse = await fetch(`${API_BASE_URL}/api/v1/catalog/product-options`);
+            if (optionsResponse.ok) {
+              const optionsResult = await optionsResponse.json();
+              availableSizes = Array.isArray(optionsResult?.data?.sizes)
+                ? optionsResult.data.sizes
+                : [];
+            }
+          } catch (optionsError) {
+            console.warn('Unable to load fallback product sizes:', optionsError);
+          }
+        }
+
         // Transform API response to match Product type
         const transformedProduct: Product = {
           _id: productData._id || productData.id,
@@ -124,7 +144,7 @@ export function ProductDetail() {
             : productData.category || '',
           soldBy: productData.soldBy || 'piece',
           isFlatPrice: productData.isFlatPrice ?? false,
-          availableSizes: Array.isArray(productData.availableSizes) ? productData.availableSizes : [],
+          availableSizes,
           clothingType: productData.clothingType || '',
           inStock: productData.inStock !== false,
           additionalChargeName: productData.additionalChargeName || '',
@@ -261,67 +281,6 @@ export function ProductDetail() {
     }
   };
 
-  const handleBuyNow = () => {
-    if (!product) return;
-
-    if (product.availableSizes && product.availableSizes.length > 0) {
-      if (!selectedSize) {
-        toast.error('Please select a size before checking out');
-        return;
-      }
-    }
-
-    const cartVariantName = selectedVariant ? selectedVariant.variantName : undefined;
-
-    // Copy product and override image with selected variant image
-    let productToCart = { ...product };
-    if (selectedVariant && selectedVariant.images && selectedVariant.images.length > 0) {
-      const primaryImg = selectedVariant.images.find(img => img.isPrimary) || selectedVariant.images[0];
-      if (primaryImg && primaryImg.imageUrl) {
-        productToCart.image = primaryImg.imageUrl;
-      }
-    }
-
-    // Construct a complete SelectedVariantSnapshot
-    let variantSnapshot: SelectedVariantSnapshot;
-    if (selectedVariant) {
-      variantSnapshot = {
-        variantId: selectedVariant.variantId,
-        variantName: selectedVariant.variantName,
-        color: selectedVariant.variantName || product.colors?.[0] || null,
-        pattern: product.name,
-        sku: product.sku || null,
-        thumbnail: selectedVariant.images?.[0]?.imageUrl || product.image || null,
-        primaryImage: (selectedVariant.images?.find(img => img.isPrimary) || selectedVariant.images?.[0])?.imageUrl || product.image || null,
-        galleryImages: selectedVariant.images?.map(img => img.imageUrl) || [],
-        priceAtPurchase: product.price
-      };
-    } else {
-      variantSnapshot = {
-        variantId: 'default',
-        variantName: cartVariantName || 'Default',
-        color: cartVariantName || 'Default',
-        pattern: product.name,
-        sku: product.sku || null,
-        thumbnail: product.image || null,
-        primaryImage: product.image || null,
-        galleryImages: product.images || [],
-        priceAtPurchase: product.price
-      };
-    }
-
-    addToCart(
-      productToCart,
-      product.soldBy === 'meter' ? selectedMeters : undefined,
-      selectedSize || undefined,
-      cartVariantName,
-      variantSnapshot,
-      quantity
-    );
-
-    navigate('/cart');
-  };
-
   const handleAnimationComplete = useCallback(() => {
     setShowAnimation(false);
   }, []);
@@ -330,6 +289,29 @@ export function ProductDetail() {
     setSelectedVariant(variant);
     setActiveImageIndex(0);
   }, []);
+
+  const handleShare = async () => {
+    if (!product) return;
+
+    const shareData = {
+      title: product.name,
+      text: `Take a look at ${product.name} from Siddhi Fashion.`,
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        return;
+      }
+
+      await navigator.clipboard.writeText(shareData.url);
+      toast.success('Product link copied');
+    } catch (shareError) {
+      if (shareError instanceof DOMException && shareError.name === 'AbortError') return;
+      toast.error('Unable to share this product');
+    }
+  };
 
   if (loading) {
     return (
@@ -365,228 +347,112 @@ export function ProductDetail() {
   
   const carouselImages = galleryImages.map((img: any) => typeof img === 'string' ? img : img.imageUrl);
   const primaryImageForAnimation = carouselImages && carouselImages.length > 0 ? carouselImages[0] : product.image;
+  const activeMedia = carouselImages[activeImageIndex] || product.image;
   const variants = product.variants || [];
+  const requiresSize = Boolean(product.availableSizes?.length);
+  const purchaseDisabled = !product.inStock || (requiresSize && !selectedSize);
+  const productLookupCode = product.id.slice(-8).toUpperCase();
+  const hasPinkShootDetails = productLookupCode === '36A46A94';
 
   return (
-    <div className="flex-1 px-6 py-4 md:px-10 md:py-8 max-w-7xl mx-auto w-full">
-      {/* Back Button */}
-      <Link to="/">
-        <Button variant="ghost" className="mb-4 md:mb-6">
-          <ArrowLeft className="size-4 mr-2" />
-          Back to Products
-        </Button>
+    <main className="mx-auto w-full max-w-[1440px] px-4 py-4 sm:px-6 lg:px-8">
+      <Link to="/" className="mb-3 inline-flex items-center gap-2 rounded-md px-1 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <ArrowLeft className="size-4" /> Back to products
       </Link>
-
-      <div className="grid md:grid-cols-2 gap-6 md:gap-10">
-        
-        {/* Left Column: Main Image Carousel */}
-        <div className="space-y-4">
-          {/* Main Image container with scroll/carousel overlay */}
-          <div className="relative overflow-hidden rounded-none bg-muted group p-0">
-            <img
-              src={carouselImages[activeImageIndex] || product.image}
-              alt={product.name}
-              loading="eager"
-              decoding="async"
-              className="w-full h-auto object-contain transition-opacity duration-150 rounded-none p-0 m-0"
-            />
-            {carouselImages.length > 1 && (
-              <>
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setActiveImageIndex((prev) => (prev === 0 ? carouselImages.length - 1 : prev - 1));
-                  }}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity focus-visible:opacity-100 cursor-pointer z-10"
-                  aria-label="Previous image"
-                >
-                  <ChevronLeft className="size-5" />
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.12fr)_minmax(390px,0.88fr)] lg:gap-8">
+        <section aria-label="Product images" className="grid min-w-0 gap-3 sm:grid-cols-[72px_minmax(0,1fr)]">
+          {carouselImages.length > 1 && (
+            <div className="order-2 flex gap-3 overflow-x-auto pb-1 sm:order-1 sm:flex-col sm:pb-0">
+              {carouselImages.map((media, index) => (
+                <button key={`${media}-${index}`} type="button" onClick={() => setActiveImageIndex(index)} className={`h-20 w-[72px] shrink-0 overflow-hidden rounded-md border-2 bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${index === activeImageIndex ? 'border-primary' : 'border-transparent hover:border-muted-foreground/40'}`} aria-label={`View product media ${index + 1} of ${carouselImages.length}`} aria-pressed={index === activeImageIndex}>
+                  {isVideoMediaUrl(media) ? (
+                    <video src={media} aria-hidden="true" muted playsInline preload="metadata" className="h-full w-full object-cover" />
+                  ) : (
+                    <img src={media} alt="" className="h-full w-full object-cover" />
+                  )}
                 </button>
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setActiveImageIndex((prev) => (prev === carouselImages.length - 1 ? 0 : prev + 1));
-                  }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity focus-visible:opacity-100 cursor-pointer z-10"
-                  aria-label="Next image"
-                >
-                  <ChevronRight className="size-5" />
-                </button>
-
-                {/* Dot Indicators */}
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 bg-black/30 px-3 py-1.5 rounded-full z-10">
-                  {carouselImages.map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setActiveImageIndex(idx)}
-                      className={`size-2 rounded-full transition-all ${
-                        idx === activeImageIndex ? 'bg-white scale-125' : 'bg-white/50 hover:bg-white/80'
-                      }`}
-                      aria-label={`Go to slide ${idx + 1}`}
-                    />
-                  ))}
-                </div>
-              </>
+              ))}
+            </div>
+          )}
+          <div className={`group relative order-1 flex min-h-[400px] items-center justify-center overflow-hidden rounded-lg bg-muted sm:order-2 lg:h-[calc(100dvh-150px)] lg:min-h-[540px] lg:max-h-[720px] ${carouselImages.length <= 1 ? 'sm:col-span-2' : ''}`}>
+            {isVideoMediaUrl(activeMedia) ? (
+              <video src={activeMedia} aria-label={`${product.name} product video`} className="h-full w-full object-contain" controls playsInline preload="metadata" />
+            ) : (
+              <img src={activeMedia} alt={`${product.name}${carouselImages.length > 1 ? `, image ${activeImageIndex + 1}` : ''}`} className="h-full w-full object-contain" loading="eager" decoding="async" />
             )}
+            {carouselImages.length > 1 && <><Button type="button" variant="secondary" size="icon" onClick={() => setActiveImageIndex((activeImageIndex - 1 + carouselImages.length) % carouselImages.length)} className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-background/90 shadow-sm backdrop-blur-sm sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100 sm:focus-visible:opacity-100" aria-label="Previous product image"><ChevronLeft className="size-5" /></Button><Button type="button" variant="secondary" size="icon" onClick={() => setActiveImageIndex((activeImageIndex + 1) % carouselImages.length)} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-background/90 shadow-sm backdrop-blur-sm sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100 sm:focus-visible:opacity-100" aria-label="Next product image"><ChevronRight className="size-5" /></Button><span className="absolute bottom-3 right-3 rounded-full bg-background/90 px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm" aria-live="polite">{activeImageIndex + 1} / {carouselImages.length}</span></>}
+          </div>
+        </section>
+
+        <section aria-labelledby="product-title" className="px-1 py-2 sm:px-2 lg:sticky lg:top-[88px] lg:max-h-[calc(100dvh-105px)] lg:self-start lg:overflow-y-auto lg:px-4">
+          <div className="flex flex-wrap items-center gap-2"><Badge variant="secondary">{product.brand || product.category || 'Siddhi Fashion'}</Badge><Badge variant={product.inStock ? 'outline' : 'destructive'} className={product.inStock ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : ''}>{product.inStock ? 'In stock' : 'Out of stock'}</Badge></div>
+          <h1 id="product-title" className="mt-3 text-xl font-semibold leading-tight tracking-tight sm:text-2xl">{product.name}</h1>
+          <div className="mt-4 flex flex-wrap items-end justify-between gap-x-6 gap-y-2 border-b pb-4"><div><p className="text-2xl font-bold text-emerald-600">₹{(product.soldBy === 'meter' && selectedMeters === 5 ? product.price + (product.compareAtPrice || 0) : product.price).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p><p className="mt-0.5 text-xs text-muted-foreground">MRP inclusive of all taxes</p></div><p className="text-xs text-muted-foreground">Product code: {productLookupCode}</p></div>
+
+          {variants.length > 1 && <fieldset className="border-b py-3"><legend className="mb-2 text-sm font-semibold">Style <span className="font-normal text-muted-foreground">— {selectedVariant?.variantName}</span></legend><div className="flex flex-wrap gap-2">{variants.map((variant) => { const image = variant.images?.[0]?.imageUrl; const selected = selectedVariant?.variantId === variant.variantId; return <button key={variant.variantId} type="button" onClick={() => handleVariantSelect(variant)} className={`relative size-16 overflow-hidden rounded-md border-2 bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${selected ? 'border-primary' : 'border-transparent hover:border-muted-foreground/40'}`} aria-label={`Select ${variant.variantName}`} aria-pressed={selected} title={variant.variantName}>{image ? <img src={image} alt="" className="h-full w-full object-cover" /> : <span className="grid h-full place-items-center px-1 text-xs">{variant.variantName}</span>}{selected && <span className="absolute right-1 top-1 grid size-5 place-items-center rounded-full bg-primary text-primary-foreground"><Check className="size-3" /></span>}</button>; })}</div></fieldset>}
+
+          {product.soldBy === 'meter' && <fieldset className="border-b py-3"><legend className="mb-2 text-sm font-semibold">Fabric length</legend><div className="flex flex-wrap gap-2">{[4, 5].map((meters) => <button key={meters} type="button" onClick={() => setSelectedMeters(meters)} className={`rounded-md border px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${selectedMeters === meters ? 'border-primary bg-primary text-primary-foreground' : 'bg-background hover:bg-accent'}`} aria-pressed={selectedMeters === meters}>{meters} metres{meters === 5 && product.compareAtPrice ? ` (+₹${product.compareAtPrice.toFixed(2)})` : ''}</button>)}</div></fieldset>}
+
+          <div className="space-y-4 py-4">
+            <div><p className="mb-2 text-sm font-semibold">Quantity</p><div className="inline-flex h-10 items-center overflow-hidden rounded-md border bg-background"><button type="button" className="grid h-full w-10 place-items-center transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:text-muted-foreground" onClick={() => setQuantity(Math.max(1, quantity - 1))} disabled={quantity === 1} aria-label="Decrease quantity"><Minus className="size-4" /></button><output className="min-w-10 border-x px-2 text-center text-sm font-semibold" aria-live="polite">{quantity}</output><button type="button" className="grid h-full w-10 place-items-center transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:text-muted-foreground" onClick={() => setQuantity(Math.min(10, quantity + 1))} disabled={quantity === 10} aria-label="Increase quantity"><Plus className="size-4" /></button></div></div>
+            {product.availableSizes && product.availableSizes.length > 0 ? <fieldset><legend className="text-sm font-semibold">Size <span className="text-destructive" aria-hidden="true">*</span><span className="sr-only">(required)</span></legend><div className="mt-2 flex flex-wrap gap-2">{product.availableSizes.map((size) => <button key={size} type="button" onClick={() => setSelectedSize(size)} className={`min-h-10 min-w-12 rounded-sm border px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${selectedSize === size ? 'border-foreground bg-foreground text-background' : 'border-input bg-background hover:border-foreground hover:bg-accent'}`} aria-pressed={selectedSize === size} aria-label={`Size ${size}${selectedSize === size ? ', selected' : ''}`}>{size}</button>)}</div><p className={`mt-1.5 text-xs ${selectedSize ? 'font-medium text-foreground' : 'text-muted-foreground'}`} aria-live="polite">{selectedSize ? `Selected: ${selectedSize}` : 'Select a size to continue'}</p></fieldset> : <div><p className="text-sm font-semibold">Sold by</p><p className="mt-2 text-sm text-muted-foreground">{product.soldBy === 'meter' ? 'Fabric length' : 'One piece'}</p></div>}
           </div>
 
-          {/* Variants Swatches Selection */}
-          {variants.length > 1 && (
-            <div className="grid grid-cols-3 md:grid-cols-4 gap-3.5 py-2.5 px-2.5 w-fit">
-              {variants.map((variant, idx) => {
-                const isSelected = selectedVariant?.variantId === variant.variantId;
-                const variantImageUrl = variant.images && variant.images[0]
-                  ? (typeof variant.images[0] === 'string' ? variant.images[0] : variant.images[0].imageUrl)
-                  : '';
-                return (
-                  <button
-                    key={idx}
-                    onClick={() => handleVariantSelect(variant)}
-                    className="shrink-0 focus-visible:outline-none p-0 m-0"
-                    aria-label={`Select variant ${variant.variantName}`}
-                  >
-                    <div className={`relative size-24 md:size-32 rounded-none overflow-hidden border-2 transition-all p-0 ${
-                      isSelected ? 'border-emerald-600 ring-2 ring-emerald-500/20 scale-105' : 'border-border/60 hover:border-gray-400'
-                    }`}>
-                      {variantImageUrl ? (
-                        <img src={variantImageUrl} alt={variant.variantName} loading="lazy" decoding="async" className="w-full h-full object-cover rounded-none p-0 m-0" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-[8px] bg-muted rounded-none p-0 m-0">No img</div>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
+          <div ref={buttonRef}><Button onClick={handleAddToCart} disabled={purchaseDisabled} className="h-12 w-full gap-2 text-base"><ShoppingCart className="size-4" />{!product.inStock ? 'Out of stock' : added ? 'Added to cart' : requiresSize && !selectedSize ? 'Select a size' : 'Add to cart'}</Button></div>
+          <div className="mt-4 border-t pt-4">
+            {hasPinkShootDetails ? (
+              <details className="group mt-2 border-b">
+                <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 py-3 text-sm font-semibold transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
+                  More details
+                  <ChevronDown className="size-4 shrink-0 transition-transform group-open:rotate-180" aria-hidden="true" />
+                </summary>
+                <div className="space-y-5 border-t py-5 text-sm leading-6">
+                  <div className="space-y-1">
+                    <p><strong>Product Code:</strong> ST0549</p>
+                    <p><strong>Upper length:</strong> 39 inches (99.06 cm) approx.</p>
+                    <p><strong>Bottom length:</strong> 38 inches (96.5 cm) approx.</p>
+                    <p><strong>Care:</strong> Dry clean only</p>
+                  </div>
 
-        {/* Right Column: Title, Code, Ratings, Price, Dropdowns, and Actions */}
-        <div className="space-y-4">
-          <div className="pb-2">
-            {/* Title */}
-            <h1 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight">
-              {product.name}
-            </h1>
-          </div>
+                  <div>
+                    <h2 className="font-semibold">📌 Estimated Delivery Information</h2>
+                    <ul className="mt-2 space-y-1 text-muted-foreground">
+                      <li><strong className="text-foreground">Delhi NCR:</strong> 5 to 7 days (approx.)</li>
+                      <li><strong className="text-foreground">Rest of India:</strong> 8 to 10 days (approx.)</li>
+                      <li><strong className="text-foreground">Village/Remote area:</strong> 12 to 15 days (approx.)</li>
+                      <li><strong className="text-foreground">Outside India:</strong> 10 to 15 days (approx.)</li>
+                    </ul>
+                    <p className="mt-3 font-semibold">📌 No express shipping</p>
+                  </div>
 
-          <div className="border-t border-border pt-4 space-y-3">
-            {/* Availability Row */}
-            <div className="space-y-1.5 text-sm text-muted-foreground font-medium">
-              <div>
-                Availability:&nbsp;&nbsp;<span className={`${product.inStock ? 'text-emerald-600' : 'text-destructive'} font-semibold`}>{product.inStock ? 'In Stock' : 'Out of Stock'}</span>
-              </div>
-            </div>
-          </div>
+                  <div className="space-y-2 text-muted-foreground">
+                    <p>After placing your order, details will be sent to your email address and to the WhatsApp number provided for parcel delivery.</p>
+                    <p className="font-semibold text-foreground">📌 Please check your email spam folder too.</p>
+                    <p><strong className="text-foreground">Disclaimer:</strong> Color variations may occur due to differences in phone screen resolution or photographic lighting.</p>
+                  </div>
 
-          {/* Price section with dividers */}
-          <div className="border-t border-b border-border py-4 my-2">
-            <div className="text-2xl md:text-3xl font-bold text-emerald-600 font-sans">
-              ₹{(product.soldBy === 'meter' && selectedMeters === 5
-                ? (product.price + (product.compareAtPrice || 0))
-                : product.price).toFixed(2)}
-            </div>
-          </div>
+                  <div>
+                    <h2 className="font-semibold">Washing Instructions</h2>
+                    <ul className="mt-2 space-y-1 text-muted-foreground">
+                      <li><strong className="text-foreground">All silk suits:</strong> Dry clean only</li>
+                      <li><strong className="text-foreground">Embroidery suits:</strong> Dry clean only</li>
+                      <li><strong className="text-foreground">Printed cotton:</strong> Gentle dip wash with mild detergent</li>
+                    </ul>
+                  </div>
 
-
-
-          {/* Size Selection (if available) */}
-          {product.availableSizes && product.availableSizes.length > 0 && (
-            <div className="space-y-2 p-3.5 bg-muted/20 rounded-lg border">
-              <label className="text-sm font-semibold">Select Size</label>
-              <div className="flex flex-wrap gap-2">
-                {product.availableSizes.map((size) => (
-                  <Button
-                    key={size}
-                    variant={selectedSize === size ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setSelectedSize(size)}
-                    className="px-3 h-8 text-xs font-semibold"
-                  >
-                    {size}
+                  <Button type="button" variant="outline" onClick={handleShare} className="w-full gap-2">
+                    <Share2 className="size-4" aria-hidden="true" />
+                    Share
                   </Button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Fabric Length Dropdown Selector */}
-          {product.soldBy === 'meter' && (
-            <div className="space-y-1.5">
-              <label className="text-sm font-semibold text-foreground flex items-center gap-0.5">
-                <span className="text-destructive font-bold">*</span> Length
-              </label>
-              <Select
-                value={String(selectedMeters)}
-                onValueChange={(val) => setSelectedMeters(parseFloat(val))}
-              >
-                <SelectTrigger className="w-full bg-background border border-border">
-                  <span>
-                    {selectedMeters} meter
-                    {selectedMeters === 5 && product.compareAtPrice && product.compareAtPrice > 0
-                      ? ` (+₹${product.compareAtPrice.toFixed(2)})`
-                      : ''}
-                  </span>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="4">4 meter</SelectItem>
-                  <SelectItem value="5">
-                    5 meter {product.compareAtPrice && product.compareAtPrice > 0 ? `(+₹${product.compareAtPrice.toFixed(2)})` : ''}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {/* Qty, Add to Cart panel */}
-          <div className="py-4 border-t border-border mt-4">
-            <div className="flex items-center gap-3">
-              {/* Quantity selector */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-muted-foreground">Qty</span>
-                <Select
-                  value={String(quantity)}
-                  onValueChange={(val) => setQuantity(parseInt(val))}
-                >
-                  <SelectTrigger className="w-20 bg-background border border-border">
-                    <span>{quantity}</span>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1</SelectItem>
-                    <SelectItem value="2">2</SelectItem>
-                    <SelectItem value="3">3</SelectItem>
-                    <SelectItem value="4">4</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Add to Cart button */}
-              <div ref={buttonRef} className="flex-1">
-                <Button
-                  onClick={handleAddToCart}
-                  disabled={!product.inStock || (product.availableSizes && product.availableSizes.length > 0 && !selectedSize)}
-                  className="w-full flex items-center justify-center gap-2 py-2"
-                >
-                  <ShoppingCart className="size-4" />
-                  {!product.inStock ? "Out of Stock" : added ? "Added!" : "Add to Cart"}
-                </Button>
-              </div>
-            </div>
+                </div>
+              </details>
+            ) : product.description ? (
+              <><h2 className="mt-5 text-base font-semibold">Product details</h2><p className="mt-2 whitespace-pre-line text-sm leading-6 text-muted-foreground">{product.description}</p></>
+            ) : null}
           </div>
-        </div>
+        </section>
       </div>
-
-
-      {/* Add To Cart Animation */}
-      {showAnimation && (
-        <AddToCartAnimation
-          show={showAnimation}
-          startPosition={animationPositions.start}
-          endPosition={animationPositions.end}
-          productImage={primaryImageForAnimation}
-          onComplete={handleAnimationComplete}
-        />
-      )}
-    </div>
+      {showAnimation && <AddToCartAnimation show={showAnimation} startPosition={animationPositions.start} endPosition={animationPositions.end} productImage={primaryImageForAnimation} onComplete={handleAnimationComplete} />}
+    </main>
   );
 }

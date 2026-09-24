@@ -1,6 +1,7 @@
 const Order = require("../models/Order");
 const Customer = require("../models/Customer");
 const Product = require("../models/Product");
+const ProductOptions = require("../models/ProductOptions");
 const paymentService = require("../services/paymentService");
 const inventoryService = require("../services/inventoryService");
 const emailService = require("../services/emailService");
@@ -15,6 +16,7 @@ exports.createOrder = async (req, res, next) => {
     // Validate items
     let subtotal = 0;
     const orderItems = [];
+    let defaultPieceSizes = null;
 
     for (const item of items) {
       const product = await Product.findById(item.productId);
@@ -33,15 +35,26 @@ exports.createOrder = async (req, res, next) => {
         });
       }
 
+      // Use product-specific sizes first, then the admin-managed global sizes
+      // for legacy per-piece products that have not been edited yet.
+      let availableSizes = product.availableSizes || [];
+      if (product.soldBy === "piece" && availableSizes.length === 0) {
+        if (defaultPieceSizes === null) {
+          const options = await ProductOptions.findOne({ key: "default" }).lean();
+          defaultPieceSizes = options?.sizes || [];
+        }
+        availableSizes = defaultPieceSizes;
+      }
+
       // Validate size selection for products with available sizes
-      if (product.availableSizes && product.availableSizes.length > 0) {
+      if (availableSizes.length > 0) {
         if (!item.selectedSize) {
           return res.status(400).json({
             success: false,
             message: `Size selection is required for ${product.name}`,
           });
         }
-        if (!product.availableSizes.includes(item.selectedSize)) {
+        if (!availableSizes.includes(item.selectedSize)) {
           return res.status(400).json({
             success: false,
             message: `Selected size '${item.selectedSize}' is not available for ${product.name}`,

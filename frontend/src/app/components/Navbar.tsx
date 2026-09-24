@@ -1,9 +1,9 @@
-import { Sun, Moon, ShoppingCart, Package, Shield, SlidersHorizontal } from 'lucide-react';
-import { Button } from './ui/button';
+import { Menu, Package, ShoppingCart } from 'lucide-react';
 import { Link, useLocation } from 'react-router';
-import { useCart } from '../contexts/CartContext';
-import { useRef, useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
+import { Button } from './ui/button';
+import { useCart } from '../contexts/CartContext';
 import { HarishClothsLogo } from './HarishClothsLogo';
 
 interface NavbarProps {
@@ -13,98 +13,53 @@ interface NavbarProps {
 export function Navbar({ onCartIconReady }: NavbarProps) {
   const { totalItems } = useCart();
   const cartButtonRef = useRef<HTMLDivElement>(null);
-  const [prevTotalItems, setPrevTotalItems] = useState(totalItems);
+  const [previousTotal, setPreviousTotal] = useState(totalItems);
   const [bounce, setBounce] = useState(false);
-  const location = useLocation();
-  const isHome = location.pathname === '/';
+  const { pathname } = useLocation();
 
   useEffect(() => {
-    if (cartButtonRef.current && onCartIconReady) {
-      onCartIconReady(cartButtonRef.current);
-    }
+    if (cartButtonRef.current && onCartIconReady) onCartIconReady(cartButtonRef.current);
   }, [onCartIconReady]);
 
   useEffect(() => {
-    if (totalItems > prevTotalItems) {
+    if (totalItems > previousTotal) {
       setBounce(true);
-      setTimeout(() => setBounce(false), 600);
+      const timer = window.setTimeout(() => setBounce(false), 600);
+      setPreviousTotal(totalItems);
+      return () => window.clearTimeout(timer);
     }
-    setPrevTotalItems(totalItems);
-  }, [totalItems, prevTotalItems]);
+    setPreviousTotal(totalItems);
+  }, [previousTotal, totalItems]);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border shadow-sm">
-      <div className="flex items-center justify-between px-4 md:px-8 py-3 md:py-4">
-        {/* Logo Section - Left */}
-        <div className="flex items-center gap-1.5 md:gap-3">
-          {isHome && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              onClick={() => window.dispatchEvent(new Event('toggle-filters'))}
-              aria-label="Toggle filters"
-            >
-              <SlidersHorizontal className="size-5 text-foreground" />
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-background/95 shadow-sm backdrop-blur-md">
+      <div className="mx-auto flex h-[72px] max-w-[1600px] items-center justify-between px-4 md:px-8">
+        <div className="flex items-center gap-2">
+          {pathname === '/' && (
+            <Button type="button" variant="ghost" size="icon" className="md:hidden" onClick={() => window.dispatchEvent(new Event('toggle-filters'))} aria-label="Open navigation and filters">
+              <Menu className="size-5" />
             </Button>
           )}
-          <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
-            <HarishClothsLogo className="h-10 md:h-12 w-auto text-foreground" />
+          <Link to="/" className="flex items-center transition-opacity hover:opacity-80" aria-label="Siddhi Fashion home">
+            <HarishClothsLogo className="h-10 w-auto text-foreground md:h-12" />
           </Link>
         </div>
-        
-        {/* Right Section: My Orders + Theme Toggle + Cart */}
         <div className="flex items-center gap-2 md:gap-3">
-          {/* My Orders Button */}
-          <Link to="/my-orders">
-            <Button
-              variant="outline"
-              size="sm"
-              className="hidden md:flex items-center gap-2 transition-all duration-300 hover:scale-105"
-            >
-              <Package className="size-4" />
-              <span>My Orders</span>
-            </Button>
-            {/* Mobile: Icon Only */}
-            <Button
-              variant="outline"
-              size="icon"
-              className="md:hidden transition-all duration-300 hover:scale-105"
-            >
-              <Package className="size-4" />
-            </Button>
+          <Link to="/my-orders" className="hidden sm:block">
+            <Button variant="ghost" size="sm" className="gap-2"><Package className="size-4" /><span>My Orders</span></Button>
           </Link>
-
-
-          
-          {/* Cart Button */}
-          <Link to="/cart">
-            <motion.div
-              animate={bounce ? { scale: [1, 1.3, 1] } : {}}
-              transition={{ duration: 0.4 }}
-            >
+          <Link to="/cart" aria-label={`Cart with ${totalItems} items`}>
+            <motion.div animate={bounce ? { scale: [1, 1.3, 1] } : {}} transition={{ duration: 0.4 }}>
               <div ref={cartButtonRef}>
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  className="relative transition-all duration-300 hover:scale-105"
-                >
-                  <ShoppingCart className="size-4 md:size-5" />
-                  {totalItems > 0 && (
-                    <motion.span
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full size-5 md:size-6 flex items-center justify-center font-semibold shadow-lg"
-                    >
-                      {totalItems}
-                    </motion.span>
-                  )}
+                <Button variant="outline" size="icon" className="relative">
+                  <ShoppingCart className="size-5" />
+                  {totalItems > 0 && <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">{totalItems > 99 ? '99+' : totalItems}</motion.span>}
                 </Button>
               </div>
             </motion.div>
           </Link>
         </div>
       </div>
-    </nav>
+    </header>
   );
 }

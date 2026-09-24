@@ -65,6 +65,15 @@ exports.getProductById = async (req, res, next) => {
       });
     }
 
+    // Older per-piece products may not have product-level sizes yet. In that
+    // case, expose the centrally managed admin sizes so the storefront can
+    // still require a size selection. Explicit product sizes always win.
+    let availableSizes = product.availableSizes || [];
+    if (product.soldBy === "piece" && availableSizes.length === 0) {
+      const options = await ProductOptions.findOne({ key: "default" }).lean();
+      availableSizes = options?.sizes || [];
+    }
+
     // Get inventory
     const inventory = await Inventory.findOne({ product: id });
 
@@ -72,6 +81,7 @@ exports.getProductById = async (req, res, next) => {
       success: true,
       data: {
         ...product.toObject(),
+        availableSizes,
         inventory,
       },
     });
