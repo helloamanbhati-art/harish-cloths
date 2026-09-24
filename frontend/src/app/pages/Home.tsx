@@ -6,6 +6,7 @@ import { usePageTitle } from '../hooks/usePageTitle';
 import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useSearchParams } from 'react-router';
+import { HomeHero } from '../components/HomeHero';
 
 export function Home() {
   usePageTitle();
@@ -82,7 +83,8 @@ export function Home() {
         onClose={() => setIsFilterOpen(false)}
       />
       
-      <div className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {!isAllProductsView && <HomeHero />}
         {error ? (
           <div className="flex h-full items-center justify-center p-6">
             <div className="text-center">
@@ -95,7 +97,9 @@ export function Home() {
             <Loader2 className="size-8 animate-spin text-[#3145a5]" />
           </div>
         ) : (
-          <ProductGrid products={visibleProducts} />
+          <section id="collection" aria-label="Product collection" className="scroll-mt-4">
+            <ProductGrid products={visibleProducts} />
+          </section>
         )}
       </div>
     </div>
