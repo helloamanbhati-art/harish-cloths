@@ -209,3 +209,20 @@ body::-webkit-scrollbar {
   animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
+@keyframes safetyMarquee {
+  from { transform: translateX(100%); }
+  to { transform: translateX(-155%); }
+}
+
+.animate-safety-marquee {
+  animation: safetyMarquee 16s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-safety-marquee {
+    animation: none;
+    transform: none;
+    text-align: center;
+  }
+}
+

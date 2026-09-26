@@ -1,4 +1,4 @@
-import { Menu, Package, Search, ShoppingBag } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Menu, Package, Search, ShoppingBag } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
@@ -34,11 +34,18 @@ export function Navbar({ onCartIconReady }: NavbarProps) {
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 bg-[#fffdf9] text-[#211b18]">
-      <div className="flex h-8 items-center justify-center bg-[#211b18] px-4 text-center text-[10px] font-medium uppercase tracking-[0.18em] text-white sm:text-[11px]">Free shipping across India on orders above ₹1,999</div>
+      <div className="flex h-10 items-center justify-between bg-[#171717] px-3 text-center text-white md:h-8 md:justify-center md:px-4">
+        <ChevronLeft aria-hidden="true" className="size-4 shrink-0 md:hidden" strokeWidth={1.25} />
+        <p className="truncate text-[10px] font-semibold uppercase tracking-[0.13em] sm:text-[11px] md:tracking-[0.18em]">
+          <span className="mr-1 text-[#ec2b72]" aria-hidden="true">📌</span>
+          No exchange / no return / no cancellation
+        </p>
+        <ChevronRight aria-hidden="true" className="size-4 shrink-0 md:hidden" strokeWidth={1.25} />
+      </div>
       <div className="border-b border-[#ded8d1]">
-        <div className="relative mx-auto flex h-[82px] max-w-[1500px] items-center justify-between px-4 sm:px-8">
-          <button type="button" onClick={() => window.dispatchEvent(new Event('toggle-filters'))} className="inline-flex size-10 items-center justify-center transition-colors hover:text-[#9a6444] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9a6444]" aria-label="Open shop menu and filters"><Menu className="size-[21px]" strokeWidth={1.4} /></button>
-          <Link to="/" className="absolute left-1/2 -translate-x-1/2 transition-opacity hover:opacity-75" aria-label="Siddhi Fashion home"><HarishClothsLogo className="h-14 w-auto sm:h-16" /></Link>
+        <div className="relative mx-auto flex h-[58px] max-w-[1500px] items-center justify-between px-2 sm:h-[82px] sm:px-8">
+          <button type="button" onClick={() => window.dispatchEvent(new Event('toggle-filters'))} className="inline-flex size-10 items-center justify-center transition-colors hover:text-[#9a6444] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9a6444]" aria-label="Open shop menu and filters"><Menu className="size-6 sm:size-[21px]" strokeWidth={1.35} /></button>
+          <Link to="/" className="absolute left-1/2 -translate-x-1/2 transition-opacity hover:opacity-75" aria-label="Siddhi Fashion home"><HarishClothsLogo className="h-[52px] w-[150px] object-contain sm:h-16 sm:w-auto" /></Link>
           <div className="flex items-center gap-0.5 sm:gap-2">
             <button type="button" onClick={search} className="inline-flex size-10 items-center justify-center hover:text-[#9a6444]" aria-label="Search products"><Search className="size-5" strokeWidth={1.4} /></button>
             <Link to="/my-orders" className="hidden size-10 items-center justify-center hover:text-[#9a6444] sm:inline-flex" aria-label="Track your order"><Package className="size-5" strokeWidth={1.4} /></Link>

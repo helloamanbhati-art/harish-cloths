@@ -15,7 +15,7 @@ function LayoutContent() {
           <Navbar 
             onCartIconReady={setCartIconElement}
           />
-          <div className="flex-1 pt-[114px] md:pt-[155px]">
+          <div className="flex-1 pt-[98px] md:pt-[155px]">
             <Outlet />
           </div>
           
