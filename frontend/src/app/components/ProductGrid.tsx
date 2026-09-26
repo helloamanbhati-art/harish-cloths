@@ -21,8 +21,8 @@ export function ProductGrid({ products }: ProductGridProps) {
   }
 
   return (
-    <div className="flex-1 p-4 md:p-6">
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
+    <div className="mx-auto max-w-[1500px] px-3 sm:px-8">
+      <div className="grid grid-cols-2 gap-x-2 gap-y-9 sm:gap-x-5 md:grid-cols-3 lg:grid-cols-4 lg:gap-y-12">
         {products.map((product, index) => (
           <ProductCard key={`${product.id}-${product.variants?.[0]?.variantId || index}`} product={product} />
         ))}

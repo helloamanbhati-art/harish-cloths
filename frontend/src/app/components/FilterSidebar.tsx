@@ -184,19 +184,17 @@ export function FilterSidebar({
         <button
           type="button"
           aria-label="Close navigation menu"
-          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          className="fixed inset-0 z-40 bg-black/50"
           onClick={onClose}
         />
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-60 border-r border-gray-200 bg-white transition-[width,transform] duration-300 ease-in-out dark:border-gray-700 dark:bg-gray-900 md:sticky md:top-0 md:z-20 md:h-[calc(100vh-73px)]
-          ${collapsed ? 'md:w-[76px]' : 'md:w-60'}
-          ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
+        className="fixed inset-y-0 left-0 z-50 w-72 border-r border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-900"
         aria-label="Shop navigation and filters"
       >
         <nav className="relative flex h-full flex-col overflow-visible px-3 py-4">
-          <div className="mb-2 flex items-center justify-between md:hidden">
+          <div className="mb-2 flex items-center justify-between">
             <span className="text-sm font-semibold text-gray-900 dark:text-white">Menu</span>
             <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close menu">
               <X className="size-5" />
@@ -363,17 +361,6 @@ export function FilterSidebar({
             </button>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setCollapsed((value) => !value)}
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="group/collapse absolute right-0 top-[44%] hidden h-9 w-7 translate-x-1/2 items-center justify-center rounded-md border border-gray-200 bg-white text-gray-500 shadow-sm transition-colors hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3145a5] md:flex dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
-          >
-            {collapsed ? <ChevronRight className="size-5" /> : <ChevronLeft className="size-5" />}
-            <span className="pointer-events-none absolute left-full ml-2 hidden rounded bg-gray-900 px-2 py-1 text-xs font-medium text-white shadow-lg group-hover/collapse:block group-focus-visible/collapse:block">
-              {collapsed ? 'Expand' : 'Collapse'}
-            </span>
-          </button>
         </nav>
       </aside>
     </>

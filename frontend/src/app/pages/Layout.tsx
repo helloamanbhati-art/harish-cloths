@@ -15,15 +15,15 @@ function LayoutContent() {
           <Navbar 
             onCartIconReady={setCartIconElement}
           />
-          <div className="flex-1 pt-[73px]">
+          <div className="flex-1 pt-[114px] md:pt-[155px]">
             <Outlet />
           </div>
           
           {/* Footer with Admin Link and Privacy Policy */}
-          <footer className="border-t bg-muted/30 py-6 px-4 text-center">
+          <footer className="border-t border-[#ded8d1] bg-[#211b18] px-4 py-10 text-center text-white">
             <div className="max-w-7xl mx-auto">
               <p className="text-sm text-muted-foreground mb-4">
-                © {new Date().getFullYear()} A&S. All rights reserved.
+                © {new Date().getFullYear()} Siddhi Fashion. All rights reserved.
               </p>
               <div className="flex flex-col sm:flex-row justify-center items-center gap-6">
                 <Link

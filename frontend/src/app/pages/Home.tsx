@@ -61,16 +61,24 @@ export function Home() {
       };
     });
   });
-  const visibleProducts = isAllProductsView
+  const productsForView = isAllProductsView
     ? allProductDesigns
     : searchParams.get('sale') === 'true'
       ? filteredProducts.filter((product) => product.compareAtPrice && product.compareAtPrice > product.price)
       : filteredProducts;
+  const searchQuery = searchParams.get('search')?.trim().toLocaleLowerCase() || '';
+  const visibleProducts = searchQuery
+    ? productsForView.filter((product) =>
+        [product.name, product.brand, product.category, product.clothingType]
+          .filter(Boolean)
+          .some((value) => value?.toLocaleLowerCase().includes(searchQuery)),
+      )
+    : productsForView;
 
   return (
-    <div className="flex h-[calc(100vh-73px)] flex-col md:flex-row">
+    <div className="min-h-screen bg-[#fffdf9]">
       {/* Filter Sidebar */}
-      <FilterSidebar
+      {isFilterOpen && <FilterSidebar
         filters={filters}
         onFiltersChange={setFilters}
         priceRanges={priceRanges}
@@ -81,9 +89,9 @@ export function Home() {
         onResetFilters={resetFilters}
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
-      />
+      />}
       
-      <div className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <main className="min-w-0 overflow-x-hidden">
         {!isAllProductsView && <HomeHero />}
         {error ? (
           <div className="flex h-full items-center justify-center p-6">
@@ -97,11 +105,18 @@ export function Home() {
             <Loader2 className="size-8 animate-spin text-[#3145a5]" />
           </div>
         ) : (
-          <section id="collection" aria-label="Product collection" className="scroll-mt-4">
+          <section id="collection" aria-labelledby="collection-title" className="scroll-mt-40 py-14 sm:py-20">
+            <div className="mx-auto mb-9 flex max-w-[1500px] items-end justify-between px-4 sm:px-8">
+              <div>
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.28em] text-[#9a6444]">Curated for you</p>
+                <h2 id="collection-title" className="font-serif text-3xl font-normal tracking-[-0.02em] text-[#2b211c] sm:text-4xl">{searchQuery ? `Search results for “${searchParams.get('search')}”` : isAllProductsView ? 'All Products' : searchParams.get('sale') === 'true' ? 'The Sale Edit' : 'New Arrivals'}</h2>
+              </div>
+              <p className="hidden text-xs uppercase tracking-[0.16em] text-[#76685f] sm:block">{visibleProducts.length} styles</p>
+            </div>
             <ProductGrid products={visibleProducts} />
           </section>
         )}
-      </div>
+      </main>
     </div>
   );
 }

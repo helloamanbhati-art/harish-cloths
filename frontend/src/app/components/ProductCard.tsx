@@ -61,7 +61,7 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <>
       <Link to={`/product/${product.id}`} className="block">
-        <Card className="overflow-hidden cursor-pointer bg-card border-none rounded-none shadow-none group p-0 m-0 gap-1.5">
+        <Card className="group m-0 cursor-pointer gap-0 overflow-hidden rounded-none border-none bg-transparent p-0 shadow-none">
           <div className="aspect-[3/4] overflow-hidden relative bg-muted rounded-none">
             {isVideoMediaUrl(primaryMedia) ? (
               <video
@@ -72,7 +72,7 @@ export function ProductCard({ product }: ProductCardProps) {
                 autoPlay
                 playsInline
                 preload="metadata"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 select-none rounded-none"
+                className="h-full w-full select-none rounded-none object-cover transition-transform duration-700 ease-out group-hover:scale-[1.035]"
               />
             ) : (
               <img
@@ -80,7 +80,7 @@ export function ProductCard({ product }: ProductCardProps) {
                 alt={product.name}
                 loading="lazy"
                 decoding="async"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 select-none rounded-none"
+                className="h-full w-full select-none rounded-none object-cover transition-transform duration-700 ease-out group-hover:scale-[1.035]"
               />
             )}
             {variantsCount > 1 && (
@@ -106,11 +106,11 @@ export function ProductCard({ product }: ProductCardProps) {
               </div>
             )}
           </div>
-          <CardContent className="pt-1 px-0 space-y-0.5 text-center bg-transparent border-none [&:last-child]:pb-3">
-            <h3 className="text-base font-semibold text-gray-700 dark:text-gray-200 truncate px-1">
+          <CardContent className="space-y-1 border-none bg-transparent px-1 pt-4 text-center [&:last-child]:pb-0">
+            <h3 className="truncate px-1 font-serif text-[15px] font-normal tracking-[0.01em] text-[#342923] sm:text-base">
               {product.name}
             </h3>
-            <div className="font-bold text-base md:text-lg text-emerald-600 dark:text-emerald-400">
+            <div className="text-xs font-medium tracking-[0.08em] text-[#76685f] sm:text-sm">
               ₹{product.price.toFixed(2)}
             </div>
           </CardContent>
