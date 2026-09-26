@@ -17,11 +17,11 @@ Create/update `backend/.env` file:
 
 ```env
 # Required - Database
-MONGODB_URI=mongodb://localhost:27017/harish-cloths
+MONGODB_URI=mongodb://localhost:27017/siddhi-fashion
 
 # Required - Security  
 JWT_ACCESS_SECRET=your_strong_secret_key_here
-ADMIN_EMAIL=admin@harishcloths.com
+ADMIN_EMAIL=admin@siddhifashion.com
 ADMIN_PASSWORD=admin123
 
 # Required - Razorpay Payment Gateway

@@ -60,13 +60,13 @@ Create a `.env` file in the backend directory:
 
 ```env
 # Database
-MONGODB_URI=mongodb://localhost:27017/harish-cloths
+MONGODB_URI=mongodb://localhost:27017/siddhi-fashion
 
 # JWT Security
 JWT_ACCESS_SECRET=your_super_secret_jwt_key_here_change_this
 
 # Admin Account
-ADMIN_EMAIL=admin@harishcloths.com
+ADMIN_EMAIL=admin@siddhifashion.com
 ADMIN_PASSWORD=admin123
 
 # Cloudinary (for image uploads)
@@ -84,7 +84,7 @@ SMTP_PORT=587
 SMTP_SECURE=false
 SMTP_EMAIL=your_email@gmail.com
 SMTP_PASSWORD=your_app_password
-EMAIL_FROM_ADDRESS=noreply@harishcloths.com
+EMAIL_FROM_ADDRESS=noreply@siddhifashion.com
 
 # Frontend URL
 FRONTEND_URL=http://localhost:5173
@@ -124,7 +124,7 @@ npm start
 You should see:
 ```
 Backend running on port 3000
-✅ Default admin created: admin@harishcloths.com
+✅ Default admin created: admin@siddhifashion.com
 ```
 
 ---
@@ -152,7 +152,7 @@ curl -X POST http://localhost:3000/api/v1/auth/register \
 curl -X POST http://localhost:3000/admin/login \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "admin@harishcloths.com",
+    "email": "admin@siddhifashion.com",
     "password": "admin123"
   }'
 ```
@@ -262,7 +262,7 @@ curl -X POST http://localhost:3000/api/v1/admin/products \
 mongod
 
 # Create database (automatic with first document)
-# Connection string: mongodb://localhost:27017/harish-cloths
+# Connection string: mongodb://localhost:27017/siddhi-fashion
 ```
 
 ### MongoDB Atlas (Cloud)
@@ -271,7 +271,7 @@ mongod
 3. Get connection string
 4. Add to `.env`:
    ```env
-   MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/harish-cloths
+   MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/siddhi-fashion
    ```
 
 ---

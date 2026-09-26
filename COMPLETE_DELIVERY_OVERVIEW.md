@@ -1,10 +1,10 @@
-# 🎉 Harish Cloths E-Commerce - Complete System Delivered
+# 🎉 Siddhi Fashion E-Commerce - Complete System Delivered
 
 ## 📊 What You Have Now
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│         HARISH CLOTHS COMPLETE BACKEND SYSTEM               │
+│         SIDDHI FASHION COMPLETE BACKEND SYSTEM               │
 │                     (Production-Ready)                       │
 └─────────────────────────────────────────────────────────────┘
 

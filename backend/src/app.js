@@ -70,7 +70,7 @@ app.use(errorHandler);
  */
 async function ensureDefaultAdmin() {
   try {
-    const email = (process.env.ADMIN_EMAIL || "admin@harishcloths.com").toLowerCase().trim();
+    const email = (process.env.ADMIN_EMAIL || "admin@siddhifashion.com").toLowerCase().trim();
     const password = process.env.ADMIN_PASSWORD || "admin123";
 
     // Check if admin already exists

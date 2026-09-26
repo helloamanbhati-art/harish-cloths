@@ -269,7 +269,7 @@ npm install
 npm run dev
 
 # Visit http://localhost:5174
-# Login: admin@harishcloths.com / admin123
+# Login: admin@siddhifashion.com / admin123
 ```
 
 ---
@@ -328,7 +328,7 @@ project-root/
 - [ ] `/routes.tsx` updated (no admin imports/routes)
 - [ ] Customer app runs without errors (`npm run dev`)
 - [ ] Admin panel runs independently (`cd admin-panel && npm run dev`)
-- [ ] Can login to admin: admin@harishcloths.com / admin123
+- [ ] Can login to admin: admin@siddhifashion.com / admin123
 - [ ] Both dark/light modes work in admin panel
 
 ---

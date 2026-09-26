@@ -109,7 +109,7 @@ cd admin-panel
 npm install  # If needed
 npm run dev
 # Visit http://localhost:5174
-# ✅ Login with: admin@harishcloths.com / admin123
+# ✅ Login with: admin@siddhifashion.com / admin123
 # ✅ All pages should work
 # ✅ Dark mode toggle should work
 ```

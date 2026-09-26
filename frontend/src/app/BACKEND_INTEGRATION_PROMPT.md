@@ -1,7 +1,7 @@
 # Complete Backend Integration Prompt for Luxury Women's Clothing Fabric E-Commerce Platform
 
 ## Project Overview
-Build a complete backend system for **Harish Cloths** - a luxury women's clothing fabrics e-commerce platform specializing in premium fabrics (silk, cotton, chiffon, linen, etc.) sold in both meters and pieces, with full admin dashboard management.
+Build a complete backend system for **Siddhi Fashion** - a luxury women's clothing fabrics e-commerce platform specializing in premium fabrics (silk, cotton, chiffon, linen, etc.) sold in both meters and pieces, with full admin dashboard management.
 
 ## Business Model
 - **Currency**: Indian Rupees (₹)
@@ -997,13 +997,13 @@ RAZORPAY_WEBHOOK_SECRET=your-webhook-secret
 
 # Email
 SENDGRID_API_KEY=your-sendgrid-key
-FROM_EMAIL=noreply@harishcloths.com
-ADMIN_EMAIL=admin@harishcloths.com
+FROM_EMAIL=noreply@siddhifashion.com
+ADMIN_EMAIL=admin@siddhifashion.com
 
 # File Storage
 AWS_ACCESS_KEY_ID=your-access-key
 AWS_SECRET_ACCESS_KEY=your-secret-key
-AWS_S3_BUCKET=harish-cloths-images
+AWS_S3_BUCKET=siddhi-fashion-images
 AWS_REGION=ap-south-1
 
 # Redis
@@ -1013,8 +1013,8 @@ REDIS_TTL=3600
 # App
 NODE_ENV=production
 PORT=3000
-FRONTEND_URL=https://harishcloths.com
-ADMIN_URL=https://admin.harishcloths.com
+FRONTEND_URL=https://siddhifashion.com
+ADMIN_URL=https://admin.siddhifashion.com
 
 # Rate Limiting
 RATE_LIMIT_WINDOW=15min
@@ -1092,7 +1092,7 @@ FREE_SHIPPING_THRESHOLD=2000
 
 ### **Seed the following:**
 1. **Admin User**
-   - Email: admin@harishcloths.com
+   - Email: admin@siddhifashion.com
    - Password: admin123
    - Role: super_admin
 

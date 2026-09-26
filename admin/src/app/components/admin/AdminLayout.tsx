@@ -81,13 +81,13 @@ export function AdminLayout() {
 
             <Link to="/admin" className="flex items-center gap-3">
               <img
-                src="/harish-clothing-logo.svg"
-                alt="Harish Clothing"
+                src="/siddhi-fashion-logo.png"
+                alt="Siddhi Fashion"
                 className="h-10 w-auto object-contain"
               />
               <div className="hidden sm:block">
                 <h1 className="font-bold text-lg text-foreground">
-                  Harish Clothing
+                  Siddhi Fashion
                 </h1>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Admin Panel</p>
               </div>

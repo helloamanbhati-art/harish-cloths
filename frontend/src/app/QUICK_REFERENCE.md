@@ -1,4 +1,4 @@
-# 🚀 Quick Reference Card - Harish Cloths
+# 🚀 Quick Reference Card - Siddhi Fashion
 
 ## 📍 Access URLs
 
@@ -12,7 +12,7 @@ Admin Dashboard:     http://localhost:5173/admin
 
 ```
 Admin Login:
-  Email:    admin@harishcloths.com
+  Email:    admin@siddhifashion.com
   Password: admin123
 ```
 
@@ -210,7 +210,7 @@ refunded    → Gray
 ## 🐛 Common Issues & Fixes
 
 **Issue**: Admin login not working
-**Fix**: Use exact credentials: `admin@harishcloths.com` / `admin123`
+**Fix**: Use exact credentials: `admin@siddhifashion.com` / `admin123`
 
 **Issue**: Dark mode not persisting
 **Fix**: Check localStorage - `theme` key

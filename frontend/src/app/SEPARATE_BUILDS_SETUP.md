@@ -207,7 +207,7 @@ npm run dev
 ```bash
 npm run dev:admin
 # Opens http://localhost:5174
-# Login: admin@harishcloths.com / admin123
+# Login: admin@siddhifashion.com / admin123
 ```
 
 **Run Both Simultaneously:**

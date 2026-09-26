@@ -6,7 +6,7 @@ export default function Layout() {
       {/* Customer-facing layout - will be built later */}
       <header className="border-b border-gray-200 dark:border-gray-700 p-4">
         <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-          Harish Cloths
+          Siddhi Fashion
         </h1>
       </header>
       <main>

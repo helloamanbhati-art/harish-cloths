@@ -109,7 +109,8 @@ const normalizeOrder = (order: any): Order => ({
   trackingNumber: order.trackingNumber,
   billingAddress: order.billingAddress,
 });
-const STORAGE_KEY = 'harish-cloths-orders';
+const STORAGE_KEY = 'siddhi-fashion-orders';
+const LEGACY_STORAGE_KEY = 'harish-cloths-orders';
 
 const statusNames: Record<number | string, string> = {
   0: 'Order Placed',
@@ -142,8 +143,11 @@ export function useOrdersAPI() {
 
   const loadFromLocalStorage = () => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      const stored = localStorage.getItem(STORAGE_KEY)
+        ?? localStorage.getItem(LEGACY_STORAGE_KEY);
       if (stored) {
+        localStorage.setItem(STORAGE_KEY, stored);
+        localStorage.removeItem(LEGACY_STORAGE_KEY);
         return JSON.parse(stored);
       }
     } catch (err) {

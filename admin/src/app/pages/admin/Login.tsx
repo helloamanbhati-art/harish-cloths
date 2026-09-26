@@ -70,13 +70,13 @@ export function AdminLogin() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center space-y-4">
           <img
-            src="/harish-clothing-logo.svg"
-            alt="Harish Clothing"
+            src="/siddhi-fashion-logo.png"
+            alt="Siddhi Fashion"
             className="mx-auto h-16 w-auto object-contain"
           />
           <div>
             <CardTitle className="text-2xl">Admin Login</CardTitle>
-            <CardDescription className="mt-2">Sign in to access Harish Clothing admin panel</CardDescription>
+            <CardDescription className="mt-2">Sign in to access Siddhi Fashion admin panel</CardDescription>
           </div>
         </CardHeader>
         <CardContent>
@@ -87,7 +87,7 @@ export function AdminLogin() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@harishcloths.com"
+                  placeholder="admin@siddhifashion.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
@@ -136,7 +136,7 @@ export function AdminLogin() {
               Demo Credentials
             </p>
             <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-              Email: admin@harishcloths.com
+              Email: admin@siddhifashion.com
             </p>
             <p className="text-sm text-gray-600 dark:text-gray-300">
               Password: admin123

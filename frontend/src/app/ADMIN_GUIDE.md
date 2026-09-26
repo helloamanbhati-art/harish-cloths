@@ -1,11 +1,11 @@
-# 🎯 **HARISH CLOTHS - ADMIN PANEL GUIDE**
+# 🎯 **SIDDHI FASHION - ADMIN PANEL GUIDE**
 
 ## 🔐 **Admin Access**
 
 ### **Login Credentials (Demo)**
 ```
 URL: /admin/login
-Email: admin@harishcloths.com
+Email: admin@siddhifashion.com
 Password: admin123
 ```
 

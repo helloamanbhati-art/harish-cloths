@@ -1,4 +1,4 @@
-# ✅ Harish Cloths E-Commerce - Getting Started Checklist
+# ✅ Siddhi Fashion E-Commerce - Getting Started Checklist
 
 ## 📌 What You Have Now
 
@@ -42,13 +42,13 @@ Create a file `backend/.env` with your configuration:
 
 ```env
 # REQUIRED - Database
-MONGODB_URI=mongodb://localhost:27017/harish-cloths
+MONGODB_URI=mongodb://localhost:27017/siddhi-fashion
 
 # REQUIRED - Security
 JWT_ACCESS_SECRET=change_this_to_a_random_secret_key_12345
 
 # REQUIRED - Admin Account
-ADMIN_EMAIL=admin@harishcloths.com
+ADMIN_EMAIL=admin@siddhifashion.com
 ADMIN_PASSWORD=admin123
 
 # REQUIRED - Server
@@ -60,7 +60,7 @@ SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_EMAIL=your_gmail@gmail.com
 SMTP_PASSWORD=your_app_password
-EMAIL_FROM_ADDRESS=noreply@harishcloths.com
+EMAIL_FROM_ADDRESS=noreply@siddhifashion.com
 
 # OPTIONAL - Images (Cloudinary)
 CLOUDINARY_CLOUD_NAME=your_cloud_name
@@ -129,7 +129,7 @@ Expected: Returns JWT token and customer data
 curl -X POST http://localhost:3000/admin/login \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "admin@harishcloths.com",
+    "email": "admin@siddhifashion.com",
     "password": "admin123"
   }'
 ```

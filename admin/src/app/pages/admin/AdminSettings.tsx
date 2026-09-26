@@ -30,8 +30,8 @@ const initialPriceRanges: PriceRange[] = [
 
 export function AdminSettings() {
   // Store Settings State
-  const [storeName, setStoreName] = useState('Harish Cloths');
-  const [storeEmail, setStoreEmail] = useState('admin@harishcloths.com');
+  const [storeName, setStoreName] = useState('Siddhi Fashion');
+  const [storeEmail, setStoreEmail] = useState('admin@siddhifashion.com');
   const [storePhone, setStorePhone] = useState('+91 98765 43210');
   const [gstRate, setGstRate] = useState(18);
   const [freeShippingThreshold, setFreeShippingThreshold] = useState(2000);

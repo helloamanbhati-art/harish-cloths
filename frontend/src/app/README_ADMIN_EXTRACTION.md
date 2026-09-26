@@ -172,7 +172,7 @@ npm run dev
 cd admin-panel
 npm run dev
 # Visit http://localhost:5174
-# Login: admin@harishcloths.com / admin123
+# Login: admin@siddhifashion.com / admin123
 ```
 
 ### 4. Configuration (30 minutes)

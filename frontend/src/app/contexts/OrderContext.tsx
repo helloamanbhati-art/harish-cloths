@@ -125,17 +125,21 @@ interface OrderContextType {
 }
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
+const ORDERS_STORAGE_KEY = 'siddhi-fashion-orders';
+const LEGACY_ORDERS_STORAGE_KEY = 'harish-cloths-orders';
 
 export function OrderProvider({ children }: { children: ReactNode }) {
   const [orders, setOrders] = useState<Order[]>(() => {
     // Load orders from localStorage on init
-    const savedOrders = localStorage.getItem('harish-cloths-orders');
+    const savedOrders = localStorage.getItem(ORDERS_STORAGE_KEY)
+      ?? localStorage.getItem(LEGACY_ORDERS_STORAGE_KEY);
     return savedOrders ? JSON.parse(savedOrders) : [];
   });
 
   // Save orders to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('harish-cloths-orders', JSON.stringify(orders));
+    localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders));
+    localStorage.removeItem(LEGACY_ORDERS_STORAGE_KEY);
   }, [orders]);
 
   const addOrder = (order: Order) => {

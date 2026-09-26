@@ -1,7 +1,7 @@
 {
-  "name": "harish-cloths-backend",
+  "name": "siddhi-fashion-backend",
   "version": "2.0.0",
-  "description": "Complete e-commerce backend for Harish Cloths",
+  "description": "Complete e-commerce backend for Siddhi Fashion",
   "main": "src/server.js",
   "type": "commonjs",
   "scripts": {
@@ -18,7 +18,7 @@
     "mongodb",
     "razorpay"
   ],
-  "author": "Harish Cloths",
+  "author": "Siddhi Fashion",
   "license": "MIT",
   "dependencies": {
     "bcryptjs": "^2.4.3",

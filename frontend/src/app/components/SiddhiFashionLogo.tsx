@@ -1,12 +1,12 @@
-interface HarishClothsLogoProps {
+interface SiddhiFashionLogoProps {
   className?: string;
   alt?: string;
 }
 
-export function HarishClothsLogo({
+export function SiddhiFashionLogo({
   className = "h-10 md:h-12 w-auto",
   alt = "Siddhi Fashion Retail",
-}: HarishClothsLogoProps) {
+}: SiddhiFashionLogoProps) {
   return (
     <img
       src="/siddhi-fashion-logo.png"

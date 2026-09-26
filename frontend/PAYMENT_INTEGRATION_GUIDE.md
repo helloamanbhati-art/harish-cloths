@@ -302,7 +302,7 @@ const handlePayment = async () => {
       key: import.meta.env.VITE_RAZORPAY_KEY_ID,
       amount: orderData.amount,
       currency: orderData.currency,
-      name: 'Harish Cloths',
+      name: 'Siddhi Fashion',
       description: 'Purchase of fabric products',
       order_id: orderData.id,
       handler: function (response: RazorpayResponse) {

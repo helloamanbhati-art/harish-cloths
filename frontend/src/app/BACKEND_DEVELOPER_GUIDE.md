@@ -2,7 +2,7 @@
 
 ## Welcome! 👋
 
-You've been assigned to build the backend for **Harish Cloths** - a luxury women's clothing fabrics e-commerce platform. The frontend is complete and waiting for your APIs!
+You've been assigned to build the backend for **Siddhi Fashion** - a luxury women's clothing fabrics e-commerce platform. The frontend is complete and waiting for your APIs!
 
 ---
 
@@ -291,8 +291,8 @@ Option 2: Python + FastAPI
 ### Initial Setup
 ```bash
 # 1. Create project directory
-mkdir harish-cloths-backend
-cd harish-cloths-backend
+mkdir siddhi-fashion-backend
+cd siddhi-fashion-backend
 
 # 2. Initialize project
 # For Node.js:
@@ -303,7 +303,7 @@ npm install express pg jsonwebtoken bcrypt multer aws-sdk razorpay nodemailer
 pip install fastapi uvicorn sqlalchemy psycopg2 pyjwt passlib boto3 razorpay
 
 # 3. Set up database
-createdb harish_cloths_db
+createdb siddhi_fashion_db
 
 # 4. Create .env file
 cp .env.example .env
@@ -328,7 +328,7 @@ uvicorn main:app --reload
 ### Environment Variables Template
 ```env
 # Database
-DATABASE_URL=postgresql://user:pass@localhost:5432/harish_cloths_db
+DATABASE_URL=postgresql://user:pass@localhost:5432/siddhi_fashion_db
 DATABASE_POOL_SIZE=20
 
 # JWT
@@ -352,7 +352,7 @@ AWS_SES_SECRET_KEY=xxxxx
 # File Storage
 AWS_ACCESS_KEY_ID=xxxxx
 AWS_SECRET_ACCESS_KEY=xxxxx
-AWS_S3_BUCKET=harish-cloths-images
+AWS_S3_BUCKET=siddhi-fashion-images
 AWS_REGION=ap-south-1
 
 # Redis

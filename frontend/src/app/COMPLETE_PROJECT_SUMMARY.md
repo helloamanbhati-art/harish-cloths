@@ -1,8 +1,8 @@
-# 🎯 Harish Cloths - Complete Project Summary
+# 🎯 Siddhi Fashion - Complete Project Summary
 
 ## 📋 Project Overview
 
-**Harish Cloths** is a luxury women's clothing fabrics e-commerce platform specializing in premium fabrics (silk, cotton, chiffon, linen, etc.) with a complete admin dashboard for dynamic management.
+**Siddhi Fashion** is a luxury women's clothing fabrics e-commerce platform specializing in premium fabrics (silk, cotton, chiffon, linen, etc.) with a complete admin dashboard for dynamic management.
 
 ### Key Features:
 - ✅ **Full E-Commerce Frontend** - Product catalog, cart, checkout, payment
@@ -101,7 +101,7 @@
 │   ├── AddToCartAnimation.tsx
 │   ├── ErrorBoundary.tsx
 │   ├── FilterSidebar.tsx
-│   ├── HarishClothsLogo.tsx
+│   ├── SiddhiFashionLogo.tsx
 │   ├── ImageCarousel.tsx
 │   ├── Navbar.tsx
 │   ├── PaymentModals.tsx
@@ -258,7 +258,7 @@
 
 9. **Admin Features**
    - Dark/Light mode toggle 🌙☀️
-   - Professional logo (Harish Cloths)
+   - Professional logo (Siddhi Fashion)
    - Responsive sidebar
    - Search bar (global)
    - Notifications badge
@@ -416,7 +416,7 @@ npm run build
 ### Demo Credentials:
 ```
 Admin Login:
-Email: admin@harishcloths.com
+Email: admin@siddhifashion.com
 Password: admin123
 ```
 
@@ -622,7 +622,7 @@ Password: admin123
 
 ## 📄 License & Credits
 
-**Project**: Harish Cloths E-Commerce Platform
+**Project**: Siddhi Fashion E-Commerce Platform
 **Type**: Luxury Women's Clothing Fabrics
 **Market**: Indian B2C
 **Status**: Frontend Complete, Backend Pending

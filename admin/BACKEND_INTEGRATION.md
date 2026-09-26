@@ -1,6 +1,6 @@
 # Backend Integration Guide
 
-This guide explains how to integrate the Harish Cloths Admin Panel with your backend API.
+This guide explains how to integrate the Siddhi Fashion Admin Panel with your backend API.
 
 ## Image Upload Integration
 
@@ -366,7 +366,7 @@ For production:
 
 ```env
 # Production Frontend (.env.production)
-VITE_API_URL=https://api.harishcloths.com
+VITE_API_URL=https://api.siddhifashion.com
 ```
 
 ## Next Steps

@@ -173,7 +173,7 @@ export default function Payment() {
         key: RAZORPAY_KEY,
         amount: razorpayOrder.amount,
         currency: razorpayOrder.currency,
-        name: 'Harish Cloths',
+        name: 'Siddhi Fashion',
         description: 'Purchase of premium fabric products',
         order_id: razorpayOrder.id,
         handler: function (response: RazorpayResponse) {

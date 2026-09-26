@@ -1,4 +1,4 @@
-# Harish Cloths E-Commerce Platform - Complete Backend Architecture
+# Siddhi Fashion E-Commerce Platform - Complete Backend Architecture
 
 ## 📋 System Overview
 
@@ -250,13 +250,13 @@ Authorization: Bearer <token>
 
 ```env
 # MongoDB
-MONGODB_URI=mongodb://localhost:27017/harish-cloths
+MONGODB_URI=mongodb://localhost:27017/siddhi-fashion
 
 # JWT
 JWT_ACCESS_SECRET=your_jwt_secret_key
 
 # Admin
-ADMIN_EMAIL=admin@harishcloths.com
+ADMIN_EMAIL=admin@siddhifashion.com
 ADMIN_PASSWORD=admin123
 
 # Cloudinary
@@ -273,7 +273,7 @@ SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_EMAIL=your_email@gmail.com
 SMTP_PASSWORD=your_app_password
-EMAIL_FROM_ADDRESS=noreply@harishcloths.com
+EMAIL_FROM_ADDRESS=noreply@siddhifashion.com
 
 # Frontend
 FRONTEND_URL=http://localhost:5173

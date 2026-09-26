@@ -1,4 +1,4 @@
-# 🗂️ Harish Cloths - Complete File Reference Guide
+# 🗂️ Siddhi Fashion - Complete File Reference Guide
 
 ## 📖 Documentation Files (Start Here!)
 
@@ -163,13 +163,13 @@ Location: `backend/.env`
 Template:
 ```env
 # Database
-MONGODB_URI=mongodb://localhost:27017/harish-cloths
+MONGODB_URI=mongodb://localhost:27017/siddhi-fashion
 
 # JWT Security
 JWT_ACCESS_SECRET=your_super_secret_key
 
 # Admin Account
-ADMIN_EMAIL=admin@harishcloths.com
+ADMIN_EMAIL=admin@siddhifashion.com
 ADMIN_PASSWORD=admin123
 
 # Cloudinary (Images)
@@ -395,7 +395,7 @@ curl http://localhost:3000/api/v1/auth/profile \
 ## 💾 File Organization Summary
 
 ```
-harish-cloths-final/
+siddhi-fashion-final/
 │
 ├── IMPLEMENTATION_SUMMARY.md        ← Start here!
 │

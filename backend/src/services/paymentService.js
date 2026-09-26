@@ -49,7 +49,7 @@ exports.createRazorpayOrder = async (orderData) => {
       amount: Math.round(orderData.total * 100), // Amount in paise
       currency: "INR",
       receipt: `order_${orderData.orderNumber}`,
-      description: "Harish Cloths Order",
+      description: "Siddhi Fashion Order",
       notes: {
         orderId: orderData._id.toString(),
         orderNumber: orderData.orderNumber,

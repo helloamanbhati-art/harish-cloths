@@ -20,7 +20,7 @@ npm run dev
 
 # Test admin panel
 cd admin-panel && npm run dev
-# Login: admin@harishcloths.com / admin123
+# Login: admin@siddhifashion.com / admin123
 ```
 
 **Done!** Read `/ADMIN_PANEL_EXTRACTION_COMPLETE.md` for deployment.
@@ -340,7 +340,7 @@ npm run dev
 # 4. Test admin panel (in new terminal)
 cd admin-panel
 npm run dev
-# Login: admin@harishcloths.com / admin123
+# Login: admin@siddhifashion.com / admin123
 
 # 5. Read deployment guide
 cat ADMIN_PANEL_EXTRACTION_COMPLETE.md

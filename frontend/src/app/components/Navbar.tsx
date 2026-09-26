@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router';
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { useCart } from '../contexts/CartContext';
-import { HarishClothsLogo } from './HarishClothsLogo';
+import { SiddhiFashionLogo } from './SiddhiFashionLogo';
 
 interface NavbarProps { onCartIconReady?: (element: HTMLElement) => void; }
 const categories = ['Straight Suits', 'Indo Westerns', 'Sharara Suits', 'Anarkali'];
@@ -45,7 +45,7 @@ export function Navbar({ onCartIconReady }: NavbarProps) {
       <div className="border-b border-[#ded8d1]">
         <div className="relative mx-auto flex h-[58px] max-w-[1500px] items-center justify-between px-2 sm:h-[82px] sm:px-8">
           <button type="button" onClick={() => window.dispatchEvent(new Event('toggle-filters'))} className="inline-flex size-10 items-center justify-center transition-colors hover:text-[#9a6444] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9a6444]" aria-label="Open shop menu and filters"><Menu className="size-6 sm:size-[21px]" strokeWidth={1.35} /></button>
-          <Link to="/" className="absolute left-1/2 -translate-x-1/2 transition-opacity hover:opacity-75" aria-label="Siddhi Fashion home"><HarishClothsLogo className="h-[52px] w-[150px] object-contain sm:h-16 sm:w-auto" /></Link>
+          <Link to="/" className="absolute left-1/2 -translate-x-1/2 transition-opacity hover:opacity-75" aria-label="Siddhi Fashion home"><SiddhiFashionLogo className="h-[52px] w-[150px] object-contain sm:h-16 sm:w-auto" /></Link>
           <div className="flex items-center gap-0.5 sm:gap-2">
             <button type="button" onClick={search} className="inline-flex size-10 items-center justify-center hover:text-[#9a6444]" aria-label="Search products"><Search className="size-5" strokeWidth={1.4} /></button>
             <Link to="/my-orders" className="hidden size-10 items-center justify-center hover:text-[#9a6444] sm:inline-flex" aria-label="Track your order"><Package className="size-5" strokeWidth={1.4} /></Link>

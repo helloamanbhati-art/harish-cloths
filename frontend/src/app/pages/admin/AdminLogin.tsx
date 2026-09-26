@@ -48,7 +48,7 @@ export function AdminLogin() {
           </div>
           <CardTitle className="text-2xl font-bold">Admin Login</CardTitle>
           <CardDescription>
-            Sign in to access Harish Clothing admin panel
+            Sign in to access Siddhi Fashion admin panel
           </CardDescription>
         </CardHeader>
         <CardContent>

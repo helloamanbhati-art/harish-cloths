@@ -2,7 +2,7 @@
 
 ## 📋 Overview
 
-This document describes the complete implementation of shirt and jeans size selection feature for the Harish Cloths e-commerce platform. Users can now select sizes when adding products to their cart, and these selections are captured, validated, and displayed throughout the entire order lifecycle.
+This document describes the complete implementation of shirt and jeans size selection feature for the Siddhi Fashion e-commerce platform. Users can now select sizes when adding products to their cart, and these selections are captured, validated, and displayed throughout the entire order lifecycle.
 
 ---
 

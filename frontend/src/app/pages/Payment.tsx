@@ -279,7 +279,7 @@ export function Payment() {
         amount: razorpayOrder.amount,
         currency: razorpayOrder.currency,
         order_id: razorpayOrder.id,
-        name: 'Harish Cloths - Premium Fabrics',
+        name: 'Siddhi Fashion - Premium Fabrics',
         description: 'Purchase of premium fabric products',
         image: '/logo.png', // Add your logo
         handler: (response: RazorpayResponse) => {

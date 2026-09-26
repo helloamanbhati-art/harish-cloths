@@ -39,7 +39,7 @@ Deploy each app to different hosting platforms:
 - Access admin at: `/admin/login`
 
 **Admin Login:**
-- Email: `admin@harishcloths.com`
+- Email: `admin@siddhifashion.com`
 - Password: `admin123`
 
 **Customer Routes:**

@@ -1,4 +1,4 @@
-# 🎉 Harish Cloths E-Commerce Platform - COMPLETE Implementation Summary
+# 🎉 Siddhi Fashion E-Commerce Platform - COMPLETE Implementation Summary
 
 ## What Has Been Delivered
 
@@ -70,9 +70,9 @@ npm install joi express-rate-limit winston nodemailer razorpay cloudinary
 ### Step 2: Configure Environment
 Create `backend/.env`:
 ```env
-MONGODB_URI=mongodb://localhost:27017/harish-cloths
+MONGODB_URI=mongodb://localhost:27017/siddhi-fashion
 JWT_ACCESS_SECRET=your_super_secret_key
-ADMIN_EMAIL=admin@harishcloths.com
+ADMIN_EMAIL=admin@siddhifashion.com
 ADMIN_PASSWORD=admin123
 CLOUDINARY_CLOUD_NAME=xxxxx
 CLOUDINARY_API_KEY=xxxxx
@@ -436,7 +436,7 @@ curl -X POST http://localhost:3000/api/v1/auth/register \
 curl -X POST http://localhost:3000/admin/login \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "admin@harishcloths.com",
+    "email": "admin@siddhifashion.com",
     "password": "admin123"
   }'
 ```
@@ -588,5 +588,5 @@ Start with `npm run dev` and watch your e-commerce platform come to life! 🚀
 
 ---
 
-**Built with ❤️ for Harish Cloths**
+**Built with ❤️ for Siddhi Fashion**
 **Your complete e-commerce solution!**

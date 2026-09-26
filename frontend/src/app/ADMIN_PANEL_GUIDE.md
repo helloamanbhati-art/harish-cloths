@@ -1,10 +1,10 @@
-# Harish Cloths - Admin Panel Guide
+# Siddhi Fashion - Admin Panel Guide
 
 ## Overview
 Complete admin dashboard for managing luxury women's clothing fabrics e-commerce platform with comprehensive analytics, dark/light mode, and full CRUD operations.
 
 ## 🔐 Login Credentials
-- **Email**: `admin@harishcloths.com`
+- **Email**: `admin@siddhifashion.com`
 - **Password**: `admin123`
 - **Login URL**: `/admin/login`
 
@@ -234,4 +234,4 @@ Manages dark/light mode:
 
 **Last Updated**: March 2026
 **Version**: 2.0
-**Admin Email**: admin@harishcloths.com
+**Admin Email**: admin@siddhifashion.com

@@ -124,7 +124,7 @@ This application is fully structured for backend integration. All order data is 
 **Current (localStorage):**
 ```typescript
 const [orders, setOrders] = useState<Order[]>(() => {
-  const saved = localStorage.getItem('harish-cloths-orders');
+  const saved = localStorage.getItem('siddhi-fashion-orders');
   return saved ? JSON.parse(saved) : [];
 });
 ```

@@ -2,34 +2,34 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router';
 
 const pagesTitleMap: Record<string, string> = {
-  '/': 'Harish Cloths',
-  '/cart': 'Shopping Cart - Harish Cloths',
-  '/checkout': 'Checkout - Harish Cloths',
-  '/payment': 'Payment - Harish Cloths',
-  '/order-success': 'Order Success - Harish Cloths',
-  '/my-orders': 'My Orders - Harish Cloths',
-  '/privacy-policy': 'Privacy Policy - Harish Cloths',
-  '/product': 'Product - Harish Cloths',
+  '/': 'Siddhi Fashion',
+  '/cart': 'Shopping Cart - Siddhi Fashion',
+  '/checkout': 'Checkout - Siddhi Fashion',
+  '/payment': 'Payment - Siddhi Fashion',
+  '/order-success': 'Order Success - Siddhi Fashion',
+  '/my-orders': 'My Orders - Siddhi Fashion',
+  '/privacy-policy': 'Privacy Policy - Siddhi Fashion',
+  '/product': 'Product - Siddhi Fashion',
 };
 
 export function usePageTitle(title?: string) {
   const location = useLocation();
 
   useEffect(() => {
-    let pageTitle = 'Harish Cloths';
+    let pageTitle = 'Siddhi Fashion';
 
     if (title) {
-      pageTitle = `${title} - Harish Cloths`;
+      pageTitle = `${title} - Siddhi Fashion`;
     } else {
       // Check for exact path match
-      pageTitle = pagesTitleMap[location.pathname] || 'Harish Cloths';
+      pageTitle = pagesTitleMap[location.pathname] || 'Siddhi Fashion';
 
       // Check for dynamic routes like /product/:id
       if (location.pathname.startsWith('/product/')) {
-        pageTitle = pagesTitleMap['/product'] || 'Product - Harish Cloths';
+        pageTitle = pagesTitleMap['/product'] || 'Product - Siddhi Fashion';
       }
       if (location.pathname.startsWith('/order/')) {
-        pageTitle = 'Order Details - Harish Cloths';
+        pageTitle = 'Order Details - Siddhi Fashion';
       }
     }
 

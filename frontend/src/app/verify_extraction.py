@@ -302,7 +302,7 @@ def main():
         print("Next steps:")
         print("1. Test customer app: npm run dev")
         print("2. Test admin panel: cd admin-panel && npm run dev")
-        print("3. Login: admin@harishcloths.com / admin123")
+        print("3. Login: admin@siddhifashion.com / admin123")
         print("4. Configure separate builds and deploy")
         print()
         print("See /ADMIN_PANEL_EXTRACTION_COMPLETE.md for deployment guide")

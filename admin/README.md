@@ -1,4 +1,4 @@
-# Harish Cloths - Admin Dashboard
+# Siddhi Fashion - Admin Dashboard
 
 A modern, full-featured admin dashboard for managing an Indian fabric e-commerce platform, built with React, TypeScript, and Tailwind CSS.
 
@@ -143,7 +143,7 @@ pnpm dev
 ### Admin Login
 
 **Demo Credentials:**
-- Email: `admin@harishcloths.com`
+- Email: `admin@siddhifashion.com`
 - Password: `admin123`
 
 ## 🔌 Backend Integration
@@ -261,7 +261,7 @@ Placeholder routes created for:
 
 ## 📄 License
 
-Proprietary - Harish Cloths
+Proprietary - Siddhi Fashion
 
 ## 👨‍💻 Development
 

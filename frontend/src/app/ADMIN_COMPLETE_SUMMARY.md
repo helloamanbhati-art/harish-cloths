@@ -1,4 +1,4 @@
-# 🎉 **HARISH CLOTHS - COMPLETE ADMIN DASHBOARD**
+# 🎉 **SIDDHI FASHION - COMPLETE ADMIN DASHBOARD**
 
 ## ✅ **FULLY FUNCTIONAL ADMIN PANEL BUILT!**
 
@@ -23,7 +23,7 @@
 ### **Admin Pages** (`/pages/admin/`)
 ```
 ✅ AdminLayout.tsx           - Main admin layout with sidebar
-✅ AdminLogin.tsx             - Login page (demo: admin@harishcloths.com / admin123)
+✅ AdminLogin.tsx             - Login page (demo: admin@siddhifashion.com / admin123)
 ✅ AdminDashboard.tsx         - Dashboard with stats
 ✅ ProductsManagement.tsx     - Products CRUD
 ✅ OrdersManagement.tsx       - Orders tracking & status updates
@@ -237,7 +237,7 @@ Under ₹400     (₹0 - ₹399)
 ### **Demo Login**
 ```
 URL: /admin/login
-Email: admin@harishcloths.com
+Email: admin@siddhifashion.com
 Password: admin123
 ```
 

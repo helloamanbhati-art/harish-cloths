@@ -287,7 +287,7 @@ useEffect(() => {
       setFormData({
         name: '',
         description: '',
-        brand: brands[0]?.name || 'harish_cloth',
+        brand: brands[0]?.name || 'siddhi_fashion',
         category: '',
         price: '',
         soldBy: 'meter',
@@ -463,7 +463,7 @@ useEffect(() => {
   setFormData({
     name: '',
     description: '',
-    brand: brands[0]?.name || 'harish_cloth',
+    brand: brands[0]?.name || 'siddhi_fashion',
     category: '',
     price: '',
     soldBy: 'meter',
@@ -739,7 +739,7 @@ useEffect(() => {
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            const url = `https://harishcloths.com/product/${product.id}`;
+                            const url = `https://siddhifashion.com/product/${product.id}`;
                             navigator.clipboard.writeText(url).then(() => {
                               setCopiedId(product.id);
                               setTimeout(() => setCopiedId(null), 2000);
@@ -779,7 +779,7 @@ useEffect(() => {
                               {/* All variants option */}
                               <button
                                 onClick={() => {
-                                  const url = `https://harishcloths.com/product/${product.id}`;
+                                  const url = `https://siddhifashion.com/product/${product.id}`;
                                   navigator.clipboard.writeText(url).then(() => {
                                     setCopiedId(`${product.id}-all`);
                                     setTimeout(() => { setCopiedId(null); setPopoverProductId(null); }, 1800);
@@ -799,7 +799,7 @@ useEffect(() => {
                                 <button
                                   key={variant.variantId}
                                   onClick={() => {
-                                    const url = `https://harishcloths.com/product/${product.id}?variant=${variant.variantId}`;
+                                    const url = `https://siddhifashion.com/product/${product.id}?variant=${variant.variantId}`;
                                     navigator.clipboard.writeText(url).then(() => {
                                       setCopiedId(`${product.id}-${variant.variantId}`);
                                       setTimeout(() => { setCopiedId(null); setPopoverProductId(null); }, 1800);
